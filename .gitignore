@@ -1,0 +1,15 @@
+#data
+private/
+data/output
+src/secrets.py
+logs
+
+#secrets
+secrets/
+
+#caches
+*__pycache__*
+
+#env
+.env_chnobli
+

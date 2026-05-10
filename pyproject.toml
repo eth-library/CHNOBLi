@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nla"
+version = "0.1.0"
+description = "NER and Entity Linking pipeline for historical documents"
+authors = [
+    { name = "ADL Team", email = "adl-team@ethz.ch" }
+]
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "lxml>=6.1.0",
+    "germalemma>=0.1.3",
+    "requests>=2.33.1",
+    "flair==0.15.1",
+    "gensim>=4.4.0",
+    "orjson>=3.10.18",
+    "pytest>=9.0.3",
+    "rich>=15.0.0",
+    "pydantic-settings>=2.14.0",
+    "pymilvus[bulk-writer]>=2.6.3,<3",
+    "sentence-transformers>=5.4.1",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[tool.black]
+line-length = 88

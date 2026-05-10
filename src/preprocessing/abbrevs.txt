@@ -1,0 +1,1401 @@
+a c.
+a d.
+a v.
+a.
+a. a.
+a. a. o.
+a. b.
+a. c. i.
+a. chr.
+a. d.
+a. d. d.
+a. d. e.
+a. d. hrsg.
+a. d. o.
+a. f.
+a. g.
+a. i.
+a. l. i. c.
+a. m.
+a. n. chr.
+a. n. g.
+a. o.
+a. o. prof.
+a. rh.
+a. st.
+a. t.
+a. u. c.
+a. z.
+a.d.
+a.d.d.
+abb.
+abchas.
+abds.
+abf.
+abfr.
+abg.
+abgek.
+abh.
+abk.
+abl.
+abm.
+abn.
+abr.
+abs.
+abschn.
+abst.
+abt.
+abulg.
+abw.
+abwert.
+abzgl.
+accel.
+accresc.
+ad lib.
+add.
+adj.
+adr.
+adv.
+adyg.
+ae.
+aengl.
+afghan.
+afr.
+afranz.
+afranzös.
+afries.
+afrik.
+afrk.
+afrs.
+afrz.
+afränk.
+ags.
+ahd.
+aind.
+air.
+akad.
+akk.
+akkad.
+akt.
+al.
+alb.
+alban.
+alem.
+alemann.
+all.
+allg.
+allj.
+allm.
+alltagsspr.
+alphanum.
+alt.
+altai.
+altengl.
+altfranz.
+altfranzös.
+altfrz.
+altgr.
+althochdt.
+altis.
+altisländ.
+altpreuß.
+altröm.
+alttest.
+alëut.
+am.
+amer.
+amerik.
+amerikan.
+amhar.
+amt.
+amtl.
+amtm.
+amtsbl.
+amtsdt.
+amtsspr.
+an.
+an. g.
+anal.
+anat.
+anatom.
+andalus.
+ang.
+angelsächs.
+angest.
+angloamerik.
+anglofrz.
+angloind.
+anh.
+ank.
+ankl.
+anl.
+anm.
+anm. d. red.
+anm.d.red.
+ann.
+annamit.
+anord.
+anschl.
+anschr.
+antarkt.
+anthrop.
+anw.
+aobd.
+apl.
+apostr.
+app.
+apr.
+apreuß.
+ar.
+arab.
+aragon.
+aram.
+aran.
+architekt.
+archäol.
+arg.
+argent.
+arkt.
+armen.
+art.
+art.-nr.
+as.
+aserbaidsch.
+aslaw.
+assyr.
+astron.
+asächs.
+at.-gew.
+attr.
+aufl.
+aug.
+ausg.
+aussch.
+ausschl.
+ausspr.
+ausst.
+austral.
+awar.
+awest.
+az.
+aztek.
+b.
+b. r.
+b. w.
+bab.
+babyl.
+bair.
+bakt.
+bal.
+balt.
+baltoslaw.
+bankw.
+bas.
+baschk.
+bask.
+bat.
+bauf.
+bauw.
+bay.
+bayer.
+bayr.
+bayvbl.
+bd.
+bde.
+bed.
+begr.
+beif.
+beil.
+bem.
+ben.
+berbersprachl.
+bergb.
+berlin.
+berufsbez.
+bes.
+besch.
+beschl.
+best.
+best.-nr.
+betr.
+betriebswiss.
+bev.
+bez.
+bezw.
+bf.
+bfn.
+bg.
+bhf.
+bib.
+bibl.
+bildl.
+bildungsspr.
+biol.
+bj.
+bl.
+blk.
+bln.
+bodenk.
+bot.
+br. m.
+br.-m.
+br.-mstr.
+bras.
+bret.
+breton.
+brit.
+brm.
+brn.
+bruchz.
+bsd.
+bsp.
+bspw.
+bt-drs.
+btl.
+btto.
+bttr.
+buchw.
+buddh.
+bulg.
+bulgar.
+burjat.
+burmes.
+bw.
+byzant.
+bz.
+bzb.
+bzgl.
+bzw.
+böhm.
+börsenw.
+c.
+c. b.
+c. t.
+ca.
+carp.
+cb.
+cf.
+chakass.
+chald.
+chant.
+chem.
+chilen.
+chin.
+chr.
+christl.
+chron.
+co.
+cresc.
+d.
+d. e.
+d. gr.
+d. h.
+d. i.
+d. j.
+d. m.
+d. o.
+d. ä.
+das.
+dass.
+dat.
+ders.
+des.
+desgl.
+dez.
+dgl.
+di.
+dial.
+dichter.
+dies.
+dim.
+dimin.
+dipl.
+dipl.-ing.
+dipl.-kff.
+dipl.-kfm.
+dipl.-psych.
+dir.
+diss.
+do.
+do.-gge.
+dominikan.
+dor.
+doz.
+dr.
+dr. des.
+dr. h. c.
+dr. rer. nat.
+drchf.
+drcks.
+dres.
+drs.
+drucks.
+dt.
+dtl.
+dto.
+dtzd.
+dz.
+dän.
+e.
+e. h.
+e. v.
+ebd.
+ed.
+ehem.
+eidg.
+eig.
+eigtl.
+einf.
+einh.
+einl.
+einschl.
+einw.
+eisenb.
+elektrot.
+elektrotechn.
+em.
+engl.
+entspr.
+erb.
+erf.
+erg.
+erk.
+erl.
+erm.
+ersch.
+erschl.
+erw.
+erzb.
+erzg.
+erzgeb.
+eskim.
+estn.
+et al.
+etc.
+etc. pp.
+etg.
+etrusk.
+etw.
+eur.
+europ.
+ev.
+evang.
+evtl.
+ew.
+ewen.
+ewenk.
+exkl.
+expl.
+ez.
+f.
+f. i. t.
+fa.
+fachspr.
+fag.
+fam.
+febr.
+fem.
+fett i. tr.
+ff.
+fig.
+finanzmath.
+finn.
+finnougr.
+flgh.
+fläm.
+fn.
+fnhd.
+folg.
+forts.
+fortstzg.
+fr.
+fr. h.
+fr. verk.
+fragm.
+franz.
+französ.
+frdf.
+frdl.
+frdsprlg.
+frfr.
+frh.
+frhf.
+frhr.
+fries.
+friesl.
+frk.
+frl.
+frm.
+frnhd.
+frspr.
+frstl.
+frt.
+frtr.
+frwk.
+frz.
+fränk.
+frühnhd.
+fs.
+fsch.
+fschr.
+fsm.
+ftm.
+fut.
+färö.
+förml.
+g.
+g. e.
+g. e. d.
+g. g.
+g. t. s.
+ga.
+gall.
+galloroman.
+gart.
+gaskogn.
+gbf.
+gbl.
+geb.
+geb.-t.
+gebr.
+ged.
+gef.
+geg.
+gegr.
+geh.
+gek.
+gel.
+geleg.
+gem.
+gemeingerm.
+gen.
+geod.
+geogr.
+geograf.
+geograph.
+geol.
+geolog.
+geophys.
+georg.
+gep.
+ger.
+germ.
+ges.
+ges. gesch.
+gesch.
+gespr.
+gest.
+get.
+gew.
+gez.
+gez. bl.
+gfsch.
+gft.
+gg.
+ggb.
+ggbfs.
+ggez.
+ggf.
+ggfls.
+ggfs.
+ggs.
+ggü.
+ghzg.
+ghzgt.
+glchz.
+gleichbed.
+gleichz.
+glz.
+got.
+gr.
+gramm.
+grammat.
+graph.
+grch.
+grchl.
+grdb.
+grdf.
+grdfl.
+grdg.
+grdl.
+grdr.
+grds.
+grdst.
+griech.
+grz.
+grönländ.
+gt.
+gyn.
+gynäk.
+gäl.
+h. c.
+h. h.
+h. m.
+h.-i.
+h.-qu.
+hait.
+handw.
+hbf.
+hd.
+hebr.
+hess.
+hethit.
+hf.
+hg.
+hindust.
+hinr.
+hins.
+hinw.
+hist.
+hjber.
+hkl.
+hl.
+hochd.
+hochspr.
+hom.
+hor.
+hptpl.
+hpts.
+hptst.
+hqu.
+hr.
+hrn.
+hrsg.
+hs.
+hubbr.
+hubr.
+hw.
+hyaz.
+hydr.
+hydrol.
+hzm.
+i.
+i. a.
+i. allg.
+i. b.
+i. d.
+i. d. f.
+i. d. r.
+i. e.
+i. e. f.
+i. e. r.
+i. e. s.
+i. g.
+i. h.
+i. r.
+i. s. d.
+i. s. v.
+i. v.
+i. v. m.
+i. w. s.
+i. z. m.
+i. ü. s.
+i.e.
+i.tr.
+iber.
+ibid.
+ide.
+ident.
+idg.
+ie.
+illyr.
+imkerspr.
+imp.
+ind.
+indef.
+indekl.
+indian.
+indiff.
+indir.
+indiv.
+indog.
+indogerm.
+indogerman.
+indoiran.
+indon.
+indones.
+inf.
+ing.
+inh.
+inkl.
+inn.
+insb.
+insbes.
+int.
+intern.
+intrans.
+ir.
+iran.
+iron.
+isl.
+islam.
+isländ.
+it.
+ital.
+italien.
+iur.
+j.
+j. w. d.
+jahrh.
+jakut.
+jan.
+jap.
+japan.
+jav.
+jem.
+jemen.
+jg.
+jh.
+jhd.
+jhdt.
+jhs.
+jidd.
+jmd.
+jmdm.
+jmdn.
+jmds.
+journ.
+jr.
+jt.
+jtsd.
+jugendspr.
+jugendsprachl.
+jugoslaw.
+jul.
+jun.
+jur.
+jägersprachl.
+jährl.
+jän.
+jüd.
+k. a.
+k. o.
+k. u.
+k. u. k.
+k. w.
+k.u.k.
+k.ö.st.v.
+kalm.
+kanad.
+kap.
+karib.
+kastil.
+katal.
+katalan.
+kath.
+kaufm.
+kaukas.
+kelt.
+kgr.
+kh.
+kindersprachl.
+kirchenlat.
+kirchenslaw.
+kirchl.
+kirg.
+kl.
+klass.
+klass.-lat.
+klimatol.
+kol.
+komm.
+konj.
+konv.
+kop.
+kopt.
+korean.
+kr.
+kreol.
+kret.
+krh.
+krhs.
+krim.-ob.-insp.
+krimgot.
+kriminaltechn.
+krkhs.
+kroat.
+krs.
+ks.
+kto.
+kto.-nr.
+kuban.
+kurd.
+kurzw.
+kw.
+l.
+l. a.
+l.-abg.
+lab.
+labg.
+ladin.
+landsch.
+landw.
+langfr.
+langj.
+langob.
+langobard.
+lapp.
+lat.
+latein.
+latinis.
+lautl.
+lautm.
+lbd.
+lbdg.
+ldkr.
+led.
+leg.
+lett.
+lfd.
+lfd. j.
+lfd. m.
+lfd. nr.
+lfg.
+lfm.
+lfrg.
+lg.
+lgfr.
+lgft.
+lgj.
+lic.
+lig.
+ling.
+lit.
+ll.m.
+lrh.
+lt.
+ltd.
+luth.
+luxemb.
+m ü. a.
+m ü. m.
+m.
+m. a. n.
+m. b. l.
+m. b. u. r.
+m. br.
+m. d. a.
+m. d. b.
+m. d. b. u. ktn.
+m. d. b. u. ü.
+m. d. e.
+m. d. f. b.
+m. d. f. d. g. b.
+m. d. l. b.
+m. d. l. d. g. b.
+m. d. m.
+m. d. r.
+m. d. t.
+m. d. tit.
+m. d. u. h.
+m. d. v. b.
+m. d. w.
+m. d. w. b.
+m. d. w. d. g. b.
+m. e.
+m. n.
+m. w.
+m.-schr.
+m.a.w.
+ma.
+mag.
+mag. rer. nat.
+malai.
+marinespr.
+marx.
+mask.
+math.
+max.
+mazedon.
+mbl.
+mbll.
+md.
+mdal.
+mdj.
+mdl.
+mdls.
+mdt.
+me.
+mech.
+meckl.
+med.
+melanes.
+mengl.
+merc.
+met.
+meteorol.
+meton.
+mex.
+mexik.
+mfr.
+mfranz.
+mfrk.
+mfrz.
+mfränk.
+mgl.
+mglw.
+mhd.
+mhdt.
+mi.
+mia.
+milit.
+mill.
+min.
+mind.
+mio.
+mir.
+mitgl.
+mitteld.
+mitteldt.
+mittelhochdt.
+mittw.
+mitw.
+mlat.
+mme.
+mmes.
+mnd.
+mndd.
+mniederd.
+mnl.
+mo.
+mod.
+mong.
+mrd.
+mrz.
+mschr.
+msgr.
+msp.
+mtl.
+mundartl.
+musik.
+mwst.
+myth.
+mz.
+männl.
+möbl.
+n.
+n. br.
+n. chr.
+n. d.
+n. d. z.
+n. n.
+n. r.
+n. st.
+n. t.
+n. u. z.
+n. v.
+nachf.
+nachm.
+nat.
+nationalsoz.
+natsoz.
+nbfl.
+nchf.
+nd.
+ndd.
+ndrl.
+neapolit.
+neub.
+neunorweg.
+neutest.
+neutr.
+nfl.
+nhd.
+niederd.
+niederdt.
+niederl.
+niederld.
+niem.
+nl.
+nlat.
+nom.
+nord.
+nordamerik.
+nordd.
+norddt.
+nordgerm.
+nordostd.
+nordostdt.
+nordwestd.
+nordwestdt.
+norm.
+norw.
+norweg.
+nov.
+nr.
+ntw.
+nutzfl.
+nw.
+näml.
+nö.
+nördl.
+nördl. br.
+o.
+o. b.
+o. b. d. a.
+o. dgl.
+o. g.
+o. j.
+o. k.
+o. o.
+o. prof.
+o. t.
+o. u.
+o. v.
+o. ä.
+o.k.
+obb.
+obd.
+oberlaus.
+obers.
+obersächs.
+obj.
+od.
+offiz.
+offz.
+ofr.
+ofrs.
+okt.
+op.
+org.
+orig.
+orth.
+osk.
+osman.
+ostd.
+ostdt.
+ostfrz.
+ostgerm.
+ostmdt.
+ostmitteld.
+ostniederd.
+ostpreuß.
+oz.
+p.
+p. a.
+p. adr.
+p. chr.
+p. t.
+p.s.
+pa.
+palästin.
+part.
+pass.
+pat.
+pej.
+pers.
+peruan.
+pet.
+pf.
+pfd.
+pfg.
+pfl.
+pharm.
+phil.
+philos.
+phonolog.
+phryg.
+phys.
+phöniz.
+pi.
+pik.
+pkt.
+pl.
+plur.
+poet.
+pol.
+polit.
+poln.
+polynes.
+port.
+portug.
+pos.
+pp.
+ppa.
+preuß.
+priv.-doz.
+prof.
+prot.
+prov.
+prov.-fr.
+provenz.
+proz.
+proz.-bev.
+präd.
+prähist.
+präs.
+psych.
+päd.
+q.
+q. b. a.
+q. d.
+q. e.
+q. e. d.
+q. e. i.
+q. h.
+q. i. d.
+q. l.
+q. n.
+q. p.
+q. s.
+q. v.
+q.v.
+qmstr.
+qt.
+qu.
+quadr.
+qual.
+quant.
+quar.
+quart.
+quat.
+quitt.
+quäst.
+r.
+r. a. f.
+r. i. p.
+r.-k.
+rab.
+rad.
+rak.
+rat.
+rd.
+rderl.
+rdf.
+refl.
+reg.
+reg.-bez.
+regt.
+rel.
+relig.
+rep.
+rer.
+resp.
+rg.-präs.
+rgbl.
+rglm.
+rgstr.
+rgt.
+rh.
+rhein.
+rheinhess.
+rhet.
+rhfrk.
+rhj.
+rhld.
+rhs.
+ri.
+richtl.
+rip.
+rk.
+roman.
+rotw.
+rr.
+rrh.
+rspr.
+rtn.
+rtt.
+rumän.
+russ.
+rvj.
+rzp.
+rätorom.
+röm.
+röm.-kath.
+s.
+s. a.
+s. br.
+s. em.
+s. l.
+s. l. e. a.
+s. o.
+s. s.
+s. str.
+s. t.
+s. u.
+sa.
+san.
+sanskr.
+sat.
+sbd.
+sc.
+scherzh.
+schill.
+schles.
+schott.
+schr.
+schriftl.
+schwed.
+schweiz.
+schwäb.
+sdp.
+sek.
+sem.
+semit.
+sen.
+sep.
+sept.
+serb.
+serbokroat.
+sg.
+sibir.
+sing.
+singhal.
+sir.
+sizilian.
+skand.
+slaw.
+slow.
+slowak.
+slowen.
+so.
+sod.
+sof.
+sog.
+sogen.
+sogl.
+soldatenspr.
+solv.
+somal.
+sorb.
+sout.
+soz.
+soziol.
+span.
+spez.
+sportspr.
+spr.
+sprachwiss.
+spvg.
+spvgg.
+spätahd.
+spätgriech.
+spätlat.
+spätmhd.
+sr.
+ssp.
+st.
+st. rspr.
+staatl.
+std.
+stdl.
+stellv.
+stk.
+str.
+stud.
+subsp.
+subst.
+sumer.
+svw.
+syn.
+syr.
+sächs.
+südafrik.
+südd.
+süddt.
+südl.
+südl. br.
+südostdt.
+südwestd.
+süßw.
+tab.
+tabl.
+taf.
+tamil.
+tatar.
+techn.
+tel.
+telef.
+temp.
+terr.
+tessin.
+test.
+tfx.
+tgl.
+tgt.
+theol.
+thrak.
+thür.
+thüring.
+ti.
+tib.
+tirol.
+tlr.
+tochar.
+trans.
+tsch.
+tschech.
+tschechoslowak.
+tsd.
+tungus.
+turkotat.
+typogr.
+tägl.
+türk.
+u.
+u. a.
+u. a. m.
+u. a. w. g.
+u. a. z. n.
+u. b.
+u. b. z.
+u. b. z. m.
+u. d. m.
+u. dgl.
+u. dgl. m.
+u. e.
+u. e. a.
+u. e. a. m.
+u. m.
+u. s. w.
+u. u.
+u. u. r.
+u. v.
+u. v. a.
+u. w.
+u. z.
+u. zw.
+u. ä.
+ubr.
+ue.
+ugr.
+ugs.
+ukrain.
+umbr.
+umg.
+unang.
+unbefl.
+unf.
+unfol.
+unfr.
+ung.
+ungar.
+ungebr.
+ungel.
+ungen.
+unges.
+ungl.
+uni-kl.
+univ.
+unzerbr.
+urgerm.
+urkdl.
+urspr.
+ursprüngl.
+urt.
+usf.
+ust-idnr.
+usw.
+uvm.
+v.
+v. a.
+v. chr.
+v. d.
+v. d. z.
+v. j.
+v. l. n. r.
+v. m.
+v. o. n. u.
+v. r. n. l.
+v. u. z.
+v.s. dlg a.n.g.
+va.
+verf.
+verg.
+vergl.
+verh.
+vert.
+vfg.
+vgbl.
+vgl.
+vh.
+viell.
+vj.
+vl.
+vlat.
+vlt.
+volkst.
+vors.
+vrt.
+vs.
+vsl.
+vt.
+vulg.
+vulgärlat.
+vwz.
+vzk.
+w.
+w. l.
+w. v.
+w. w.
+wa.
+wal.
+weibl.
+weißruss.
+westd.
+westdt.
+westf.
+westfäl.
+westgerm.
+westl.
+westmitteld.
+westmitteldt.
+wfl.
+wg.
+wh.
+whg.
+winzerspr.
+wirtschaftl.
+wiss.
+wld.
+ws.
+wtb.
+ww.
+wwe.
+wz.
+xerogr.
+xerok.
+xyl.
+y.
+y. a. r.
+yd.
+yds.
+z.
+z. a.
+z. b.
+z. b. v.
+z. f.
+z. t.
+z. z.
+z. zt.
+z.b.
+zf.
+zi.
+ziff.
+zit.
+zit. n.
+zool.
+zssg.
+zssgn.
+ztr.
+zus.
+zw.
+zz.
+zzgl.
+zzt.
+ägypt.
+ö. l.
+ökol.
+ökon.
+ökum.
+österr.
+östl.
+ü. m.
+ü. w.
+übers.
+übertr.
+überw.
+übl.
+üblw.
+übn.
+übsch.

@@ -1,0 +1,54 @@
+[
+    {
+        "lastname": "Meier",
+        "firstname": [],
+        "abbr_firstname": [],
+        "address": [],
+        "titles": [],
+        "profession": [],
+        "other": [],
+        "references": {
+            "abc-001_1234_123_0001.txt": {
+                "pid": null,
+                "refs": [
+                    {
+                        "sent": 0,
+                        "coords": [
+                            "456,789,123,00:main"
+                        ]
+                    }
+                ],
+                "elements": []
+            }
+        },
+        "type": "PER",
+        "id": 0,
+        "gnd_ids": []
+    },
+    {
+        "lastname": "Mueller",
+        "firstname": [],
+        "abbr_firstname": [],
+        "address": [],
+        "titles": [],
+        "profession": [],
+        "other": [],
+        "references": {
+            "abc-001_1234_123_0002.txt": {
+                "pid": null,
+                "refs": [
+                    {
+                        "sent": 0,
+                        "coords": [
+                            "456,789,123,00:main"
+                        ]
+                    }
+                ],
+                "elements": []
+            }
+        },
+        "type": "PER",
+        "id": 1,
+        "gnd_ids": []
+    }
+]

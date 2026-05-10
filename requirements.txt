@@ -1,0 +1,12 @@
+lxml
+germalemma
+requests
+flair==0.15.1
+gensim
+pytest
+orjson
+pydantic-settings==2.14.1
+rich==15.0.0
+# No longer necessary once we have the API running
+sentence-transformers==5.4.1
+pymilvus[bulk-writer]==2.6.3

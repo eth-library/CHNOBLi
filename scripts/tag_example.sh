@@ -1,0 +1,1 @@
+python main.py --tasks prep,tag --magazine_year_paths ./data/input_example/tjb/1955_030 --config_file configs/configurations_example.json

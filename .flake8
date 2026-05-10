@@ -1,0 +1,16 @@
+[flake8]
+# E203: whitespace before ':'
+# W503: line break before binary operator
+extend-ignore = E203, W503
+
+# Set the maximum line length to 88 to match Black's default setting.
+max-line-length = 88
+
+# Optional: exclude common directories from linting
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    .venv,
+    venv

@@ -1,0 +1,72 @@
+2116,2962
+Stabeisen 380,383,150,22
+Formeisen 372,428,157,22
+Armierungseisen 270,472,259,29
+<EOS>
+<EOP>
+Röhren 422,519,107,21
+Bleche 426,565,104,20
+Metalle 422,610,108,21
+Legierungen 337,654,192,28
+Hochdruckguß 301,700,230,28
+<EOS>
+<EOP>
+Ablaufguß 372,746,158,27
+Bauwerkzeuge 303,791,227,27
+<EOS>
+<EOP>
+Fittings 414,836,116,28
+Armaturen 367,881,161,22
+Eisenwaren 354,926,175,21
+Werkzeuge 359,972,171,27
+Hauhaitartikel 312,1017,216,21
+<EOS>
+<EOP>
+u.£o.Äfi 869,1182,284,73
+<EOS>
+Frcrueu/eld 897,1285,255,37
+Zürcherstraße 1207,1298,197,22
+180 1418,1300,47,20
+Telephon 1498,1298,122,27
+(054) 1637,1297,74,27
+7 1726,1300,14,19
+11 1750,1299,17,20
+37 1778,1299,33,20
+<EOS>
+<EOP>
+iviw.: 928,1907,53,14
+<EOS>
+<EOP>
+Ladeneinrichtung 1756,1615,182,28
+Drogerie 1639,1657,87,28
+Walter 1739,1656,69,23
+Haas 1820,1656,53,23
+& 1883,1657,14,22
+Co. 1907,1656,30,23
+<EOS>
+<EOP>
+Frauenfeld 1827,1698,111,22
+<EOS>
+<EOP>
+eine 950,2478,41,21
+Arbeit 1006,2477,62,22
+von: 1080,2483,46,16
+Jakob 1183,2478,88,21
+Freyenmuth, 1287,2478,189,26
+Frauenfeld 1492,2477,162,22
+<EOS>
+<EOP>
+Schreinerwerkstätte 1184,2519,310,21
+für 1507,2519,43,20
+Möbel 1565,2519,89,21
+und 1670,2519,54,20
+Innenausbau 1741,2519,195,21
+Thundorferstraße 1183,2560,269,21
+Telephon 1486,2560,142,27
+714 1644,2559,58,22
+77 1712,2560,36,21
+<EOS>
+<EOP>
+59 1043,2744,32,25
+<EOS>
+<EOP>

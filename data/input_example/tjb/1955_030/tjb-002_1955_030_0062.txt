@@ -1,0 +1,95 @@
+2116,2962
+Hilfsmittel 233,382,157,28
+für 406,383,44,27
+die 464,383,44,27
+Papierindustrie, 525,382,251,34
+Textilindustrie 792,380,228,28
+Gerberei 232,447,135,28
+und 384,447,55,26
+Lederindustrie, 458,446,240,31
+Brauereien 715,446,176,27
+Technische 231,511,185,27
+Öle 435,505,51,33
+und 505,511,55,27
+Fette, 583,511,85,30
+Kellereiartikel 689,509,220,29
+Schuh- 231,575,115,28
+und 362,576,55,26
+Bodenpflegemittel 435,575,286,34
+Fliegenfänger 235,640,221,34
+«Primus», 472,640,167,30
+Melkfett 658,638,124,27
+«Alpa» 799,638,109,34
+<EOS>
+<EOP>
+Gegründet 1587,379,143,27
+1887 1742,380,64,21
+<EOS>
+<EOP>
+Tanner 1302,506,288,60
+& 1617,513,56,51
+Frauenfeld 1316,603,433,59
+<EOS>
+<EOP>
+TEA-ROOM 268,1880,237,28
+RHYHOF 542,1861,306,46
+LUNCH-ROOM 880,1877,310,28
+FRAUENFELD 1235,1875,303,28
+<EOS>
+<EOP>
+Modernste 229,2523,143,22
+Service- 385,2521,112,23
+und 512,2521,47,22
+Reparaturwerkstätte 576,2521,280,27
+Spezialität: 228,2567,153,28
+Vorderachs-Revisionen 395,2565,317,23
+und 729,2565,47,22
+Richtarbeiten 792,2565,183,22
+<EOS>
+<EOP>
+Das 266,1154,50,21
+Haus, 332,1154,73,24
+für 264,1195,39,22
+kulinarische 318,1195,166,22
+Genüsse 500,1194,114,23
+<EOS>
+<EOP>
+Die 267,1282,42,21
+Confiserie, 325,1281,147,23
+mit 267,1324,43,21
+der 323,1323,44,22
+großen 382,1322,94,28
+Auswahl 491,1322,113,22
+Der 268,1410,48,22
+Treffpunkt 329,1409,143,28
+der 266,1451,43,21
+Geschäftswelt 323,1450,190,23
+<EOS>
+<EOP>
+Offizielle 1289,2301,119,22
+Vertretung 1422,2300,145,27
+GM-Automobile 1662,2299,213,23
+<EOS>
+<EOP>
+L.Aigner, 1161,2489,228,41
+<EOS>
+Garage, 1405,2488,190,40
+Frauenfeld 1614,2486,261,34
+Telephon 1159,2564,124,27
+7 1299,2565,13,20
+1155 1322,2565,62,20
+Zürcherstraße 1418,2561,197,23
+301 1630,2563,43,20
+<EOS>
+<EOP>
+Das 266,985,49,22
+Cafe, 330,984,66,25
+mit 266,1028,43,19
+der 323,1027,44,20
+heimeligen 381,1025,149,28
+Atmosphäre 263,1067,168,28
+<EOS>
+<EOP>
+57 1036,2741,32,24
+<EOS>
+<EOP>

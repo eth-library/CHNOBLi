@@ -1,0 +1,20 @@
+{
+    "PATH_TO_INPUT_FOLDERS": "./adl/fulltext/",
+    "PATH_TO_NER_MODEL_1": "/mnt/data/rashitig/models/ner-bio.pt",
+    "PATH_TO_NER_MODEL_2": "/mnt/data/rashitig/models/ner-det.pt",
+    "PATH_TO_OUTFILE_FOLDER": "./adl/processed/",
+    "PATH_TO_ABBREVIATION_FILE": "./src/preprocessing/abbrevs.txt",
+    "PATH_TO_GROUND_TRUTH_FUZZY": "./data/ground_truth/ground_truth_linked/with_fuzzy_matching/",
+    "PATH_TO_GROUND_TRUTH_NOTFUZZY": "./data/ground_truth/ground_truth_linked/without_fuzzy_matching/",
+    "DATA2_MNT": "./adl/",
+    "VD_API_TOKEN": "./src/.env.api.token",
+    "VD_MAX_RETRIES": 50,
+    "VD_QUERY_CHUNK_LEN": 500,
+    "VD_MAX_DIST": 0.6,
+    "VD_CONTEXT_WINDOW_LEN": 30,
+    "SENTENCE_BATCH_SIZE": 128,
+    "GND_LIMIT": 15,
+    "WIKIDATA_LIMIT": 5,
+    "LINKED_PERSONS_LIMIT": 3,
+    "BATCH_SIZE": 4
+}

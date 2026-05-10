@@ -1,0 +1,17 @@
+services:
+  linking:
+    image: linking:v0.1
+    build:
+      context: .
+      dockerfile: services/linking/Dockerfile
+      secrets:
+        - adl_key
+    user: "${UID}:${GID}"
+    volumes:
+      - USER=${USER}
+      - /mnt/adl:/data/adl:ro
+      - /home/chadhat/output:/data/output
+    command: tail -F /dev/null
+secrets:
+  adl_key:
+    file: ./services/linking/deployment_key/adl_key
