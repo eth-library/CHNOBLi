@@ -10,8 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     VIRTUAL_ENV=/opt/venv
 
-# Install Python 3.11 via PPA and system dependencies
-# This is much faster than compiling from source.
+# Install Python 3.12 via PPA and system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
     && add-apt-repository ppa:deadsnakes/ppa \
@@ -30,25 +29,36 @@ ENV PATH="/uv/bin:$PATH"
 
 WORKDIR /app
 
-# Use BuildKit secrets to clone the repository securely.
-# The key is never stored in the image layers.
-RUN git clone git@github.com:eth-library/CHNOBLi.git
-
-# Move into the repository
-WORKDIR /app/nla
+# Move into the project
+WORKDIR /app/chnobli/nla
+COPY src/ src/
+COPY configs/ configs/
+COPY scripts/ scripts/
+COPY tests/ tests/
+COPY utility/ utility/
+COPY data/ data/
+COPY main.py pyproject.toml .env_template README.md .
 
 # Ensure uv uses the existing virtual environment and doesn't cache
 ENV UV_PROJECT_ENVIRONMENT=$VIRTUAL_ENV
+# Install dependencies
 RUN uv sync --no-dev --no-cache
 
-# Download models and install Python dependencies
-RUN wget -O ner-bio.zip https://www.research-collection.ethz.ch/bitstreams/5be21deb-f852-4317-b428-162326e2a741/download && \
-    unzip ner-bio.zip && \
-    rm ner-bio.zip
-
-RUN wget -O ner-det.zip https://www.research-collection.ethz.ch/bitstreams/370809dd-190b-4687-87e6-73e42367dee1/download && \
-    unzip ner-det.zip && \
-    rm ner-det.zip
+# Get models
+WORKDIR /app/chnobli/nla/models
+COPY models/* ./
+RUN if [ -z "$(ls -A . 2>/dev/null)" ]; then \
+      echo "No models found in local directory. Start Download..." && \
+        wget -O ner-bio.zip https://www.research-collection.ethz.ch/bitstreams/5be21deb-f852-4317-b428-162326e2a741/download && \
+            unzip ner-bio.zip && \
+            rm ner-bio.zip \
+        wget -O ner-det.zip https://www.research-collection.ethz.ch/bitstreams/370809dd-190b-4687-87e6-73e42367dee1/download && \
+            unzip ner-det.zip && \
+            rm ner-det.zip\
+    else \
+      echo "Using local models from ./models/*, skip download."; \
+    fi
+WORKDIR /app/chnobli/nla
 
 # Default command (can be overridden in docker-compose)
-CMD ["tail","-f", "/dev/null"]
+CMD ["tail", "-f", "/dev/null"]
