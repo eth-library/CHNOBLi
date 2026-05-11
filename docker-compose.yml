@@ -1,17 +1,43 @@
 services:
   linking:
+    #image: registry.ethz.ch/library/adl/nla/linking:v1.1
     image: linking:v0.1
+    container_name: linking
+    hostname: nla
+    user: "${UID}:${GID}"
+    #deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #        - driver: nvidia
+    #          count: all # Or specify a number like 1
+    #          capabilities: [gpu]
+    environment:
+      - USER=${USER}
+      - PATH_TO_OUTFILE_FOLDER=/app/nla/data/output
+      - PATH_TO_CA_CERT=/certs/ca.crt
+      - TZ=Europe/Zurich
+      - USE_RICH_LOGGING=false
+    env_file:
+      - .env
+    volumes:
+      - ./private/input:/app/nla/data/input
+      - ./private/output:/app/nla/data/output
+      - ./private/logs:/app/nla/logs
+      - ${PATH_TO_CA_CERT}:/certs/ca.crt:ro
+  webui:
     build:
       context: .
-      dockerfile: services/linking/Dockerfile
-      secrets:
-        - adl_key
-    user: "${UID}:${GID}"
+      dockerfile: services/webui/Dockerfile
+    container_name: nla-webui
+    hostname: webui
+    ports:
+      - "8080:8080"
+    environment:
+      - LINKING_CONTAINER=linking
     volumes:
-      - USER=${USER}
-      - /mnt/adl:/data/adl:ro
-      - /home/chadhat/output:/data/output
-    command: tail -F /dev/null
-secrets:
-  adl_key:
-    file: ./services/linking/deployment_key/adl_key
+      - ./private/output:/app/output:ro
+      - ./configs:/app/configs
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - linking

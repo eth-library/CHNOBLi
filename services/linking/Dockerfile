@@ -31,13 +31,13 @@ WORKDIR /app
 
 # Move into the project
 WORKDIR /app/chnobli/nla
-COPY src/ src/
-COPY configs/ configs/
-COPY scripts/ scripts/
-COPY tests/ tests/
-COPY utility/ utility/
-COPY data/ data/
-COPY main.py pyproject.toml .env_template README.md .
+COPY --chown=appuser:appuser src/ src/
+COPY --chown=appuser:appuser configs/ configs/
+COPY --chown=appuser:appuser scripts/ scripts/
+COPY --chown=appuser:appuser tests/ tests/
+COPY --chown=appuser:appuser utility/ utility/
+COPY --chown=appuser:appuser data/ data/
+COPY --chown=appuser:appuser main.py pyproject.toml .env_template README.md .
 
 # Ensure uv uses the existing virtual environment and doesn't cache
 ENV UV_PROJECT_ENVIRONMENT=$VIRTUAL_ENV
