@@ -1,12 +1,12 @@
 services:
   linking:
-    #image: registry.ethz.ch/library/adl/nla/linking:v1.1
     image: linking:v0.1
+    container_name: chnobli-linking
     hostname: nla
     build:
       context: .
       dockerfile: services/linking/Dockerfile
-    user: "${UID}:${GID}"
+    user: "${UID:-1000}:${GID:-1000}"
     deploy:
       resources:
         reservations:
@@ -14,30 +14,17 @@ services:
             - driver: nvidia
               count: all # Or specify a number like 1
               capabilities: [gpu]
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      - USER=${USER}
+      - USER=${USER:-appuser}
       - PATH_TO_CA_CERT=/certs/ca.crt
       - TZ=Europe/Zurich
       - USE_RICH_LOGGING=false
-    env_file:
-      - .env
     volumes:
       - ./private/input:/app/chnobli/nla/data/input
       - ./private/output:/app/chnobli/nla/data/output
       - ./private/logs:/app/chnobli/nla/logs
       - ${PATH_TO_CA_CERT}:/certs/ca.crt:ro
-  webui:
-    build:
-      context: .
-      dockerfile: services/webui/Dockerfile
-    hostname: webui
-    ports:
-      - "8080:8080"
-    environment:
-      - LINKING_CONTAINER=linking
-    volumes:
-      - ./private/output:/app/output:ro
-      - ./configs:/app/configs
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - linking

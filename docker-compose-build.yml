@@ -1,6 +1,0 @@
-services:
-  linking:
-    image: linking:v0.1
-    build:
-      context: .
-      dockerfile: services/linking/Dockerfile
