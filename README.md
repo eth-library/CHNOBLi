@@ -132,16 +132,6 @@ The project includes a `Makefile` to simplify common tasks and ensure consistent
 - **`make shell`**: Drop into a bash shell inside the `linking` container.
 - **`make shell-root`**: Same as above, but with root privileges.
 
-### Docker
-
-Run
-
-```docker compose --file docker-compose-dev.yml up```
-
-that automatically sets up your environment for you, although you still need to set up your own vector database and ElasticSearch index. To link you can then call
-
-```docker exec -it linking sh scripts/link_example.sh```
-
 ## Quick Start
 
 ### Try It with Example Data
