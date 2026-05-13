@@ -85,7 +85,7 @@ pip install -r requirements.txt
 
 #### Step 4: Download Models
 
-Download the tagging models from [here](https://www.research-collection.ethz.ch/bitstreams/5be21deb-f852-4317-b428-162326e2a741/download) and [here](https://www.research-collection.ethz.ch/bitstreams/370809dd-190b-4687-87e6-73e42367dee1/download) and save them to the `models/` directory.
+Download the tagging models from the [ETH Research Collection (DOI: 10.3929/ethz-c-000799811)](https://doi.org/10.3929/ethz-c-000799811) and save them to the `models/` directory.
 
 ### Alternative to step 2-4: Docker
 
