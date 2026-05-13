@@ -16,3 +16,6 @@ secrets/
 # Services (local clones)
 services/CHNOBLi-elasticsearch
 services/CHNOBLi-vectordb
+
+# Models
+models/*pt
