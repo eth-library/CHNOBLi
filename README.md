@@ -87,6 +87,16 @@ pip install -r requirements.txt
 
 Download the tagging models from [here](https://www.research-collection.ethz.ch/bitstreams/5be21deb-f852-4317-b428-162326e2a741/download) and [here](https://www.research-collection.ethz.ch/bitstreams/370809dd-190b-4687-87e6-73e42367dee1/download) and save them to the `models/` directory.
 
+### Alternative to step 2-4: Docker
+
+Instead of setting up the environment yourself as explained above you can also call:
+
+```docker compose --file docker-compose-dev.yml up```
+
+that automatically sets up your environment for you, although you still need to set up your own vector database and ElasticSearch index. To link you can then call
+
+```docker exec -it linking sh scripts/link_example.sh```
+
 #### Step 5: Configure ElasticSearch
 
 A public API endpoint is coming soon. To set up your own:
@@ -94,7 +104,7 @@ A public API endpoint is coming soon. To set up your own:
 1. Follow the setup guide in [CHNOBLi-elasticsearch](https://github.com/eth-library/CHNOBLi-elasticsearch)
 2. Update `CHNOBLi/.env_template` with your endpoints and index names
 3. Rename file to `.env`
-4. Copy the certificate hierarchy: `secrets/certs/ca/ca.crt`
+4. Copy the certificate hierarchy: `secrets/certs/ca/ca.crt` from the CHNOBLi-elasticsearch directory to this one
 
 #### Step 6: Configure Milvus
 
@@ -138,21 +148,21 @@ that automatically sets up your environment for you, although you still need to 
 
 **1. Tag example documents**
 ```bash
-sh scripts/tag_example.sh
+sh scripts/tag_example.sh # Windows: python main.py --tasks prep,tag --magazine_year_paths ./data/input_example/tjb/1955_030 --config_file configs/configurations_example.json
 ```
 Output: `data/output/tag/`
 
 **2. Link entities**
 ```bash
-sh scripts/link_example.sh
+sh scripts/link_example.sh # Windows: python main.py --tasks finish --magazine_year_paths ./data/output/tag/tjb --config_file ./configs/configurations_example.json
 ```
 Output: `data/output/link/`
 
 **3. Evaluate results**
 ```bash
-sh scripts/eval_example.sh
+sh scripts/eval_example.sh # Windows: python3 main.py --tasks eval --config_file ./configs/eval_config_example.json --eval_level ref
 ```
-Output: `data/output/eval_ref.json`
+Output: `data/output/eval_tjb.json`
 
 ## Using Your Data
 

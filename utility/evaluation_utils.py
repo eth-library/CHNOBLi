@@ -117,7 +117,10 @@ class Paths:
             if os.path.isdir(curr_path):
                 pass
             else:
-                os.mkdir(curr_path)  # this creates the magazine directories
+                try:
+                    os.mkdir(curr_path)  # this creates the magazine directories
+                except FileNotFoundError:
+                    os.makedirs(curr_path, exist_ok=True)
 
         if key == "file":  # we created the dict before, now we add the file to the path
             path = self.get(type_=type_,
