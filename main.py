@@ -97,8 +97,15 @@ def main():
 
     if paths:
         paths = paths.split(",")
+        # Validate that all paths exist before starting
+        invalid_paths = [p for p in paths if not os.path.isdir(p)]
+        if invalid_paths:
+            logging.error(f"The following input paths do not exist: {', '.join(invalid_paths)}")
+            print(f"ERROR: Input paths not found: {', '.join(invalid_paths)}")
+            exit(1)
+            
         settings.CUSTOM_PATHS = paths
-        if tasks == "eval":
+        if "eval" in tasks:
             logging.warning(
                 "Careful! You have selected the task 'eval' as well as"
                 " giving a custom path. Evaluation is always done on"

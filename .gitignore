@@ -13,3 +13,6 @@ secrets/
 #env
 .env_chnobli
 
+# Services (local clones)
+services/CHNOBLi-elasticsearch
+services/CHNOBLi-vectordb
