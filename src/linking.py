@@ -26,11 +26,7 @@ from utility.settings import settings
 from itertools import batched, takewhile
 # Until we can set up the API
 import numpy as np
-from pymilvus import (  # type: ignore
-    Collection,
-    Connections,
-    connections,
-)
+from pymilvus import MilvusClient  # type: ignore
 from collections import OrderedDict
 from sentence_transformers import SentenceTransformer
 from typing import List
@@ -767,12 +763,6 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
     logging.error(f"Max retries exceeded. Failed to retrieve distances: {response.status_code} - {response.text}")
 
 
-def connect_milvus() -> Connections:
-    # Connect to Milvus
-    connections.connect("default", host=settings.MILVUS_HOST, port=settings.MILVUS_PORT)
-    return connections
-
-
 def compare_vector_to_text_ids_multiplexed(  # type: ignore
     input: list[dict], 
     vectors: list[list[float]], 
@@ -788,9 +778,10 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
     collection_name: Milvus collection
     ditance_metric: "cosine" | "l2" | "ip"
     """
-    connect_milvus()
-    collection = Collection(collection_name)
-    collection.load()
+    
+    # Initialize the modern MilvusClient
+    client = MilvusClient(uri=f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}")
+    client.load_collection(collection_name)
 
     # Collect all candidate IDs across all queries
     all_ids = set()
@@ -801,9 +792,13 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
     if not all_ids:
         return [{"query_id": item["query_id"], "distances": []} for item in input]
 
-    # single Milvus query
+    # single Milvus query using modern client
     expr = f"text_id in {all_ids}"
-    candidate_rows = collection.query(expr=expr, output_fields=["text_id", "embedding"])
+    candidate_rows = client.query(
+        collection_name=collection_name,
+        filter=expr,
+        output_fields=["text_id", "embedding"]
+    )
 
     id_to_emb = {
         row["text_id"]: np.array(row["embedding"], dtype=np.float32)
@@ -856,7 +851,7 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
             }
         )
 
-    collection.release()
+    client.release_collection(collection_name)
     return results
 
 
