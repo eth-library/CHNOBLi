@@ -27,18 +27,18 @@ help:
 	@echo "  shell        Open a bash shell in the running container"
 	@echo "  shell-root   Open a root bash shell in the running container"
 	@echo "  webui-build  Build the web UI image"
-	@echo "  webui-up     Start the web UI (http://localhost:8080)"
+	@echo "  webui-up     Start the web UI (http://localhost:8501)"
 	@echo "  webui-down   Stop the web UI"
 
 # --- Setup ---
 
 setup:
-	chmod +x setup.sh
-	./setup.sh
+	chmod +x maintenance/setup.sh
+	./maintenance/setup.sh
 
 import-data:
-	chmod +x import_data.sh
-	./import_data.sh
+	chmod +x maintenance/import_data.sh
+	./maintenance/import_data.sh
 
 # --- Development ---
 
@@ -46,7 +46,7 @@ build:
 	UID=$(UID) GID=$(GID) docker compose -f $(COMPOSE_BUILD) build
 
 up: _setup_dirs
-	UID=$(UID) GID=$(GID) docker compose up -d linking webui
+	UID=$(UID) GID=$(GID) docker compose up -d linking streamlit_ui
 
 down:
 	docker compose down
@@ -61,13 +61,13 @@ shell-root:
 	docker exec -u 0 -it linking bash
 
 webui-build:
-	docker compose build webui
+	docker compose build streamlit_ui
 
 webui-up: _setup_dirs
-	docker compose up -d webui
+	docker compose up -d streamlit_ui
 
 webui-down:
-	docker compose stop webui
+	docker compose stop streamlit_ui
 
 # Pre-create mounted directories as the current user so Docker does not
 # create them as root when starting the container for the first time.

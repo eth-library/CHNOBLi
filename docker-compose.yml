@@ -1,8 +1,7 @@
 services:
   linking:
-    #image: registry.ethz.ch/library/adl/nla/linking:v1.1
     image: linking:v0.1
-    container_name: linking
+    container_name: chnobli-linking
     hostname: nla
     user: "${UID}:${GID}"
     #deploy:
@@ -12,29 +11,35 @@ services:
     #        - driver: nvidia
     #          count: all # Or specify a number like 1
     #          capabilities: [gpu]
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - USER=${USER}
-      - PATH_TO_OUTFILE_FOLDER=/app/nla/data/output
+      - PATH_TO_OUTFILE_FOLDER=/app/chnobli/nla/data/output
       - PATH_TO_CA_CERT=/certs/ca.crt
       - TZ=Europe/Zurich
       - USE_RICH_LOGGING=false
-    env_file:
-      - .env
     volumes:
-      - ./private/input:/app/nla/data/input
-      - ./private/output:/app/nla/data/output
-      - ./private/logs:/app/nla/logs
+      - ./private/input:/app/chnobli/nla/data/input
+      - ./private/output:/app/chnobli/nla/data/output
+      - ./private/logs:/app/chnobli/nla/logs
       - ${PATH_TO_CA_CERT}:/certs/ca.crt:ro
-  webui:
+  streamlit_ui:
     build:
-      context: .
-      dockerfile: services/webui/Dockerfile
-    container_name: nla-webui
-    hostname: webui
+      context: services/streamlit_ui
+    container_name: streamlit-ui
+    hostname: streamlit-ui
     ports:
-      - "8080:8080"
+      - "8501:8501"
     environment:
-      - LINKING_CONTAINER=linking
+      - LINKING_CONTAINER=chnobli-linking
+      - ELASTIC_BASE_URL=${ELASTIC_BASE_URL}
+      - MILVUS_HOST=${MILVUS_HOST}
+      - MILVUS_PORT=${MILVUS_PORT}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./private/output:/app/output:ro
       - ./configs:/app/configs
