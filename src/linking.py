@@ -11,6 +11,11 @@ Ultimately, and maybe most importantly, we are interested in the occupations.
 import re
 import unicodedata
 import logging
+import warnings
+
+# Suppress noisy third-party SyntaxWarning from the 'pattern' library (bug in Python 3.12)
+warnings.filterwarnings("ignore", category=SyntaxWarning, module="pattern")
+
 from datetime import datetime
 from multiprocessing import Pool
 from concurrent.futures import ThreadPoolExecutor
