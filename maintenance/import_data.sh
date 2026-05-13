@@ -159,11 +159,11 @@ import_es_wikidata() {
     fi
 
     # Download data if missing
-    if [ ! -f "wikidata_people.jsonl" ]; then
+    if [ ! -f "wikidata_people_en.jsonl" ]; then
         URL=$(get_url "elasticsearch" "wikidata_people")
-        download_file "$URL" "wikidata_people.zip" "Wikidata dump"
-        unzip -o wikidata_people.zip
-        rm wikidata_people.zip
+        download_file "$URL" "wikidata_people_en.zip" "Wikidata dump"
+        unzip -o wikidata_people_en.zip
+        rm wikidata_people_en.zip
     fi
 
     setup_venv "$ES_DIR" "pip install -r requirements.txt"
