@@ -30,15 +30,15 @@
         "files": {
             "part_1": {
                 "bitstream_id": "33f0c9b3-2b2f-41e2-a347-4320e6e4d688",
-                "filename": "milvus_dump_1.zip"
+                "filename": "gnd_de_snowflakearctic_1.zip"
             },
             "part_2": {
                 "bitstream_id": "8a1c988a-6209-450d-8f99-bf1a7508c2f5",
-                "filename": "milvus_dump_2.zip"
+                "filename": "gnd_de_snowflakearctic_2.zip"
             },
             "part_3": {
                 "bitstream_id": "6543f4b7-b82f-42f5-9bcb-f33825dff09d",
-                "filename": "milvus_dump_3.zip"
+                "filename": "gnd_de_snowflakearctic_3.zip"
             }
         }
     }

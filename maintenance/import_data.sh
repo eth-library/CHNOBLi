@@ -226,16 +226,15 @@ import_milvus() {
 
     if [ ! -d "$DATA_FOLDER" ]; then
         echo "[*] Milvus data not found locally. Attempting to download..."
-        mkdir -p "$DATA_FOLDER"
-        cd "$DATA_FOLDER"
+        cd "$MILVUS_DIR"
 
-        download_file "$(get_url "milvus" "part_1")" "milvus_dump_1.zip" "Milvus dump part 1"
-        download_file "$(get_url "milvus" "part_2")" "milvus_dump_2.zip" "Milvus dump part 2"
-        download_file "$(get_url "milvus" "part_3")" "milvus_dump_3.zip" "Milvus dump part 3"
+        download_file "$(get_url "milvus" "part_1")" "gnd_de_snowflakearctic_1.zip" "Milvus dump part 1"
+        download_file "$(get_url "milvus" "part_2")" "gnd_de_snowflakearctic_2.zip" "Milvus dump part 2"
+        download_file "$(get_url "milvus" "part_3")" "gnd_de_snowflakearctic_3.zip" "Milvus dump part 3"
 
         echo "[*] Extracting data..."
-        unzip -o "milvus_dump_*.zip"
-        rm milvus_dump_*.zip
+        unzip -o "gnd_de_snowflakearctic_*.zip"
+        rm gnd_de_snowflakearctic_*.zip
         cd - >/dev/null
     else
         echo "[*] Milvus data already exists in $DATA_FOLDER. Skipping download."

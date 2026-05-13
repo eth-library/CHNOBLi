@@ -124,7 +124,7 @@ def main():
             )
             if bitstream_id:
                 print(
-                    f"https://www.research-collection.ethz.ch/bitstreams/{bitstream_id}/download"
+                    f"https://www.research-collection.ethz.ch/server/api/core/bitstreams/{bitstream_id}/content"
                 )
                 return
 
