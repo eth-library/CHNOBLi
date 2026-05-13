@@ -21,10 +21,15 @@ from utility.settings import settings
 
 # Set up logger
 PRINT_LOGS_TO_CONSOLE = True
-os.makedirs(os.path.dirname(f'logs/{settings.JOB_ID}.log'), exist_ok=True)
-handlers = [logging.FileHandler(f"logs/{settings.JOB_ID}.log", encoding="utf-8")]
+run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+log_path = f"logs/{settings.JOB_ID}_{run_timestamp}.log"
+os.makedirs(os.path.dirname(log_path), exist_ok=True)
+handlers = [logging.FileHandler(log_path, encoding="utf-8")]
 if PRINT_LOGS_TO_CONSOLE:
-    handlers.append(RichHandler(rich_tracebacks=True, markup=True))
+    if settings.USE_RICH_LOGGING:
+        handlers.append(RichHandler(rich_tracebacks=True, markup=True))
+    else:
+        handlers.append(logging.StreamHandler())
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -97,8 +102,15 @@ def main():
 
     if paths:
         paths = paths.split(",")
+        # Validate that all paths exist before starting
+        invalid_paths = [p for p in paths if not os.path.isdir(p)]
+        if invalid_paths:
+            logging.error(f"The following input paths do not exist: {', '.join(invalid_paths)}")
+            print(f"ERROR: Input paths not found: {', '.join(invalid_paths)}")
+            exit(1)
+            
         settings.CUSTOM_PATHS = paths
-        if tasks == "eval":
+        if "eval" in tasks:
             logging.warning(
                 "Careful! You have selected the task 'eval' as well as"
                 " giving a custom path. Evaluation is always done on"

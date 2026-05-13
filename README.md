@@ -32,7 +32,29 @@ CHNOBLi is a pipeline for named entity linking and disambiguation in retro-digit
 
 ## Installation
 
-### Local Setup
+### Installation
+
+The easiest way to set up the project is using the interactive setup wizard:
+
+```bash
+git clone git@github.com:eth-library/CHNOBLi.git
+cd CHNOBLi
+make setup
+```
+
+The wizard will guide you through:
+1. Creating your `.env` configuration file.
+2. Choosing between **Minimal Setup** (using remote APIs) or **Full Local Setup** (cloning and setting up local databases).
+
+Once the databases are running, you can import the required data using:
+
+```bash
+make import-data
+```
+
+### Manual Setup (Optional)
+
+If you prefer to set everything up manually, follow these steps:
 
 #### Step 1: Clone Repository
 
@@ -63,7 +85,7 @@ pip install -r requirements.txt
 
 #### Step 4: Download Models
 
-Download the tagging models from [here](https://www.research-collection.ethz.ch/bitstreams/5be21deb-f852-4317-b428-162326e2a741/download) and [here](https://www.research-collection.ethz.ch/bitstreams/370809dd-190b-4687-87e6-73e42367dee1/download) and save them to the `models/` directory.
+Download the tagging models from the [ETH Research Collection (DOI: 10.3929/ethz-c-000799811)](https://doi.org/10.3929/ethz-c-000799811) and save them to the `models/` directory.
 
 ### Alternative to step 2-4: Docker
 
@@ -91,6 +113,34 @@ A public API endpoint is coming soon. To set up your own:
 1. Set up Milvus following the setup guide in [CHNOBLi-vectordb](https://github.com/eth-library/CHNOBLi-vectordb)
 2. Update `CHNOBLi/.env_template` with your host and port
 3. Rename file to `.env`
+
+### 4. Management with Makefile
+
+The project includes a `Makefile` to simplify common tasks and ensure consistent environments (especially regarding file permissions).
+
+#### Setup & Data
+- **`make setup`**: Run the interactive configuration wizard.
+- **`make import-data`**: Interactive tool to download and import Wikidata, GND, and Milvus data.
+
+#### Container Management
+- **`make build`**: Build the Docker images from source.
+- **`make up`**: Start the linking pipeline in the background.
+- **`make down`**: Stop and remove all containers.
+- **`make logs`**: Tail the logs from all running services.
+
+#### Interactive Access
+- **`make shell`**: Drop into a bash shell inside the `linking` container.
+- **`make shell-root`**: Same as above, but with root privileges.
+
+### Docker
+
+Run
+
+```docker compose --file docker-compose-dev.yml up```
+
+that automatically sets up your environment for you, although you still need to set up your own vector database and ElasticSearch index. To link you can then call
+
+```docker exec -it linking sh scripts/link_example.sh```
 
 ## Quick Start
 

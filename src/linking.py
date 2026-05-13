@@ -11,6 +11,11 @@ Ultimately, and maybe most importantly, we are interested in the occupations.
 import re
 import unicodedata
 import logging
+import warnings
+
+# Suppress noisy third-party SyntaxWarning from the 'pattern' library (bug in Python 3.12)
+warnings.filterwarnings("ignore", category=SyntaxWarning, module="pattern")
+
 from datetime import datetime
 from multiprocessing import Pool
 from concurrent.futures import ThreadPoolExecutor
@@ -26,11 +31,7 @@ from utility.settings import settings
 from itertools import batched, takewhile
 # Until we can set up the API
 import numpy as np
-from pymilvus import (  # type: ignore
-    Collection,
-    Connections,
-    connections,
-)
+from pymilvus import MilvusClient  # type: ignore
 from collections import OrderedDict
 from sentence_transformers import SentenceTransformer
 from typing import List
@@ -458,7 +459,7 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
             "huggingface",
             "Snowflake/snowflake-arctic-embed-l-v2.0"
         )
-        
+
         if response != []:
             for resp_dict in response:
                 try:
@@ -733,7 +734,7 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}"
     }
-    
+
     payload = {
         "content": content,
         "model": model,
@@ -767,16 +768,10 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
     logging.error(f"Max retries exceeded. Failed to retrieve distances: {response.status_code} - {response.text}")
 
 
-def connect_milvus() -> Connections:
-    # Connect to Milvus
-    connections.connect("default", host=settings.MILVUS_HOST, port=settings.MILVUS_PORT)
-    return connections
-
-
 def compare_vector_to_text_ids_multiplexed(  # type: ignore
-    input: list[dict], 
-    vectors: list[list[float]], 
-    collection_name:str, 
+    input: list[dict],
+    vectors: list[list[float]],
+    collection_name:str,
     distance_metric:str = "cosine"
 ) -> list[dict]:
     """
@@ -788,9 +783,10 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
     collection_name: Milvus collection
     ditance_metric: "cosine" | "l2" | "ip"
     """
-    connect_milvus()
-    collection = Collection(collection_name)
-    collection.load()
+
+    # Initialize the modern MilvusClient
+    client = MilvusClient(uri=f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}")
+    client.load_collection(collection_name)
 
     # Collect all candidate IDs across all queries
     all_ids = set()
@@ -801,9 +797,13 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
     if not all_ids:
         return [{"query_id": item["query_id"], "distances": []} for item in input]
 
-    # single Milvus query
+    # single Milvus query using modern client
     expr = f"text_id in {all_ids}"
-    candidate_rows = collection.query(expr=expr, output_fields=["text_id", "embedding"])
+    candidate_rows = client.query(
+        collection_name=collection_name,
+        filter=expr,
+        output_fields=["text_id", "embedding"]
+    )
 
     id_to_emb = {
         row["text_id"]: np.array(row["embedding"], dtype=np.float32)
@@ -856,7 +856,7 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
             }
         )
 
-    collection.release()
+    client.release_collection(collection_name)
     return results
 
 
@@ -865,13 +865,13 @@ def generate_huggingface_embedding(
 ) -> List[List[float]]:
     """
     Generates an embedding using the huggingface framework.
-    
+
     Args:
         texts (List[str]): List of input texts to embed.
         model_name (str): Name of the embedding model to use (huggingface name).
     Returns:
         ans (List[List[float]]): resulting embeddings
-    
+
     """
     if not texts:
         return []
@@ -882,7 +882,7 @@ def generate_huggingface_embedding(
         with torch.inference_mode():
             embeddings = model.encode(
                 texts,
-                convert_to_numpy=True, 
+                convert_to_numpy=True,
                 normalize_embeddings=True
             )  # type: ignore
             ans: List[List[float]] = embeddings.tolist()
@@ -906,7 +906,7 @@ def _get_model(
     """
     if _DEVICE is None: #if no device has been set on a global level, we select the most best option
         _set_best_torch_device()
-    
+
     if model_name in _model_cache:
         _model_cache.move_to_end(model_name)
         return _model_cache[model_name]
@@ -925,7 +925,7 @@ def _get_model(
             pass
 
     _model_cache[model_name] = model
-    
+
     if len(_model_cache) > _MAX_GPU_MODELS:
         old_name, old_model = _model_cache.popitem(last=False)
         print(f"Cache limit exceeded, dropping oldest model {old_name} from cache")
@@ -941,4 +941,3 @@ def _set_best_torch_device():
     """
     global _DEVICE
     _DEVICE =  "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
-    

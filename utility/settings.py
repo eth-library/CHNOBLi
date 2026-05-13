@@ -59,12 +59,13 @@ class ElasticSettings(BaseSettings):
 
 class Settings(BaseSettings):
     # Dynamic Runtime Variables
-    JOB_ID: str = Field(default_factory=lambda: datetime.now().strftime("%Y%m%d%H%M%S"))
+    JOB_ID: str = "chnobli"
     PATH_TO_GROUND_TRUTH: str | None = None
     CUSTOM_PATHS: list[str] | None = None
     CUSTOM_TAG_PATH: str | None = None
     EVAL_TOPK: int | None = None
     INKB_SCORE: str | None = None
+    USE_RICH_LOGGING: bool = True
 
     # JSON Config Fields (configs/configurations.json)
     PATH_TO_INPUT_FOLDERS: str = "./data/input/"
