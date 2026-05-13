@@ -424,6 +424,9 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
             }
         }
     res_candidates = {}
+    if not settings.es.base_url:
+        logging.error("Elasticsearch base_url is not set in settings!")
+        return {}
     try:
         data = requests.get(
             settings.es.base_url + "/" + settings.es.index_name_gnd + "/_search?pretty",
@@ -582,6 +585,9 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
         }
     }
     res_candidates = {}
+    if not settings.es.base_url:
+        logging.error("Elasticsearch base_url is not set in settings!")
+        return {}
     try:
         data = requests.get(
             settings.es.base_url + "/" + settings.es.index_name_wikidata + "/_search?pretty",

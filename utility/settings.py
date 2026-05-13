@@ -113,7 +113,7 @@ class Settings(BaseSettings):
     )
 
     # Elastic Search settings in a separate container
-    es: ElasticSettings = Field(default_factory=ElasticSettings)
+    es: ElasticSettings = ElasticSettings()
 
     @classmethod
     def settings_customise_sources(
