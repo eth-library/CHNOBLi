@@ -70,10 +70,10 @@ def update_per_dict_score(dict_in: dict, dict_to_add: dict, strategy="max") -> d
                 if v["score"] > dict_in[k]["score"]:
                     dict_in[k]["score"] = v["score"]
             elif strategy == "min":
-                if v["score"] > dict_in[k]["score"]:
+                if v["score"] < dict_in[k]["score"]:
                     dict_in[k]["score"] = v["score"]
             elif strategy == "avg":
-                dict_in[k]["score"] = (v["score"]+dict_in[k]["score"])/2
+                dict_in[k]["score"] = (v["score"] + dict_in[k]["score"]) / 2
             else:
                 raise ValueError("Not a valid strategy. Choose: max, min, avg.")
         else:
@@ -297,14 +297,13 @@ def link_person(data_in) -> dict:
         prep_person_out(person)
         return person
 
-    most_imp_sc = candidates[list(candidates)[0]]["score"]
-    # if several of the first gnds have the same score,
-    # take all of them and re-rank with our vdb
-    same_score_cand = list(takewhile(
-        lambda c: candidates[c]["score"] == most_imp_sc,
-        candidates
-    ))
+    # Get all top scoring candidates
+    top_score = max(c["score"] for c in candidates.values())
+    same_score_cand = list(
+        filter(lambda c: candidates[c]["score"] == top_score, candidates)
+    )
 
+    # Use the vector db to re-rank as tie-breaker 
     if len(same_score_cand) > 1:
         person_context_dict = deepcopy(person)
         context = get_person_context(
