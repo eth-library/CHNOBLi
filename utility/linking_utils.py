@@ -477,7 +477,7 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
                 if len(person_info["gid"]) > 1:
                     logging.error(
                         f"GND entry with multiple GND IDs: {person_info['gid']}. "
-                        "An arbitrary one is selectedl."
+                        "An arbitrary one is selected."
                     )
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
