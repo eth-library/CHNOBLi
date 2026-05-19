@@ -12,10 +12,11 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Quick Start](#quick-start)
 - [Installation](#installation)
   - [Local Setup](#local-setup)
   - [Docker](#docker)
+- [Management with Makefile](#management-with-makefile)
+- [Quick Start](#quick-start)
 - [Using Your Data](#using-your-data)
 - [Resources](#resources)
 - [License](#license)
@@ -44,13 +45,9 @@ make setup
 
 The wizard will guide you through:
 1. Creating your `.env` configuration file.
-2. Choosing between **Minimal Setup** (using remote APIs) or **Full Local Setup** (cloning and setting up local databases).
-
-Once the databases are running, you can import the required data using:
-
-```bash
-make import-data
-```
+2. Choosing between
+    1. **Minimal Setup** (using remote APIs) or
+    2. **Full Local Setup** (cloning and setting up local databases). Once the databases are running, you can import the required data using `make import-data`
 
 ### Manual Setup (Optional)
 
@@ -87,7 +84,7 @@ pip install -r requirements.txt
 
 Download the tagging models from the [ETH Research Collection (DOI: 10.3929/ethz-c-000799811)](https://doi.org/10.3929/ethz-c-000799811) and save them to the `models/` directory.
 
-### Alternative to step 2-4: Docker
+#### Alternative to step 2-4: Docker
 
 Instead of setting up the environment yourself as explained above you can also call:
 
@@ -114,21 +111,21 @@ A public API endpoint is coming soon. To set up your own:
 2. Update `CHNOBLi/.env_template` with your host and port
 3. Rename file to `.env`
 
-### 4. Management with Makefile
+## Management with Makefile
 
 The project includes a `Makefile` to simplify common tasks and ensure consistent environments (especially regarding file permissions).
 
-#### Setup & Data
+### Setup & Data
 - **`make setup`**: Run the interactive configuration wizard.
 - **`make import-data`**: Interactive tool to download and import Wikidata, GND, and Milvus data.
 
-#### Container Management
+### Container Management
 - **`make build`**: Build the Docker images from source.
 - **`make up`**: Start the linking pipeline in the background.
 - **`make down`**: Stop and remove all containers.
 - **`make logs`**: Tail the logs from all running services.
 
-#### Interactive Access
+### Interactive Access
 - **`make shell`**: Drop into a bash shell inside the `linking` container.
 - **`make shell-root`**: Same as above, but with root privileges.
 
@@ -152,7 +149,7 @@ Output: `data/output/link/`
 ```bash
 sh scripts/eval_example.sh # Windows: python3 main.py --tasks eval --config_file ./configs/eval_config_example.json --eval_level ref
 ```
-Output: `data/output/eval_tjb.json`
+Output: `data/output/eval_ref_with_fuzzy/tjb/1955_030.jsonl`
 
 ## Using Your Data
 
@@ -223,7 +220,7 @@ This produces output like:
    "sentenceNo": 0,
    "positions": "237:14",
    "articles": "",
-   "context": "al bodies about the U.S.-funded  Radio Free Europe  , the Iran Daily reported Monday. \n\n It quoted  Foreign Minister    Kamal Kharrazi   as saying the radio "was set up to interfere in Iran\'s internal affairs.\'\' \n\n It did not say when the complaints wil"
+   "context": "al bodies about the U.S.-funded  Radio Free Europe  , the Iran Daily reported Monday. \n\n It quoted  Foreign Minister    Kamal Kharrazi   as saying the radio \"was set up to interfere in Iran\'s internal affairs.\'\' \n\n It did not say when the complaints wil"
 }
 ```
 
