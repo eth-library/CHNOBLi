@@ -70,7 +70,7 @@ def update_per_dict_score(dict_in: dict, dict_to_add: dict, strategy="max") -> d
                 if v["score"] > dict_in[k]["score"]:
                     dict_in[k]["score"] = v["score"]
             elif strategy == "min":
-                if v["score"] > dict_in[k]["score"]:
+                if v["score"] < dict_in[k]["score"]:
                     dict_in[k]["score"] = v["score"]
             elif strategy == "avg":
                 dict_in[k]["score"] = (v["score"]+dict_in[k]["score"])/2
