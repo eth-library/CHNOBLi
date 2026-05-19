@@ -634,6 +634,10 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
 
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 person_info["score"] = hit["_score"]
+                if len(person_info["gid"]) > 1:
+                    logging.warning(
+                        f"Wikidata entry with multiple GND IDs: {person_info['gid']}."
+                    )
                 for gid in person_info["gid"]:
                     # sometimes one entity is assigned several gids.
                     # this unfortunately breaks a lot of what we did logically
@@ -642,9 +646,12 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
                     if person_info["score"] > max_score:
                         max_score = person_info["score"]
 
-    # to make scores across different indexes comparable
-    # scale them to 1
-    for _, per_dict in res_candidates.items():
-        per_dict["score"] = per_dict["score"]/max_score
+    # to make scores across different indexes comparable scale them to 1
+    normalized_gids = set()
+    for gid, per_dict in res_candidates.items():
+        if gid in normalized_gids:
+            continue
+        normalized_gids.update(per_dict["gid"])
+        per_dict["score"] = per_dict["score"] / max_score
 
     return res_candidates
