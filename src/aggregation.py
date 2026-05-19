@@ -396,7 +396,7 @@ def only_abbrev_firstname_match(ref: dict,
     matches = []
     for entry in aggregated_names:
         if (
-            set([x.lower() for x in ref["info"]["abbr_firstnames"]])
+            set([x.lower() for x in [ref["info"]["abbr_firstnames"]]])
             ==
             set(y.lower() for x in entry["abbr_firstname"] for y in x)
         ):
