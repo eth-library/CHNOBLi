@@ -473,6 +473,12 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
             # score is at hit["_score"]
             person_info = convert_gnd_format_kibana(hit["_source"])
             if "gid" in person_info and len(person_info["gid"]) != 0:
+                # NOTE: This should never be degenerate better to put a hard check here
+                if len(person_info["gid"]) > 1:
+                    logging.error(
+                        f"GND entry with multiple GND IDs: {person_info['gid']}. "
+                        "An arbitrary one is selectedl."
+                    )
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
                 person_info["score"] = hit["_score"]
