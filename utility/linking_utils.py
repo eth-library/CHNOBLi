@@ -290,6 +290,10 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
                 "_source": ["gndIdentifier"],
                 "from": 0,
                 "size": gnd_limit,
+                "sort": [
+                    { "_score": "desc" },
+                    { "gndIdentifier.keyword": "asc" }
+                ],
                 "query": {
                     "bool": {
                         "must": [
@@ -365,6 +369,10 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
             "_source": ["gndIdentifier"],
             "from": 0,
             "size": gnd_limit,
+            "sort": [
+                { "_score": "desc" },
+                { "gndIdentifier.keyword": "asc" }
+            ],
             "query": {
                 "bool": {
                     "must": [
@@ -524,6 +532,11 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
         "_source": ["GND_ID", "GND_ID_2"],
         "from": 0,
         "size": wikidata_limit,
+        "sort": [
+            { "_score": "desc" },
+            { "GND_ID.keyword": "asc" },
+            { "GND_ID_2.keyword": "asc" }
+        ],
         "query": {
             "bool": {
                 "must": [
