@@ -78,7 +78,6 @@ def main():
     paths = args.magazine_year_paths
     config_file = args.config_file
     eval_level = args.eval_level
-    fuzzy = args.fuzzy
     gpu_num = check_gpu(args)
 
     if config_file:
@@ -93,12 +92,6 @@ def main():
 
     if settings.BATCH_SIZE is None:
         settings.BATCH_SIZE = cpu_count() - 1
-
-    if "eval" in tasks:
-        if fuzzy:
-            settings.PATH_TO_GROUND_TRUTH = settings.PATH_TO_GROUND_TRUTH_FUZZY
-        else:
-            settings.PATH_TO_GROUND_TRUTH = settings.PATH_TO_GROUND_TRUTH_NOTFUZZY
 
     if paths:
         paths = paths.split(",")
@@ -141,7 +134,7 @@ def main():
         execute_linking(aggregated_data, tasks)
 
     if "eval" in tasks:
-        execute_evaluation(eval_level, fuzzy)
+        execute_evaluation(eval_level)
 
     if "finish" in tasks:
         finish_data(tasks)

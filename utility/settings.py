@@ -60,7 +60,6 @@ class ElasticSettings(BaseSettings):
 class Settings(BaseSettings):
     # Dynamic Runtime Variables
     JOB_ID: str = "chnobli"
-    PATH_TO_GROUND_TRUTH: str | None = None
     CUSTOM_PATHS: list[str] | None = None
     CUSTOM_TAG_PATH: str | None = None
     EVAL_TOPK: int | None = None
@@ -73,11 +72,8 @@ class Settings(BaseSettings):
     PATH_TO_NER_MODEL_2: str = "./models/ner-det.pt"
     PATH_TO_OUTFILE_FOLDER: str = "./data/output/"
     PATH_TO_ABBREVIATION_FILE: str = "./src/preprocessing/abbrevs.txt"
-    PATH_TO_GROUND_TRUTH_FUZZY: str = (
+    PATH_TO_GROUND_TRUTH: str = (
         "./data/ground_truth/ground_truth_linked/with_fuzzy_matching/"
-    )
-    PATH_TO_GROUND_TRUTH_NOTFUZZY: str = (
-        "./data/ground_truth/ground_truth_linked/without_fuzzy_matching/"
     )
     DATA2_MNT: str = "./adl/"
     VD_API_TOKEN: str = "./src/.env.api.token"
@@ -90,6 +86,7 @@ class Settings(BaseSettings):
     WIKIDATA_LIMIT: int = 5
     LINKED_PERSONS_LIMIT: int = 10
     BATCH_SIZE: int = 4
+    ADD_FUZZY_SEARCH: str = "True"
 
     # Env Variables (.env_template / .env)
     PATH_TO_CA_CERT: str = "../secrets/certs/ca/ca.crt"

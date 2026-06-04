@@ -63,7 +63,6 @@ def parse_arguments() -> argparse.Namespace:
         - gpu (str): GPU identifier to use. Default is "0".\n
         - magazine_year_paths (str): Paths to magazine year data.\n
         - eval_level (str): Evaluation level. Default is "ref".\n
-        - fuzzy (str): Whether to use fuzzy matching. Default is True.
     """
 
     parser = argparse.ArgumentParser()
@@ -75,14 +74,6 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--eval_level", type=str, default="ref", choices=["ref", "ent"]
-    )
-    parser.add_argument(
-        "--fuzzy",
-        type=str2bool,
-        default="True",
-        choices=[
-            True, False, "True", "False", "true", "false", "1", "0", 1, 0
-        ],
     )
 
     args = parser.parse_args()
