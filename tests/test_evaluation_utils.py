@@ -15,13 +15,14 @@ from utility.evaluation_utils import (
 )
 from utility.settings import settings
 
+
 # -------------------------------------------------
 # 1. Test Paths Class functions
 # -------------------------------------------------
 def test_paths_init():
     paths = Paths()
 
-    settings.PATH_TO_GROUND_TRUTH = None
+    settings.PATH_TO_GROUND_TRUTH = ""
     paths = Paths()
     assert not paths.success
     settings.PATH_TO_GROUND_TRUTH = params.conf["PATH_TO_GROUND_TRUTH"]
@@ -31,6 +32,7 @@ def test_paths_update():
     settings.PATH_TO_GROUND_TRUTH = params.conf["PATH_TO_GROUND_TRUTH"]
     settings.PATH_TO_OUTFILE_FOLDER = params.conf["PATH_TO_OUTFILE_FOLDER"]
     settings.PATH_TO_INPUT_FOLDERS = params.conf["PATH_TO_INPUT_FOLDERS"]
+    settings.EVAL_TOPK = 1
     paths = Paths()
     paths.update("magazine", "test_mag")
     paths.update("file", "test_file")
@@ -39,56 +41,63 @@ def test_paths_update():
     # state can be magazine, file or empty
     # ref level name can be ref, ent, or empty
     with pytest.raises(AssertionError) as excinfo:
-        paths.get("input", "", "net", "")
+        paths.get("input", "", "net")
         assert excinfo.value.args[0] == "'net' is not in ['ent', 'ref', '']"
-    with pytest.raises(AssertionError) as excinfo:
-        paths.get("input", "", "", "wirth_fuzzy")
-    assert excinfo.value.args[0] == "'wirth_fuzzy' is not in ['with_fuzzy', 'without_fuzzy', '']"
 
-    assert paths.get("input", "", "ent", "") == settings.PATH_TO_INPUT_FOLDERS
+    assert paths.get("input", "", "ent") == settings.PATH_TO_INPUT_FOLDERS
     assert paths.get(
-        "input", "magazine", "", ""
+        "input", "magazine", ""
     ) == settings.PATH_TO_INPUT_FOLDERS + "test_mag"
     assert paths.get(
-        "input", "file", "", ""
+        "input", "file", ""
     ) == settings.PATH_TO_INPUT_FOLDERS + "test_mag/test_file"
     assert paths.get(
-        "input", "", "", "with_fuzzy"
+        "input", "", ""
     ) == settings.PATH_TO_INPUT_FOLDERS
-    assert paths.get("input", "", "", "") == settings.PATH_TO_INPUT_FOLDERS
+    assert paths.get("input", "", "") == settings.PATH_TO_INPUT_FOLDERS
 
     for type_ in ["eval", "link"]:
+        if type_ == "eval":
+            addtopk = "_top"+str(settings.EVAL_TOPK)
+        else:
+            addtopk = ""
         for ref_lvl in ["ent", "ref"]:
-            for gt_fuzziness_name in ["with_fuzzy", "without_fuzzy"]:
+            assert paths.get(
+                type_, "", ref_lvl
+            ) == settings.PATH_TO_OUTFILE_FOLDER+type_+"_"+ref_lvl+addtopk
+            if type_ == "eval":
                 assert paths.get(
-                    type_, "", ref_lvl, ""
-                ) == settings.PATH_TO_OUTFILE_FOLDER+type_+"_"+ref_lvl
+                    type_, "magazine", ""
+                ) == settings.PATH_TO_OUTFILE_FOLDER+"eval_top"+str(settings.EVAL_TOPK)+"/test_mag"
+            else:
                 assert paths.get(
-                    type_, "magazine", "", ""
+                    type_, "magazine", ""
                 ) == settings.PATH_TO_OUTFILE_FOLDER+type_+"/test_mag"
+            if type_ == "eval":
                 assert paths.get(
-                    type_, "file", "", ""
+                    type_, "file", ""
+                ) == settings.PATH_TO_OUTFILE_FOLDER+"eval_top"+str(settings.EVAL_TOPK)+"/test_mag/test_file"
+            else:
+                assert paths.get(
+                    type_, "file", ""
                 ) == settings.PATH_TO_OUTFILE_FOLDER+type_+"/test_mag/test_file"
-                assert paths.get(
-                    type_, "", "", gt_fuzziness_name
-                ) == settings.PATH_TO_OUTFILE_FOLDER+type_+"_"+gt_fuzziness_name
-                assert paths.get(
-                    type_, "", "", ""
-                ) == settings.PATH_TO_OUTFILE_FOLDER+type_
+            assert paths.get(
+                type_, "", ""
+            ) == settings.PATH_TO_OUTFILE_FOLDER+type_+addtopk
 
     assert paths.get(
-        "gt", "", "ent", ""
+        "gt", "", "ent"
     ) == settings.PATH_TO_GROUND_TRUTH+"_ent"
     assert paths.get(
-        "gt", "magazine", "", ""
+        "gt", "magazine", ""
     ) == settings.PATH_TO_GROUND_TRUTH+"test_mag"
     assert paths.get(
-        "gt", "file", "", ""
+        "gt", "file", ""
     ) == settings.PATH_TO_GROUND_TRUTH+"test_mag/test_file"
     assert paths.get(
-        "gt", "", "", "with_fuzzy"
+        "gt", "", ""
     ) == settings.PATH_TO_GROUND_TRUTH
-    assert paths.get("gt", "", "", "") == settings.PATH_TO_GROUND_TRUTH
+    assert paths.get("gt", "", "") == settings.PATH_TO_GROUND_TRUTH
 
 
 @patch("builtins.open", new_callable=mock_open, read_data='{"key": "value"}')
@@ -115,17 +124,20 @@ def test_paths_check_and_create():
     paths.update("file", "test_file")
 
     already_existed = os.path.isdir(params.conf["PATH_TO_OUTFILE_FOLDER"]+"link")
-    path_linked = paths.check_and_create("link", "", "", "")
+    path_linked = paths.check_and_create("link", "", "")
     assert path_linked == params.conf["PATH_TO_OUTFILE_FOLDER"]+"link"
     assert os.path.isdir(path_linked)
     if not already_existed:
         os.rmdir(path_linked)
 
     for type_ in ["eval", "link"]:
-        path_with_type = params.conf["PATH_TO_OUTFILE_FOLDER"] + type_
+        if type_ == "eval":
+            path_with_type = params.conf["PATH_TO_OUTFILE_FOLDER"] + type_+"_top"+str(settings.EVAL_TOPK)
+        else:
+            path_with_type = params.conf["PATH_TO_OUTFILE_FOLDER"] + type_
 
         already_existed = os.path.isdir(path_with_type)
-        path = paths.check_and_create(type_, "magazine", "", "")
+        path = paths.check_and_create(type_, "magazine", "")
         assert path == path_with_type+"/test_mag"
         assert os.path.isdir(path)
         os.rmdir(path)
@@ -133,28 +145,27 @@ def test_paths_check_and_create():
             os.rmdir(path_with_type)
 
         already_existed = os.path.isdir(path_with_type)
-        path = paths.check_and_create(type_, "file", "", "")
+        path = paths.check_and_create(type_, "file", "")
         assert path == path_with_type+"/test_mag/test_file"
         assert os.path.exists("/".join(path.split("/")[:-1])), path
         os.rmdir(path_with_type+"/test_mag")
         if not already_existed:
             os.rmdir(path_with_type)
 
+        path_with_type = params.conf["PATH_TO_OUTFILE_FOLDER"] + type_
         for ref_lvl in ["ent", "ref"]:
-            for gt_fuzziness_name in ["with_fuzzy", "without_fuzzy"]:
-                if type_ == "eval":
-                    path_gt = path_with_type+"_"+ref_lvl+"_"+gt_fuzziness_name
-                    already_existed = os.path.isdir(path_gt)
-                    path = paths.check_and_create(
-                        type_,
-                        "",
-                        ref_lvl,
-                        gt_fuzziness_name
-                    )
-                    assert path == path_gt
-                    assert os.path.isdir(path)
-                    if not already_existed:
-                        os.rmdir(path)
+            if type_ == "eval":
+                path_gt = path_with_type+"_"+ref_lvl+"_top"+str(settings.EVAL_TOPK)
+                already_existed = os.path.isdir(path_gt)
+                path = paths.check_and_create(
+                    type_,
+                    "",
+                    ref_lvl
+                )
+                assert path == path_gt
+                assert os.path.isdir(path)
+                if not already_existed:
+                    os.rmdir(path)
 
 
 def test_paths_save_json():
@@ -163,50 +174,48 @@ def test_paths_save_json():
     paths.update("file", "test_file")
 
     for type_ in ["eval", "link"]:
-        path_with_type = params.conf["PATH_TO_OUTFILE_FOLDER"]+type_
+        path_with_type = params.conf["PATH_TO_OUTFILE_FOLDER"] + type_
         for ref_lvl in ["ent", "ref"]:
-            for gt_fuzziness_name in ["with_fuzzy", "without_fuzzy"]:
-                path_gt = path_with_type+"_"+ref_lvl+"_"+gt_fuzziness_name
+            if type_ == "eval":
+                path_gt = path_with_type+"_"+ref_lvl+"_top"+str(settings.EVAL_TOPK)
+            else:
+                path_gt = path_with_type+"_"+ref_lvl
 
-                already_existed = os.path.isdir(path_gt)
-                paths.save_json(
-                    type_,
-                    "magazine",
-                    {"test1": "test2"},
-                    ref_lvl,
-                    gt_fuzziness_name
-                )
-                path_1 = paths.get(
-                    type_,
-                    "magazine",
-                    ref_lvl,
-                    gt_fuzziness_name
-                )
-                assert os.path.exists(path_1)
-                os.rmdir(path_1)
-                os.remove(path_gt+"/"+"test_mag.json")
-                if not already_existed:
-                    os.rmdir(path_gt)
+            already_existed = os.path.isdir(path_gt)
+            paths.save_json(
+                type_,
+                "magazine",
+                {"test1": "test2"},
+                ref_lvl
+            )
+            path_1 = paths.get(
+                type_,
+                "magazine",
+                ref_lvl
+            )
+            assert os.path.exists(path_1)
+            os.rmdir(path_1)
+            os.remove(path_gt+"/"+"test_mag.json")
+            if not already_existed:
+                os.rmdir(path_gt)
 
-                already_existed = os.path.isdir(path_gt)
-                paths.save_json(
-                    type_,
-                    "file",
-                    {"test1": "test2"},
-                    ref_lvl,
-                    gt_fuzziness_name
-                )
-                path_1 = paths.get(
-                    type_,
-                    "file",
-                    ref_lvl,
-                    gt_fuzziness_name
-                )
-                assert os.path.exists(path_1)
-                os.remove(path_1)
-                os.rmdir(path_gt+"/"+"test_mag")
-                if not already_existed:
-                    os.rmdir(path_gt)
+            already_existed = os.path.isdir(path_gt)
+            paths.save_json(
+                type_,
+                "file",
+                {"test1": "test2"},
+                ref_lvl
+            )
+            path_1 = paths.get(
+                type_,
+                "file",
+                ref_lvl
+            )
+            assert os.path.exists(path_1)
+            os.remove(path_1)
+            os.rmdir(path_gt+"/"+"test_mag")
+            if not already_existed:
+                os.rmdir(path_gt)
 
 
 # -------------------------------------------------

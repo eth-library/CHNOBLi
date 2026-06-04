@@ -153,14 +153,16 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
         full_name_abbr = " ".join(person["abbr_firstname"]) + " " + lastname
         candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit, False), "max")
         candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name_abbr, year, wikidata_limit, False), "max")
-        candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit), "max")
-        candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name_abbr, year, wikidata_limit), "max")
+        if settings.ADD_FUZZY_SEARCH == "True":
+            candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit), "max")
+            candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name_abbr, year, wikidata_limit), "max")
 
     res_dict_fullname = {}
     res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit, False), "max")
     res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit, False), "max")
-    res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit), "max")
-    res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit), "max")
+    if settings.ADD_FUZZY_SEARCH == "True":
+        res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit), "max")
+        res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit), "max")
     candidate_dict = update_per_dict_score(candidate_dict, res_dict_fullname, "max")
     return candidate_dict
 

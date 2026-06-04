@@ -16,7 +16,7 @@ class Paths:
     input files.
     """
     def __init__(self):
-        if settings.PATH_TO_GROUND_TRUTH is not None and settings.PATH_TO_OUTFILE_FOLDER is not None:
+        if settings.PATH_TO_GROUND_TRUTH !="" and settings.PATH_TO_OUTFILE_FOLDER is not None:
             self.paths = {
                 "gt": settings.PATH_TO_GROUND_TRUTH,
                 "link": os.path.join(settings.PATH_TO_OUTFILE_FOLDER, "link"),
@@ -34,15 +34,15 @@ class Paths:
     def update(self, key, value):
         self.state[key] = value
 
-    def get(self, type_, key, ref_level_name="", gt_fuzziness_name=""):
+    def get(self, type_, key, ref_level_name=""):
         _TYPES = ["gt", "link", "eval", "input"]
         KEY_TYPES = ["magazine", "file", ""]
         REF_LEVEL_TYPES = ["ent", "ref", ""]
-        GT_FUZZINESS_TYPES = ["with_fuzzy", "without_fuzzy", ""]
+        EVAL_TOPK = settings.EVAL_TOPK
         assert type_ in _TYPES, f"'{type_}' is not in {_TYPES}"
         assert key in KEY_TYPES, f"'{key}' is not in {KEY_TYPES}"
         assert ref_level_name in REF_LEVEL_TYPES, f"'{ref_level_name}' is not in {REF_LEVEL_TYPES}"
-        assert gt_fuzziness_name in GT_FUZZINESS_TYPES, f"'{gt_fuzziness_name}' is not in {GT_FUZZINESS_TYPES}"
+        assert EVAL_TOPK > 0, f"the top_k {EVAL_TOPK} chosen for evaluation is negative or zero"
 
         if type_ == "input":
             if ref_level_name != "":
@@ -51,36 +51,25 @@ class Paths:
                     There are no reference levels at input, this value is ignored."
                 )
                 ref_level_name = ""
-            elif gt_fuzziness_name != "":
-                logging.warning(
-                    "Careful! You selected the input folder but also a gt fuzziness level.\
-                    There are no fuziness levels at input, this value is ignored."
-                )
-                gt_fuzziness_name = ""
-
-        if type_ == "gt" and gt_fuzziness_name != "":
-            logging.warning(
-                    "Careful! You selected the ground truth folder but also a gt fuzziness level.\
-                    The folder already determines the fuzziness level, this value is ignored."
-            )
-            gt_fuzziness_name = ""
 
         if ref_level_name != "":
             ref_level_name = "_"+ref_level_name
-        if gt_fuzziness_name != "":
-            gt_fuzziness_name = "_"+gt_fuzziness_name
+        if type_ == "eval":
+            evaltopk_name = "_top"+str(EVAL_TOPK)
+        else:
+            evaltopk_name = ""
 
         if key == "magazine":
             return os.path.join(
-                self.paths[type_] + ref_level_name + gt_fuzziness_name,
+                self.paths[type_] + ref_level_name + evaltopk_name,
                 self.state["magazine"])
         if key == "file":
             return os.path.join(
-                self.paths[type_] + ref_level_name + gt_fuzziness_name,
+                self.paths[type_] + ref_level_name + evaltopk_name,
                 self.state["magazine"],
                 self.state["file"])
         return os.path.join(
-            self.paths[type_] + ref_level_name + gt_fuzziness_name)
+            self.paths[type_] + ref_level_name + evaltopk_name)
 
     def get_jsonl(self, type_):
         path = self.get(type_=type_, key="file")
@@ -90,15 +79,14 @@ class Paths:
                 content.append(orjson.loads(i))
         return content
 
-    def check_and_create(self, type_, key, ref_level_name, gt_fuzziness_name):
+    def check_and_create(self, type_, key, ref_level_name):
         if type_ == "input":
             raise Exception("Cannot create input files")
 
         if key == "file":
             path = self.get(type_=type_,
                             key="file",
-                            ref_level_name=ref_level_name,
-                            gt_fuzziness_name=gt_fuzziness_name)
+                            ref_level_name=ref_level_name)
             if os.path.exists(os.path.dirname(path)):
                 return path
             else:
@@ -106,8 +94,7 @@ class Paths:
         else:
             path = self.get(type_=type_,
                             key=key,
-                            ref_level_name=ref_level_name,
-                            gt_fuzziness_name=gt_fuzziness_name)
+                            ref_level_name=ref_level_name)
             if os.path.exists(path):
                 return path
         split = path.split("/")
@@ -125,26 +112,23 @@ class Paths:
         if key == "file":  # we created the dict before, now we add the file to the path
             path = self.get(type_=type_,
                             key="file",
-                            ref_level_name=ref_level_name,
-                            gt_fuzziness_name=gt_fuzziness_name)
+                            ref_level_name=ref_level_name)
         return path
 
-    def save_json(self, type_, key, doc, ref_level_name, fuzziness_name):
+    def save_json(self, type_, key, doc, ref_level_name):
         if key == "file":
             with open(
                 self.check_and_create(
                     type_=type_,
                     key=key,
-                    ref_level_name=ref_level_name,
-                    gt_fuzziness_name=fuzziness_name), "wb") as f:
+                    ref_level_name=ref_level_name), "wb") as f:
                 f.write(orjson.dumps(doc))
         else:
             with open(
                 self.check_and_create(
                     type_=type_,
                     key=key,
-                    ref_level_name=ref_level_name,
-                    gt_fuzziness_name=fuzziness_name) + ".json", "wb") as f:
+                    ref_level_name=ref_level_name) + ".json", "wb") as f:
                 f.write(orjson.dumps(doc))
 
 
