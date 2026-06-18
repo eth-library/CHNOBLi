@@ -61,6 +61,26 @@ case $SETUP_CHOICE in
         echo "[*] CHNOBLi-vectordb already exists in $SERVICES_DIR."
     fi
 
+    # Simulate cloning embedding-engine
+    if [ ! -d "$SERVICES_DIR/embedding-engine" ]; then
+        echo "[*] Copying embedding-engine..."
+        cp -r "$ROOT_DIR/../embedding-engine" "$SERVICES_DIR/embedding-engine" 2>/dev/null || echo "[!] Could not find ../embedding-engine to copy."
+    else
+        echo "[*] embedding-engine already exists in $SERVICES_DIR."
+    fi
+
+    # Simulate cloning embeddings-backend
+    if [ ! -d "$SERVICES_DIR/embeddings-backend" ]; then
+        echo "[*] Copying embeddings-backend..."
+        cp -r "$ROOT_DIR/../embeddings-backend" "$SERVICES_DIR/embeddings-backend" 2>/dev/null || echo "[!] Could not find ../embeddings-backend to copy."
+        # Configure env
+        if [ -d "$SERVICES_DIR/embeddings-backend" ] && [ ! -f "$SERVICES_DIR/embeddings-backend/.env.dev" ]; then
+            cp "$SERVICES_DIR/embeddings-backend/.env.dev.example" "$SERVICES_DIR/embeddings-backend/.env.dev"
+        fi
+    else
+        echo "[*] embeddings-backend already exists in $SERVICES_DIR."
+    fi
+
     # Update PATH_TO_CA_CERT in .env
     NEW_CERT_PATH="services/CHNOBLi-elasticsearch/secrets/certs/ca/ca.crt"
     echo "[*] Updating PATH_TO_CA_CERT in .env..."
@@ -105,6 +125,9 @@ case $SETUP_CHOICE in
     echo ""
     echo "2. Start Milvus:"
     echo "   cd $SERVICES_DIR/CHNOBLi-vectordb && docker compose up -d"
+    echo ""
+    echo "3. Start Embeddings Backend (Wait for Milvus to be ready):"
+    echo "   cd $SERVICES_DIR/embeddings-backend && docker compose -f docker-compose.dev.yml --env-file .env.dev up -d"
     echo ""
     echo "After they are running, you can proceed with the main project"
     echo "or import the required data using 'make import-data'."
