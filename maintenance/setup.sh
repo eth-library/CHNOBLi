@@ -81,6 +81,13 @@ case $SETUP_CHOICE in
         echo "[*] embeddings-backend already exists in $SERVICES_DIR."
     fi
 
+    # Dynamically inject the local requirement
+    REQ_FILE="$ROOT_DIR/requirements.txt"
+    if ! grep -q "embedding-engine" "$REQ_FILE"; then
+        echo "[*] Injecting local embedding-engine dependency into requirements.txt"
+        echo "embedding-engine @ file://./services/embedding-engine" >>"$REQ_FILE"
+    fi
+
     # Update PATH_TO_CA_CERT in .env
     NEW_CERT_PATH="services/CHNOBLi-elasticsearch/secrets/certs/ca/ca.crt"
     echo "[*] Updating PATH_TO_CA_CERT in .env..."
@@ -100,14 +107,14 @@ case $SETUP_CHOICE in
         cd "$ES_SUB_DIR"
         if [ ! -f ".env" ]; then
             cp .env_template .env
-            # Sync credentials from root .env
-            ROOT_ENV_PATH="$ROOT_DIR/.env"
-            if [ -f "$ROOT_ENV_PATH" ]; then
-                USER_VAL=$(grep ELASTIC_USERNAME "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
-                PASS_VAL=$(grep ELASTIC_PASSWORD "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
-                if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
-                if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
-            fi
+        fi
+        # Sync credentials from root .env
+        ROOT_ENV_PATH="$ROOT_DIR/.env"
+        if [ -f "$ROOT_ENV_PATH" ]; then
+            USER_VAL=$(grep ELASTIC_USERNAME "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
+            PASS_VAL=$(grep ELASTIC_PASSWORD "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
+            if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
+            if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
         fi
         # Run docker compose setup
         echo "[*] Generating certificates and keystore..."
