@@ -94,6 +94,7 @@ class Settings(BaseSettings):
     # Embedding Service
     CLIENT_ID: str | None = None
     CLIENT_SECRET: str | None = None
+    OIDC_TOKEN_URL: str | None = None
     EMBEDDINGS_ENDPOINT: str | None = None
     MILVUS_HOST: str = "localhost"
     MILVUS_PORT: str = "19530"
