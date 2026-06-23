@@ -149,13 +149,13 @@ import_es_wikidata() {
     if [ ! -f ".env" ]; then
         echo "[*] Creating local .env for Elasticsearch service..."
         cp .env_template .env
-        # Try to sync credentials from root .env if possible
-        if [ -f "$ROOT_ENV" ]; then
-            USER_VAL=$(grep ELASTIC_USERNAME "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
-            PASS_VAL=$(grep ELASTIC_PASSWORD "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
-            if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=$USER_VAL|" .env; fi
-            if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=$PASS_VAL|" .env; fi
-        fi
+    fi
+    # Always try to sync credentials from root .env if possible
+    if [ -f "$ROOT_ENV" ]; then
+        USER_VAL=$(grep ELASTIC_USERNAME "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
+        PASS_VAL=$(grep ELASTIC_PASSWORD "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
+        if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
+        if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
     fi
 
     # Download data if missing
@@ -186,12 +186,12 @@ import_es_gnd() {
     if [ ! -f ".env" ]; then
         echo "[*] Creating local .env for Elasticsearch service..."
         cp .env_template .env
-        if [ -f "$ROOT_ENV" ]; then
-            USER_VAL=$(grep ELASTIC_USERNAME "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
-            PASS_VAL=$(grep ELASTIC_PASSWORD "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
-            if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=$USER_VAL|" .env; fi
-            if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=$PASS_VAL|" .env; fi
-        fi
+    fi
+    if [ -f "$ROOT_ENV" ]; then
+        USER_VAL=$(grep ELASTIC_USERNAME "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
+        PASS_VAL=$(grep ELASTIC_PASSWORD "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
+        if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
+        if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
     fi
 
     # Download data if missing
