@@ -33,18 +33,9 @@ from itertools import batched, takewhile
 import numpy as np
 from pymilvus import MilvusClient  # type: ignore
 from collections import OrderedDict
-from sentence_transformers import SentenceTransformer
 from typing import List
-import torch
-import gc
 
 MAX_YEAR_STR = "3000"
-
-# GPU device handling
-_DEVICE =  None
-# Limit number of models cached in GPU to avoid memory fragmentation
-_MAX_GPU_MODELS = 1
-_model_cache: OrderedDict[str, SentenceTransformer] = OrderedDict()
 
 
 def prep_word(word: str) -> str:
@@ -709,6 +700,8 @@ def compare_to_target_ids_multiplexed(queryids: list[int],
 
 def get_paramanera_token() -> str | None:
     """Fetches an OAuth token for the Paramanera API if configured."""
+    # Ensure OIDC_TOKEN_URL points to the actual token endpoint (e.g., https://qss.access.ethz.ch/spa1/token)
+    # and NOT the openid-configuration discovery URL.
     if not settings.OIDC_TOKEN_URL or not settings.CLIENT_ID or not settings.CLIENT_SECRET:
         return None
 
@@ -721,8 +714,10 @@ def get_paramanera_token() -> str | None:
         response = requests.post(settings.OIDC_TOKEN_URL, data=payload, timeout=10)
         if response.status_code == 200:
             return response.json().get("access_token")
+        else:
+            logging.error(f"Failed to fetch OIDC token. Status: {response.status_code}, Response: {response.text}")
     except Exception as e:
-        logging.error(f"Failed to fetch OIDC token: {e}")
+        logging.error(f"Exception while fetching OIDC token: {e}")
     return None
 
 
@@ -749,10 +744,10 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
     }
 
     try:
-        response = requests.post(backend_url, json=payload, headers=headers, timeout=60)
+        response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT)
     except Exception:
         logging.warning(f"Querying the VD timed out once with payload: {payload}")
-        response = requests.post(backend_url, json=payload, headers=headers, timeout=120)
+        response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT_RETRY)
 
     # retry until it works.
     retries = 0
@@ -761,11 +756,9 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
         time.sleep(2)
         logging.warning(f"Querying the VD failed or timed out {retries} times with payload: {payload}")
         try:
-            response = requests.post(backend_url, json=payload, headers=headers, timeout=60)
+            response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT)
         except requests.exceptions.ReadTimeout:
-            # Try one more time, huggingface might be down
-            # If this also causes an exception, execution should be stopped to investigate
-            response = requests.post(backend_url, json=payload, headers=headers, timeout=120)
+            response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT_RETRY)
 
         if response.status_code == 200:
             return response.text
