@@ -3,6 +3,8 @@
 # Repository URLs
 ES_REPO="https://github.com/eth-library/CHNOBLi-elasticsearch.git"
 MILVUS_REPO="https://github.com/eth-library/CHNOBLi-vectordb.git"
+EMBEDDING_ENGINE_REPO="https://gitlab.ethz.ch/library/adl/Machine_learning_platform/embeddings-engine"
+EMBEDDING_BACKEND_REPO="https://gitlab.ethz.ch/library/adl/Machine_learning_platform/embeddings-backend"
 
 # Paths (Relative to the script location)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -61,22 +63,18 @@ case $SETUP_CHOICE in
         echo "[*] CHNOBLi-vectordb already exists in $SERVICES_DIR."
     fi
 
-    # Simulate cloning embedding-engine
+    # Clone Embedding Engine
     if [ ! -d "$SERVICES_DIR/embedding-engine" ]; then
-        echo "[*] Copying embedding-engine..."
-        cp -r "$ROOT_DIR/../embedding-engine" "$SERVICES_DIR/embedding-engine" 2>/dev/null || echo "[!] Could not find ../embedding-engine to copy."
+        echo "[*] Cloning embedding-engine..."
+        git clone "$EMBEDDING_ENGINE_REPO" "$SERVICES_DIR/embedding-engine"
     else
         echo "[*] embedding-engine already exists in $SERVICES_DIR."
     fi
 
-    # Simulate cloning embeddings-backend
+    # Clone Embeddings Backend
     if [ ! -d "$SERVICES_DIR/embeddings-backend" ]; then
         echo "[*] Copying embeddings-backend..."
-        cp -r "$ROOT_DIR/../embeddings-backend" "$SERVICES_DIR/embeddings-backend" 2>/dev/null || echo "[!] Could not find ../embeddings-backend to copy."
-        # Configure env
-        if [ -d "$SERVICES_DIR/embeddings-backend" ] && [ ! -f "$SERVICES_DIR/embeddings-backend/.env.dev" ]; then
-            cp "$SERVICES_DIR/embeddings-backend/.env.dev.example" "$SERVICES_DIR/embeddings-backend/.env.dev"
-        fi
+        git clone -b "apelloni/chnobli" "$EMBEDDING_BACKEND_REPO" "$SERVICES_DIR/embeddings-backend"
     else
         echo "[*] embeddings-backend already exists in $SERVICES_DIR."
     fi
@@ -123,6 +121,30 @@ case $SETUP_CHOICE in
         cd - >/dev/null
     fi
 
+    # Automate embeddings-backend setup
+    echo ""
+    echo "[*] Configuring embeddings-backend environment..."
+    EMB_SUB_DIR="$SERVICES_DIR/embeddings-backend"
+    if [ -d "$EMB_SUB_DIR" ]; then
+        cd "$EMB_SUB_DIR"
+        ROOT_ENV_PATH="$ROOT_DIR/.env"
+        if [ -f "$ROOT_ENV_PATH" ]; then
+            # Extract token value from root .env
+            TOKEN_EMB=$(grep "^GITLAB_TOKEN_EMBEDDINGS=" "$ROOT_ENV_PATH" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+
+            if [ -f ".env.chnobli" ]; then
+                if [ ! -z "$TOKEN_EMB" ]; then
+                    if [[ "$OSTYPE" == "darwin"* ]]; then
+                        sed -i '' "s|^GITLAB_TOKEN_EMBEDDINGS=.*|GITLAB_TOKEN_EMBEDDINGS=\"$TOKEN_EMB\"|" .env.chnobli
+                    else
+                        sed -i "s|^GITLAB_TOKEN_EMBEDDINGS=.*|GITLAB_TOKEN_EMBEDDINGS=\"$TOKEN_EMB\"|" .env.chnobli
+                    fi
+                fi
+            fi
+        fi
+        cd - >/dev/null
+    fi
+
     echo ""
     echo "=========================================="
     echo "Setup complete! To start your local services:"
@@ -134,11 +156,20 @@ case $SETUP_CHOICE in
     echo "   cd $SERVICES_DIR/CHNOBLi-vectordb && docker compose up -d"
     echo ""
     echo "3. Start Embeddings Backend (Wait for Milvus to be ready):"
-    echo "   cd $SERVICES_DIR/embeddings-backend && docker compose -f docker-compose.dev.yml --env-file .env.dev up -d"
+    echo "   * IMPORTANT: Ensure your GITLAB_TOKEN_EMBEDDINGS is defined in the root .env before running setup.sh"
+    echo "   cd $SERVICES_DIR/embeddings-backend && docker compose -f docker-compose.chnobli.yml --env-file .env.chnobli up -d --build"
     echo ""
-    echo "After they are running, you can proceed with the main project"
-    echo "or import the required data using 'make import-data'."
+    echo "After they are running, you can proceed with the main project."
     echo "=========================================="
+
+    echo ""
+    read -p "Would you like to run the data import/download script now? [y/N]: " IMPORT_CHOICE
+    if [[ "$IMPORT_CHOICE" =~ ^[Yy]$ ]]; then
+        echo ""
+        echo "[*] Launching data import script..."
+        chmod +x "$ROOT_DIR/maintenance/import_data.sh"
+        "$ROOT_DIR/maintenance/import_data.sh"
+    fi
     ;;
 *)
     echo "Invalid choice. Setup aborted."
