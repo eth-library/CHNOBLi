@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>src package &#8212; CHNOBLi 2026 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=fc6fd62b"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="src.preprocessing package" href="src.preprocessing.html" />
+    <link rel="prev" title="main module" href="main.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="src-package">
+<h1>src package<a class="headerlink" href="#src-package" title="Link to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src.preprocessing.html">src.preprocessing package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src.preprocessing.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.preprocessing.html#module-src.preprocessing.preprocess">src.preprocessing.preprocess module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.PreprocessConfig"><code class="docutils literal notranslate"><span class="pre">PreprocessConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.PreprocessConfig.ABBREVIATION_FILE"><code class="docutils literal notranslate"><span class="pre">PreprocessConfig.ABBREVIATION_FILE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.PreprocessConfig.ABBREVIATION_LIST"><code class="docutils literal notranslate"><span class="pre">PreprocessConfig.ABBREVIATION_LIST</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.PreprocessConfig.IN_WORD_SPLITTERS"><code class="docutils literal notranslate"><span class="pre">PreprocessConfig.IN_WORD_SPLITTERS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.PreprocessConfig.KONJ"><code class="docutils literal notranslate"><span class="pre">PreprocessConfig.KONJ</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.PreprocessConfig.PUNC"><code class="docutils literal notranslate"><span class="pre">PreprocessConfig.PUNC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.PreprocessConfig.SENTENCE_ENDING"><code class="docutils literal notranslate"><span class="pre">PreprocessConfig.SENTENCE_ENDING</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.PreprocessConfig.load_abbrevs"><code class="docutils literal notranslate"><span class="pre">PreprocessConfig.load_abbrevs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.check_for_abbrev"><code class="docutils literal notranslate"><span class="pre">check_for_abbrev()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.check_roman_numeral"><code class="docutils literal notranslate"><span class="pre">check_roman_numeral()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.execute_preprocessing"><code class="docutils literal notranslate"><span class="pre">execute_preprocessing()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.fuse_hyphens"><code class="docutils literal notranslate"><span class="pre">fuse_hyphens()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.get_year_chunk_paths"><code class="docutils literal notranslate"><span class="pre">get_year_chunk_paths()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.prep_year_data_for_tagging"><code class="docutils literal notranslate"><span class="pre">prep_year_data_for_tagging()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.preprocess_file"><code class="docutils literal notranslate"><span class="pre">preprocess_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.split_sentences"><code class="docutils literal notranslate"><span class="pre">split_sentences()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.start_preprocessing"><code class="docutils literal notranslate"><span class="pre">start_preprocessing()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.timed_execute_preprocessing"><code class="docutils literal notranslate"><span class="pre">timed_execute_preprocessing()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.preprocessing.html#src.preprocessing.preprocess.tokenize"><code class="docutils literal notranslate"><span class="pre">tokenize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.preprocessing.html#module-src.preprocessing">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-src.aggregation">
+<span id="src-aggregation-module"></span><h2>src.aggregation module<a class="headerlink" href="#module-src.aggregation" title="Link to this heading">¶</a></h2>
+<p>Aggregation module</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.abbrev_firstname_match">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">abbrev_firstname_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregated_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.aggregation.abbrev_firstname_match" title="Link to this definition">¶</a></dt>
+<dd><p>Find matches by abbreviated first name and last name.</p>
+<p>Searches the aggregated names for entries where both the abbreviated
+first name and last name match the reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference</strong> (<em>dict</em>) – Dictionary containing the reference person entity
+information</p></li>
+<li><p><strong>aggregated_names</strong> (<em>list</em>) – List of existing aggregated units to search</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of matching aggregated units; empty list if no matches found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.aggregate_names">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">aggregate_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_triplet</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.aggregation.aggregate_names" title="Link to this definition">¶</a></dt>
+<dd><p>Aggregate person entity mentions into unified entities.</p>
+<p>Groups multiple mentions of the same person into single aggregated units
+based on name matching and contextual information from the journal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_triplet</strong> (<em>tuple</em>) – Triplet consisting of (in this order):
+* Tuple (mag, year)
+* List of person entity dictionaries to aggregate
+* List of paths for the tagging output files of this mag-year tuple</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Triplet consisting of (in this order):
+* List of aggregated person entities with consolidated mentions
+* Tuple (mag, year)
+* List of paths for the tagging output files of this mag-year tuple</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.aggregate_place">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">aggregate_place</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">found</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">place</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.aggregation.aggregate_place" title="Link to this definition">¶</a></dt>
+<dd><p>Merge place reference information into an existing aggregated unit.</p>
+<p>Updates an existing <cite>found</cite> dictionary in place by adding 
+the information from the <cite>place</cite> reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>found</strong> (<em>dict</em>) – The existing aggregated place unit to update</p></li>
+<li><p><strong>place</strong> (<em>dict</em>) – Dictionary containing place entity information and its
+location references in the journal</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.aggregate_places">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">aggregate_places</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_places</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregated_places</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.aggregation.aggregate_places" title="Link to this definition">¶</a></dt>
+<dd><p>Aggregate place entity references into unified units.</p>
+<p>Processes all place entity references and either merges them into
+existing aggregated units or creates new units as appropriate, updating
+the aggregated places list in place.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_places</strong> (<em>list</em>) – List of place entity dictionaries containing place
+information and their location references in the journal</p></li>
+<li><p><strong>aggregated_places</strong> (<em>list</em>) – List of existing aggregated place units,
+modified in place by merging or adding new units</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.aggregate_with">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">aggregate_with</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">namepart_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregated_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namepart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.aggregation.aggregate_with" title="Link to this definition">¶</a></dt>
+<dd><p>Aggregate person entity references by a specified name part.</p>
+<p>Processes references grouped by a name part (e.g., last name) and either
+merges them into existing aggregated units or creates new units where
+appropriate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>namepart_dict</strong> (<em>dict</em>) – Dictionary mapping name parts to lists of person
+entity references. Keys are name parts (e.g., last names), values are
+lists of reference dictionaries</p></li>
+<li><p><strong>aggregated_names</strong> (<em>list</em>) – List of existing aggregated units, modified in
+place by merging or adding new units</p></li>
+<li><p><strong>namepart</strong> (<em>str</em>) – The type of name part to use for aggregation (e.g.,
+‘lastname’, ‘firstname’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If the provided <cite>namepart</cite> is not recognized</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.clean_lastname">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">clean_lastname</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">word</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#src.aggregation.clean_lastname" title="Link to this definition">¶</a></dt>
+<dd><p>Remove prefix and suffix patterns from a last name.</p>
+<p>Applies global PRE and POSTPATTERN regex patterns to strip common
+prefixes and suffixes from the given word.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>word</strong> (<em>str</em>) – The last name string to clean</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The cleaned last name with patterns removed</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.clean_up_aggregation">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">clean_up_aggregation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aggregated_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.aggregation.clean_up_aggregation" title="Link to this definition">¶</a></dt>
+<dd><p>Clean and restructure the aggregated person list.</p>
+<p>Sorts the aggregated person entities and reformats the internal data
+structure of their references for consistency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>aggregated_names</strong> (<em>list</em>) – List of aggregated person entity dictionaries</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cleaned and restructured list of aggregated person entities</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.clean_up_aggregation_places">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">clean_up_aggregation_places</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aggregated_places</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.aggregation.clean_up_aggregation_places" title="Link to this definition">¶</a></dt>
+<dd><p>Clean and restructure the aggregated places list.</p>
+<p>Sorts the aggregated place entities and reformats the internal data
+structure of their references for consistency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>aggregated_places</strong> (<em>list</em>) – List of aggregated place entity dictionaries</p></li>
+<li><p><strong>last_index</strong> (<em>int</em>) – Index of the last place entity processed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cleaned and restructured list of aggregated place entities</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.create_new_aggregated_place">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">create_new_aggregated_place</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.aggregation.create_new_aggregated_place" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new aggregated unit for a place entity.</p>
+<p>Transforms a place entity reference into an aggregated format where
+values are converted to sets of tuples for efficient tracking of where
+the place appears in the journal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reference</strong> (<em>dict</em>) – Dictionary containing place entity information and its
+location references in the journal</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with the same structure but values converted to sets
+of tuples for aggregation</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.create_new_aggregated_unit">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">create_new_aggregated_unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.aggregation.create_new_aggregated_unit" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new aggregated unit for a person entity.</p>
+<p>Transforms a person entity reference into an aggregated format where
+values are converted to sets of tuples for efficient tracking of where
+the person appears in the journal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ref</strong> (<em>dict</em>) – Dictionary containing person entity information and where
+the person appeared in the journal</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with the same structure but values converted to sets
+of tuples for aggregation</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.decide_candidates">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">decide_candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregated_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.aggregation.decide_candidates" title="Link to this definition">¶</a></dt>
+<dd><p>Select the best matching candidate and merge, or create a new unit.</p>
+<p>Evaluates potential candidate matches for a person entity reference. If
+a suitable match is found, merges the reference into that aggregated unit
+in-place. Otherwise, creates a new aggregated unit and adds it to the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ref</strong> (<em>dict</em>) – A dictionary containing information about the person        entity and where the person appeared in the journal</p></li>
+<li><p><strong>candidates</strong> (<em>list</em>) – A list of dictionaries representing existing        aggregated units that are potential matches for the reference</p></li>
+<li><p><strong>aggregated_names</strong> (<em>list</em>) – List of all aggregated units, modified in place
+by adding new units or updating existing ones</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints detailed information about        the reference and the selected candidate, defaults to False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.execute_aggregation">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">execute_aggregation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">postprocessed_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tasks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.aggregation.execute_aggregation" title="Link to this definition">¶</a></dt>
+<dd><p>Aggregate postprocessed data and optionally log execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>postprocessed_data</strong> (<em>list</em><em> of </em><em>triplets</em><em> (</em><em>year</em><em>, </em><em>data</em><em>, </em><em>paths</em><em>)</em>) – Postprocessed entity data ready for aggregation</p></li>
+<li><p><strong>tasks</strong> (<em>list</em>) – List of tasks to perform during aggregation</p></li>
+<li><p><strong>timed</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, logs execution time. Defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Generator yielding dictionaries of aggregated data, each
+containing a dictionary with keys “agg_data” containing tagged people
+and places and a key “paths” with a list of all the tagged files that        belong to this year</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Iterator[dict]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If ‘post’ is not included in the tasks list, an        exception is raised indicating that ‘post,agg,link’ must be called        together.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.find_place_match">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">find_place_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">place_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">place_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregated_places</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.aggregation.find_place_match" title="Link to this definition">¶</a></dt>
+<dd><p>Find an exact match for a place name.</p>
+<p>Searches the aggregated place names for an entry that exactly matches
+both the place name and type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>place_name</strong> (<em>str</em>) – The place name string to match</p></li>
+<li><p><strong>place_type</strong> (<em>str</em>) – The entity type of the place (e.g., ‘GPE’, ‘LOC’)</p></li>
+<li><p><strong>aggregated_places</strong> (<em>list</em>) – List of existing aggregated place units to
+search</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The matching aggregated place unit if found, else <cite>None</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.full_firstname_match">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">full_firstname_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregated_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.aggregation.full_firstname_match" title="Link to this definition">¶</a></dt>
+<dd><p>Find an exact match by full first name and last name.</p>
+<p>Searches the aggregated names for an entry that matches both the complete
+first name and last name of the reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ref</strong> (<em>dict</em>) – Dictionary containing the reference person entity information</p></li>
+<li><p><strong>aggregated_names</strong> (<em>list</em>) – List of existing aggregated units to search</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The matching aggregated unit if found, else <cite>None</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.map_genitive_places">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">map_genitive_places</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">place_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.aggregation.map_genitive_places" title="Link to this definition">¶</a></dt>
+<dd><p>Map genitive place name forms to their base forms.</p>
+<p>Converts genitive versions of place names (ending in ‘s’) to their
+non-genitive base forms by removing the trailing ‘s’ where appropriate,
+updating place_list in place.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_names</strong> (<em>list</em>) – List of place names mentioned in the journal</p></li>
+<li><p><strong>place_list</strong> (<em>list</em>) – List of places, modified in place to map genitive
+forms to base forms</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.map_genitive_versions">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">map_genitive_versions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lastname_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.aggregation.map_genitive_versions" title="Link to this definition">¶</a></dt>
+<dd><p>Map genitive name forms to their base forms.</p>
+<p>Converts genitive versions of names (ending in ‘s’) to their non-genitive
+base forms by removing the trailing ‘s’ where appropriate, updating the
+lastname_dict in place.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_names</strong> (<em>list</em>) – List of person names mentioned in the journal</p></li>
+<li><p><strong>lastname_dict</strong> (<em>dict</em>) – Dictionary of last names, modified in place to map
+genitive forms to base forms</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – The name part to process (e.g., ‘lastname’, ‘firstname’)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.merge_to_existing_aggregated_unit">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">merge_to_existing_aggregated_unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">match_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.aggregation.merge_to_existing_aggregated_unit" title="Link to this definition">¶</a></dt>
+<dd><p>Merge reference information into an existing aggregated unit.</p>
+<p>Updates the <cite>match_in</cite> dictionary in place by adding entity information
+from the <cite>reference</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>match_in</strong> (<em>dict</em>) – The existing aggregated unit to update</p></li>
+<li><p><strong>ref</strong> (<em>dict</em>) – Dictionary containing person entity information and where
+the person appeared in the journal</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.only_abbrev_firstname_match">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">only_abbrev_firstname_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregated_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.aggregation.only_abbrev_firstname_match" title="Link to this definition">¶</a></dt>
+<dd><p>Find matches by abbreviated first name only.</p>
+<p>Searches the aggregated names for entries where the abbreviated first
+name matches the reference, regardless of last name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ref</strong> (<em>dict</em>) – Dictionary containing the reference person entity
+information</p></li>
+<li><p><strong>aggregated_names</strong> (<em>list</em>) – List of existing aggregated units to search</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of matching aggregated units. Empty list if no matches found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.only_firstname_match">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">only_firstname_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregated_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.aggregation.only_firstname_match" title="Link to this definition">¶</a></dt>
+<dd><p>Find matches by first name only.</p>
+<p>Searches the aggregated names for entries where the first name matches
+the reference, regardless of last name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ref</strong> (<em>dict</em>) – Dictionary containing the reference person entity
+information</p></li>
+<li><p><strong>aggregated_names</strong> (<em>list</em>) – List of existing aggregated units to search</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of matching aggregated units. Empty list if no matches found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.only_lastname_match">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">only_lastname_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregated_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.aggregation.only_lastname_match" title="Link to this definition">¶</a></dt>
+<dd><p>Find matches by last name only.</p>
+<p>Searches the aggregated names for entries where the last name matches
+the reference, regardless of first name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference</strong> (<em>dict</em>) – Dictionary containing the reference person entity
+information</p></li>
+<li><p><strong>aggregated_names</strong> (<em>list</em>) – ist of existing aggregated units to search</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of matching aggregated units. Empty list if no matches found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.aggregation.others_match">
+<span class="sig-prename descclassname"><span class="pre">src.aggregation.</span></span><span class="sig-name descname"><span class="pre">others_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregated_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.aggregation.others_match" title="Link to this definition">¶</a></dt>
+<dd><p>Find matches by the ‘others’ field only.</p>
+<p>Searches the aggregated names for entries where the ‘others’ field
+matches the reference, regardless of first or last name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference</strong> (<em>dict</em>) – Dictionary containing the reference person entity
+information</p></li>
+<li><p><strong>aggregated_names</strong> (<em>list</em>) – List of existing aggregated units to search</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of matching aggregated units; empty list if no matches found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-src.evaluation">
+<span id="src-evaluation-module"></span><h2>src.evaluation module<a class="headerlink" href="#module-src.evaluation" title="Link to this heading">¶</a></h2>
+<p>Evaluate performance on entity and reference level</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.evaluation.execute_evaluation">
+<span class="sig-prename descclassname"><span class="pre">src.evaluation.</span></span><span class="sig-name descname"><span class="pre">execute_evaluation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.evaluation.execute_evaluation" title="Link to this definition">¶</a></dt>
+<dd><p>Evaluates the F1-score of the data based on the given configuration and    evaluation level</p>
+<p>At eval_level “ent”, this is done on entity level. At eval_level “ref”,    this is done on reference level, which weighs the entities more that occur    more, thus should be linked correctly, since we have more context on them.</p>
+<p>Evaluation is done for all magazines in our ground-truth folder to make    the evaluations straightforward to compare. If you would like to evaluate    only one magazine, you need to create a new directory with only that    magazine’s ground-truth in it, change that path in the config, and then    run eval.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eval_level</strong> (<em>str</em>) – Evaluation level to be used (“ent” or “ref”).</p></li>
+<li><p><strong>top_k</strong> (<em>int</em>) – How many candidates to truncate the results to,        defaults to 3.</p></li>
+<li><p><strong>timed</strong> (<em>bool</em>) – Boolean indicating whether to time the execution and log it,        defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NotImplementedError</strong> – If no path to GT was passed.</p>
+</dd>
+</dl>
+<p>It creates several directories and json files in the output directory    specified in the config.</p>
+</dd></dl>
+
+</section>
+<section id="module-src.linking">
+<span id="src-linking-module"></span><h2>src.linking module<a class="headerlink" href="#module-src.linking" title="Link to this heading">¶</a></h2>
+<p>Linking module</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.backend_api_call">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">backend_api_call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend_url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.linking.backend_api_call" title="Link to this definition">¶</a></dt>
+<dd><p>We call our API backend.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.compare_to_target_ids_multiplexed">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">compare_to_target_ids_multiplexed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queryids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_text_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.linking.compare_to_target_ids_multiplexed" title="Link to this definition">¶</a></dt>
+<dd><p>Compare query texts to target texts using embeddings and return distances.</p>
+<p>Sends text queries to an embedding backend to compute similarity distances
+between the query texts and a specified list of target text IDs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queryids</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – List of query identifiers</p></li>
+<li><p><strong>text</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of text strings to embed and compare</p></li>
+<li><p><strong>target_text_ids</strong> (<em>list</em><em>[</em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – List of target text ID lists to compare against</p></li>
+<li><p><strong>backend_url</strong> (<em>str</em>) – URL of the embedding backend service</p></li>
+<li><p><strong>collection_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the collection in the backend</p></li>
+<li><p><strong>model</strong> (<em>str</em>) – Model backend to use for generating embeddings</p></li>
+<li><p><strong>model_name</strong> (<em>str</em>) – Specific model name to use</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of results, else logs error</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.compare_vector_to_text_ids_multiplexed">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">compare_vector_to_text_ids_multiplexed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_metric</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cosine'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.linking.compare_vector_to_text_ids_multiplexed" title="Link to this definition">¶</a></dt>
+<dd><p>Compare query embeddings to candidate embeddings stored in Milvus,
+restricted by reference_text_ids per query.</p>
+<p>input: list of dicts with keys “query_id”: int, “query_text”: str, “reference_text_ids”: list[str]
+vectors: list of embeddings (aligned with input order)
+collection_name: Milvus collection
+ditance_metric: “cosine” | “l2” | “ip”</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.execute_linking">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">execute_linking</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tasks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.linking.execute_linking" title="Link to this definition">¶</a></dt>
+<dd><p>Links the aggregated data based on the given configuration and tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em>) – The data that has been aggregated and is ready for        linking. The keys are the magazine-year shortnames, the values        are the dictionaries of the aggregated entities.</p></li>
+<li><p><strong>tasks</strong> (<em>list</em>) – List of tasks to be performed during linking.</p></li>
+<li><p><strong>timed</strong> (<em>bool</em>) – Boolean indicating whether to time the execution and log it,        defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If the tasks list doesn’t include ‘finish’ or if ‘agg’        and ‘post’ is not included in the tasks list, an exception is        raised indicating that ‘post,agg,link’ or ‘finish’ must be        called together.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.find_links">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">find_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_in</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.linking.find_links" title="Link to this definition">¶</a></dt>
+<dd><p>Links all the people in the given data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_in</strong> (<em>3-tuple</em>) – <ul class="simple">
+<li><p>mag_year (tuple): A tuple contaning the magazine shortname and            year of the journal we’re currently processing in that order.</p></li>
+<li><p>data (list): The list of dictionaries created through            aggregating PER entities in our magazine-year tuple.</p></li>
+<li><dl class="simple">
+<dt>tagging_paths (list): The list of paths to the tagging output of this</dt><dd><p>magazine_year tuple.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The same 4-tuple, but the data list is now an ordered list of              person entity dictionaries containing a             “gnd_ids” key with the candidates list if there are no candidates,             or exactly one candidate, else “context” and “same_score_cand”.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.generate_huggingface_embedding">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">generate_huggingface_embedding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">texts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.linking.generate_huggingface_embedding" title="Link to this definition">¶</a></dt>
+<dd><p>Generates an embedding using the huggingface framework.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>texts (List[str]): List of input texts to embed.
+model_name (str): Name of the embedding model to use (huggingface name).</p>
+</dd>
+<dt>Returns:</dt><dd><p>ans (List[List[float]]): resulting embeddings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.get_candidates">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">get_candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">person</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gnd_limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikidata_limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.linking.get_candidates" title="Link to this definition">¶</a></dt>
+<dd><p>Searches the GND and Wikidata index for candidates of a given person.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>person</strong> (<em>dict</em>) – A dictionary with various information on the given        person entity.</p></li>
+<li><p><strong>year</strong> (<em>str</em>) – The year in which this magazine was published.</p></li>
+<li><p><strong>gnd_limit</strong> (<em>int</em>) – The number of candidates to truncate our GND candidate        list to.</p></li>
+<li><p><strong>wikidata_limit</strong> (<em>int</em>) – The number of candidates to truncate out wikidata        candidate list to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of candidates for the given person, containing        information on the candidates themselves.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.get_person_context">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">get_person_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">per</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tagging_output_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#src.linking.get_person_context" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve and concatenate context surrounding all person mentions.</p>
+<p>Extracts the text surrounding each reference to the given person and
+concatenates all context windows into a single string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>per</strong> (<em>dict</em>) – Person entity dictionary containing a “references” key with
+mention locations</p></li>
+<li><p><strong>tagging_output_paths</strong> (<em>list</em>) – List of the paths to the tagging output files</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Concatenated context text from all references to the person</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If the tagging output path is not a valid path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.get_person_context_reflevel">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">get_person_context_reflevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">per</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tagging_output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.linking.get_person_context_reflevel" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve context surrounding all person mentions.</p>
+<p>Extracts the text surrounding each reference to the given person and
+returns them as a list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>per</strong> (<em>dict</em>) – Person entity dictionary containing a “references” key with
+mention locations</p></li>
+<li><p><strong>tagging_output_path</strong> (<em>str</em>) – Path to the tagging output file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of context window strings, one per reference to the person</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If the tagging output path is not a valid path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.link_person">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">link_person</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_in</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.linking.link_person" title="Link to this definition">¶</a></dt>
+<dd><p>Searches GND and Wikidata for candidates, sets a field “gnd_ids” in the    person dictionary with at most <cite>linked_persons_limit</cite> candidates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_in</strong> (<em>4-tuple</em>) – <ul class="simple">
+<li><p>mag_year (tuple): Shortname of the magazine this person is mentioned            in. Of the form (“obl”, “2004_000”).</p></li>
+<li><p>year (str): The year this magazine was published in.</p></li>
+<li><p>person (dict): A dictionary with keys “lastname”, “firstname”,            “abbr_firstname”, “address”, “titles”, “profession”, “other”,            “references”, “type” and “id”.</p>
+<ul>
+<li><p>fields up until “references” are lists, except for lastname which                is a string</p></li>
+<li><p>references is a defaultdict(list), a list of page_names where each                page_name has coords and sentences associated with it where                the candidate was mentioned</p></li>
+<li><p>type is a string denoting the entity type</p></li>
+<li><p>id is an internal id</p></li>
+</ul>
+</li>
+<li><dl class="simple">
+<dt>tagging_paths (list): List of paths to the tagging output files for</dt><dd><p>this magazine-year.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The changed person dictionary, now containing the gnd_ids
+if there are no candidates or exactly one candidate,        else “context” and “same_score_cand”.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<p>If the list of candidates is longer than <cite>linked_persons_limit</cite>,    we check if the first letters of the firstnames match the abbreviated    firstnames. If not, those candidates are deleted first, before we    truncate to <cite>linked_persons_limit</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.prep_person_entry">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">prep_person_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">person</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mag_year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.linking.prep_person_entry" title="Link to this definition">¶</a></dt>
+<dd><p>Normalizes and cleans up proper names in the given person dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>person</strong> (<em>dict</em>) – A person dictionary containing at least the keys        “firstname”, “abbr_firstname”, “lastname”, and “profession”.</p></li>
+<li><p><strong>mag_year</strong> (<em>tuple</em>) – Shortname of the magazine this person is mentioned        in. Of the form (“obl”, “2004_000”).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.prep_person_out">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">prep_person_out</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">person</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.linking.prep_person_out" title="Link to this definition">¶</a></dt>
+<dd><p>For a given dictionary, joins the fields “firstname”, “abbr_firstname”    and “lastname” repectively to make them strings. Maps the candidate scores
+to a “confidence score” on a scale from 1 to 5 for the frontend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>person</strong> (<em>dict</em>) – A person dictionary containing at least the keys        “firstname”, “abbr_firstname”, and “lastname”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.prep_word">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">prep_word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">word</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#src.linking.prep_word" title="Link to this definition">¶</a></dt>
+<dd><p>Normalizes and cleans up given string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>word</strong> (<em>str</em>) – String to normalize.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Normalized string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><p>‘OTMAR Mäder’ -&gt; ‘Otmar Mäder’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.remove_obsolete_abbrevs">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">remove_obsolete_abbrevs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fnames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abbr_firstnames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.linking.remove_obsolete_abbrevs" title="Link to this definition">¶</a></dt>
+<dd><p>Removes abbreviated firstnames that are already covered by full    firstnames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fnames</strong> (<em>list</em>) – List of firstnames</p></li>
+<li><p><strong>abbr_firstnames</strong> (<em>list</em>) – List of abbreviated firstnames</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of firstnames where the obsolete abbreviated firstnames            have been removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><p>fnames = [“R.”, “Richard”] =&gt; fnames = [“Richard”]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.update_per_dict_score">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">update_per_dict_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dict_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_to_add</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.linking.update_per_dict_score" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-src.postprocess">
+<span id="src-postprocess-module"></span><h2>src.postprocess module<a class="headerlink" href="#module-src.postprocess" title="Link to this heading">¶</a></h2>
+<p>Read entities, then aggregate them.</p>
+<p>Update 09.03.:
+We do not append full articles anymore, because we’d need to attach
+too much information which bloats the file.
+Instead, we only append the article-ID, so in the other steps like
+aggregation, linking and prep_import we can simply use that id to get the
+article information from the xml.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.add_info_to_entity">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">add_info_to_entity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pageNo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sentNo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pageName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">articles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.postprocess.add_info_to_entity" title="Link to this definition">¶</a></dt>
+<dd><p>Adds information to a person entity based on the provided token dictionary    and metadata about the page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entity</strong> (<em>dict</em>) – The person entity dictionary to update.</p></li>
+<li><p><strong>tag</strong> (<em>str</em>) – The type of the entity information (e.g., “LN” for last        name, “FN” for first name).</p></li>
+<li><p><strong>token</strong> (<em>dict</em>) – <p>A dictionary containing token information, including</p>
+<ul>
+<li><p>”token” (str): The token text.</p></li>
+<li><p>”coord” (tuple): The coordinates of the token.</p></li>
+</ul>
+</p></li>
+<li><p><strong>pageNo</strong> (<em>str</em>) – The page number where the entity is located.</p></li>
+<li><p><strong>sentNo</strong> (<em>str</em>) – The sentence number where the entity is located.</p></li>
+<li><p><strong>pageName</strong> (<em>str</em>) – The name of the page where the entity is located.</p></li>
+<li><p><strong>articles</strong> (<em>list</em>) – A list of articles associated with the page.</p></li>
+<li><p><strong>pid</strong> (<em>int</em>) – The physical ID of the page.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Notes:</dt><dd><ul class="simple">
+<li><p>Updates the <cite>info</cite> dictionary in the entity with the token text            based on the tag.</p></li>
+<li><p>Appends metadata such as <cite>pid</cite>, <cite>pageNames</cite>, <cite>positions</cite>, <cite>pageNo</cite>,            and <cite>sentenceNo</cite> to the entity.</p></li>
+<li><p>Sets the <cite>type</cite> of the entity to “PER” (person).</p></li>
+<li><p>Processes and adds article information to the entity if not already            present.</p></li>
+<li><p>Logs a warning if an unknown tag is encountered.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.add_info_to_place_entity">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">add_info_to_place_entity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pageNo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sentNo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pageName</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">articles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.postprocess.add_info_to_place_entity" title="Link to this definition">¶</a></dt>
+<dd><p>Adds information to a place entity based on the provided token dict and    metadata about the page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entity</strong> (<em>dict</em>) – The place entity dictionary to update.</p></li>
+<li><p><strong>tag</strong> (<em>str</em>) – The type of the place entity (e.g., “LOC”).</p></li>
+<li><p><strong>token</strong> (<em>dict</em>) – <p>A dictionary containing token information, including</p>
+<ul>
+<li><p>”token” (str): The token text.</p></li>
+<li><p>”coord” (tuple): The coordinates of the token.</p></li>
+</ul>
+</p></li>
+<li><p><strong>pageNo</strong> (<em>str</em>) – The page number where the entity is located.</p></li>
+<li><p><strong>sentNo</strong> (<em>str</em>) – The sentence number where the entity is located.</p></li>
+<li><p><strong>pageName</strong> (<em>str</em>) – The name of the page where the entity is located.</p></li>
+<li><p><strong>articles</strong> (<em>list</em>) – A list of articles associated with the page.</p></li>
+<li><p><strong>pid</strong> (<em>int</em>) – The physical ID of the page.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Notes:</dt><dd><ul class="simple">
+<li><p>Updates the <cite>tokens</cite> list in the entity with the token text.</p></li>
+<li><p>Sets the <cite>type</cite> of the entity to the provided tag.</p></li>
+<li><p>Appends metadata such as <cite>pid</cite>, <cite>pageNames</cite>, <cite>positions</cite>, <cite>pageNo</cite>,        and <cite>sentenceNo</cite> to the entity.</p></li>
+<li><p>Processes and adds article information to the entity if not already        present.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.adjust_information">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">adjust_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entitylist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.postprocess.adjust_information" title="Link to this definition">¶</a></dt>
+<dd><p>Adjusts page information in the given entity list.    Only keeps first value in “pageNames”, “pageNo”, “sentenceNo”, and “pid”.    Logs a warning if there are several values for these entries.    If an entity has no “pid”, this entry is removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>entitylist</strong> (<em>list</em>) – List of entity dictionaries, where each dict            contains page information on where this entity appears.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.decide_articles">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">decide_articles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">articles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.postprocess.decide_articles" title="Link to this definition">¶</a></dt>
+<dd><p>Given a list of lists, only keeps the entries that are exactly length 2.    Or, if the input is only length one, keeps it unchanged.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>articles</strong> (<em>list</em>) – List of articles</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cleaned list of pages where we only keep the articles with            exactly two pages.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.execute_postprocessing">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">execute_postprocessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">magazines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tasks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">places</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.postprocess.execute_postprocessing" title="Link to this definition">¶</a></dt>
+<dd><p>Postprocesses data based on the given configuration and tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>magazines</strong> (<em>iterator</em>) – Generator object containing the magazines. The object        is a dictionary where keys are tuples of (magazine shortname, year)        and the values are file paths or lists of file paths.</p></li>
+<li><p><strong>tasks</strong> (<em>list</em>) – List of tasks to be performed during postprocessing.</p></li>
+<li><p><strong>timed</strong> (<em>bool</em>) – Boolean indicating whether to time the execution and log it,        defaults to True.</p></li>
+<li><p><strong>places</strong> (<em>bool</em>) – Boolean indicating whether to process place entities as well,        defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a list of tuples. The first value of the tuple is another        tuple, consisting of the year of the magazine and the shortname of        the magazine. The second value of the tuple is a dictionary        describing the data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Notes:</dt><dd><ul class="simple">
+<li><p>Logs the start and end time of the postprocessing.</p></li>
+<li><p>If “CUSTOM_PATHS” is not in the settings, sets the input folder             path to the output folder path with “tag” appended.</p></li>
+<li><p>Loads data iteratively based on the configuration.</p></li>
+<li><p>Executes postprocessing on the loaded data.</p></li>
+<li><p>Saves intermediate data if “agg” is not in the tasks list.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.get_article_info">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">get_article_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">article</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.postprocess.get_article_info" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.get_data_paths_iterative">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">get_data_paths_iterative</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.postprocess.get_data_paths_iterative" title="Link to this definition">¶</a></dt>
+<dd><p>Generates year-wise data paths for processing based on the settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Exception</strong> – If no valid data paths are found in the configuration.</p></li>
+<li><p><strong>Exception</strong> – If an input path generated with the configuration is        neither a valid directory nor a valid file. This means the data paths        are valid, but nothing useful is in there.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Yields: A dictionary where keys are tuples of (magazine shortname, year)        and values are file paths or lists of file paths.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Iterator[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.get_found_names">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">get_found_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.postprocess.get_found_names" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts and processes entity information (person and place names) from
+tagged files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items</strong> (<em>tuple</em>) – <ul class="simple">
+<li><p>year (tuple): A tuple of journal shortname and year as strings
+(e.g., (“abc”, “2025”)).</p></li>
+<li><p>pages (str or list): Either a single string for the tagging
+output file or a list of paths to the tagging output files.</p></li>
+<li><p>places (bool): If places should be considered as well.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The first entry is a list of all found entities (person and
+place names) with their associated metadata. The second is the
+year information (journal shortname and year). The third is a
+list of all the tagged files that belong to this year.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple (list, tuple)</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>Person names and place names are written in the same file but
+are sorted before printing (person names first).</p></li>
+<li><p>When looking up the structure information for the pages, we use
+the information given by the raw data folder structure at the
+moment. This means that in rare cases two actually different
+volumes might have the same short-year combination, causing
+problems when linking pages to structure elements. This will
+change only once structure files become the initial pipeline
+input, which requires a larger rework — for now some
+information will simply be missing at the start.</p></li>
+<li><p>Handles cases where tagged files are split into multiple lines
+for efficiency.</p></li>
+<li><p>Adjusts entity information to remove duplicates and ensure
+consistency.</p></li>
+<li><p>Missing structure information may result in incomplete metadata
+for some entities.</p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.get_structure_info">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">get_structure_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.postprocess.get_structure_info" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves structural information for a given year from an XML file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>year</strong> (<em>tuple</em>) – <ul>
+<li><p>short (str): The shortname of the journal (e.g., “bse”).</p></li>
+<li><p>year (str): The year of the journal (e.g., “2025”).</p></li>
+</ul>
+</p></li>
+<li><p><strong>custom_path</strong> (<em>_type_</em><em>, </em><em>optional</em>) – Path to a custom XML file for debugging, defaults to None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>A dictionary where keys are page filenames (e.g., “page1.txt”)        and values are tuples</p>
+<ul class="simple">
+<li><p>pid (str): The physical ID of the page (e.g., “doc123:page1”).</p></li>
+<li><p>articles (list): A list of article IDs associated with the page.</p></li>
+<li><p>pagenum (str): The physical page number.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Notes:</dt><dd><ul class="simple">
+<li><p>If <cite>custom_path</cite> is provided, it is used to parse the XML file.</p></li>
+<li><p>If <cite>custom_path</cite> is not provided, the function constructs the path        to the XML file based on the <cite>year</cite> tuple.</p></li>
+<li><p>Handles cases where the XML file is missing or inaccessible by        returning an empty dictionary.</p></li>
+<li><p>Skips journal-level connections and focuses on article-level        connections.</p></li>
+<li><p>Extracts the filename for each page by replacing the <cite>.jpg</cite>        extension with <cite>.txt</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.initialize_found_entry">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">initialize_found_entry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.postprocess.initialize_found_entry" title="Link to this definition">¶</a></dt>
+<dd><p>Returns an empty person entity dictionary.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.initialize_found_place_entry">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">initialize_found_place_entry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.postprocess.initialize_found_place_entry" title="Link to this definition">¶</a></dt>
+<dd><p>Returns an empty place entity dictionary.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.populate_year_dict">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">populate_year_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.postprocess.populate_year_dict" title="Link to this definition">¶</a></dt>
+<dd><p>Populates a dictionary with year-wise data paths for processing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>year_dict</strong> (<em>dict</em>) – A dictionary to be populated. Keys are tuples of        (magazine shortname, year), and values are file paths or lists of        file paths.</p></li>
+<li><p><strong>file_list</strong> (<em>list</em>) – A list of file paths to be processed. The files can        be in <cite>.json</cite> or <cite>.jsonl</cite> format.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Notes:</dt><dd><ul class="simple">
+<li><p>For <cite>.json</cite> files, the file path is directly added to the dictionary.</p></li>
+<li><p>For <cite>.jsonl</cite> files, all matching files are globbed and added as a            list.</p></li>
+<li><p>Unsupported file types are ignored.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.postprocess.process_page">
+<span class="sig-prename descclassname"><span class="pre">src.postprocess.</span></span><span class="sig-name descname"><span class="pre">process_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sentences</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entitylist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">placeEntitylist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.postprocess.process_page" title="Link to this definition">¶</a></dt>
+<dd><p>Processes a single page of tagged sentences to extract entity information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> (<em>str</em>) – The name of the page being processed.</p></li>
+<li><p><strong>sentences</strong> (<em>list</em>) – A list of sentences, where each sentence is a list        of tokens. Each token is a dictionary containing information such        as “tag”, “token”, and “coord”.</p></li>
+<li><p><strong>entitylist</strong> (<em>list</em>) – A list to store extracted person entities.</p></li>
+<li><p><strong>placeEntitylist</strong> (<em>list</em>) – A list to store extracted place entities.</p></li>
+<li><p><strong>structure_info</strong> (<em>dict</em>) – A dictionary containing structural information        for the page. Keys are page names, and values are tuples of        (pid, articles, pagenum).</p></li>
+<li><p><strong>i</strong> (<em>int</em>) – A fallback page number to use if no structural information is        available.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Notes:</dt><dd><ul class="simple">
+<li><p>Extracts person entities (tagged with “PER”) and place entities        (tagged with other tags).</p></li>
+<li><p>Uses BIO tagging format to identify the beginning (“B-”) and        continuation (“I-”) of entities.</p></li>
+<li><p>Updates the <cite>entitylist</cite> and <cite>placeEntitylist</cite> with extracted        entities.</p></li>
+<li><p>Handles cases where structural information is missing by using the        fallback page number.</p></li>
+<li><p>Logs warnings for unknown tags encountered during processing.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-src.tag_flair">
+<span id="src-tag-flair-module"></span><h2>src.tag_flair module<a class="headerlink" href="#module-src.tag_flair" title="Link to this heading">¶</a></h2>
+<p>Includes functions to tag files using flairNLP.
+Version 31.08.2020: Updated to use new tagging system which uses 2 models at
+once.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.tag_flair.CustomSentence">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">src.tag_flair.</span></span><span class="sig-name descname"><span class="pre">CustomSentence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.tag_flair.CustomSentence" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Sentence</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="src.tag_flair.CustomToken">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">src.tag_flair.</span></span><span class="sig-name descname"><span class="pre">CustomToken</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.tag_flair.CustomToken" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Token</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.tag_flair.add_sentences">
+<span class="sig-prename descclassname"><span class="pre">src.tag_flair.</span></span><span class="sig-name descname"><span class="pre">add_sentences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collected_sentences</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.tag_flair.add_sentences" title="Link to this definition">¶</a></dt>
+<dd><p>Given the sentences tagged with both models, combines their tags
+and updates the new_data dictionary with the new sentences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_data</strong> (<em>dict</em>) – A dictionary where the keys are the filenames and        the values are the tagged sentences in said file.</p></li>
+<li><p><strong>collected_sentences</strong> (<em>list</em>) – A list of sentences tagged by both models.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.tag_flair.decide_tag_no_tag_lower_prio">
+<span class="sig-prename descclassname"><span class="pre">src.tag_flair.</span></span><span class="sig-name descname"><span class="pre">decide_tag_no_tag_lower_prio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Label</span></span></span><a class="headerlink" href="#src.tag_flair.decide_tag_no_tag_lower_prio" title="Link to this definition">¶</a></dt>
+<dd><p>Combining the tags of the two tagging models.
+If there is disagreement between the two models, “O” always loses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>labels</strong> (<em>list</em>) – A list of tags for an entity with at most 2 entries.        If there are two, the first entry corresponds to the bio label        model and the second to the det label model.        If there is only one entry, the model is detected based on the        labeling scheme.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If the labels list is empty, an exception is raised.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The Label object is the new combined label        for this entity, the dictionary</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Label</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.tag_flair.execute_tagging">
+<span class="sig-prename descclassname"><span class="pre">src.tag_flair.</span></span><span class="sig-name descname"><span class="pre">execute_tagging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preprocessed_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tasks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.tag_flair.execute_tagging" title="Link to this definition">¶</a></dt>
+<dd><p>Tags the preprocessed data using the provided flair tagger and
+configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preprocessed_data</strong> – The data to be tagged, usually loaded or passed        from preprocessing.</p></li>
+<li><p><strong>tasks</strong> (<em>list</em>) – List of tasks to be performed.</p></li>
+<li><p><strong>gpu_num</strong> (<em>int</em>) – GPU number to use. If it’s 0, CPU is used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If ‘prep’ is not included in the tasks list, an        exception is raised indicating that ‘prep,tag’ must be called together.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.tag_flair.package_generator_output_paths">
+<span class="sig-prename descclassname"><span class="pre">src.tag_flair.</span></span><span class="sig-name descname"><span class="pre">package_generator_output_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">generator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.tag_flair.package_generator_output_paths" title="Link to this definition">¶</a></dt>
+<dd><p>Packages the output from a generator into batches of a specified size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>generator</strong> (<em>iterable</em>) – An iterable that yields tuples, where the first        element is a year and the second element is a        list of files.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>) – The number of items to include in each batch.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Yields: A dictionary where the keys are years and the values are lists        of files, with the number of items in the dictionary not        exceeding the batch size.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Iterator[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>]</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">generator</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">2020</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;file1&#39;</span><span class="p">,</span> <span class="s1">&#39;file2&#39;</span><span class="p">]),</span> <span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;file3&#39;</span><span class="p">,</span> <span class="s1">&#39;file4&#39;</span><span class="p">])]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">packageGeneratorOutput</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+<span class="go">    # Output:</span>
+<span class="go">    # {2020: [&#39;file1&#39;, &#39;file2&#39;]}</span>
+<span class="go">    # {2021: [&#39;file3&#39;, &#39;file4&#39;]}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.tag_flair.setup_flair_tagger">
+<span class="sig-prename descclassname"><span class="pre">src.tag_flair.</span></span><span class="sig-name descname"><span class="pre">setup_flair_tagger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpu_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MultitaskModel</span></span></span><a class="headerlink" href="#src.tag_flair.setup_flair_tagger" title="Link to this definition">¶</a></dt>
+<dd><p>Sets up and returns a Flair MultitaskModel for two NER models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>gpu_num</strong> (<em>int</em>) – The GPU number to use for the Flair models.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of Flair’s MultitaskModel        loaded with the specified NER models.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>MultitaskModel</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.tag_flair.tag_year_data_and_save">
+<span class="sig-prename descclassname"><span class="pre">src.tag_flair.</span></span><span class="sig-name descname"><span class="pre">tag_year_data_and_save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tagger</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">MultitaskModel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sentence_batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.tag_flair.tag_year_data_and_save" title="Link to this definition">¶</a></dt>
+<dd><p>Runs tagging on the collection and saves the result
+into the outfile_path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>collection</strong> (<em>dict</em>) – A dictionary where the keys are the filenames and        the values are the sentences in said file.</p></li>
+<li><p><strong>tagger</strong> (<em>MultitaskModel</em>) – The MultitaskModel containing both        tagging models (ner-det and ner-bio).</p></li>
+<li><p><strong>outfile_path</strong> (<em>str</em>) – String of the outfile path where the tagged file        will be saved.</p></li>
+<li><p><strong>sentence_batch_size</strong> (<em>int</em>) – Number of sentences, after which we start        writing the intermediate results into the outfile.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.tag_flair.write_sentences_to_outfile">
+<span class="sig-prename descclassname"><span class="pre">src.tag_flair.</span></span><span class="sig-name descname"><span class="pre">write_sentences_to_outfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.tag_flair.write_sentences_to_outfile" title="Link to this definition">¶</a></dt>
+<dd><p>For each SENTENCE_BATCH_SIZE (set in the config file) batch of
+sentences, we write out the sentences into the outfile.
+This helps with our memory restrictions.</p>
+<p>This has the side-effect that the data dictionary is cleared with each time
+we call this function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outfile</strong> (<em>TextIOWrapper</em>) – Text stream we can write our        intermediate results into.</p></li>
+<li><p><strong>data</strong> (<em>dict</em>) – Dictionary of filenames, tagged sentences.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-src">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-src" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/chnobli_logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">CHNOBLi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_your_data.html">Using Your Own Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ground_truth.html">Ground-Truth Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation.html">How to Evaluate</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">CHNOBLi</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">src package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">CHNOBLi</a><ul>
+      <li>Previous: <a href="main.html" title="previous chapter">main module</a></li>
+      <li>Next: <a href="src.preprocessing.html" title="next chapter">src.preprocessing package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Gentiana Rashiti.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/src.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>src.preprocessing package &#8212; CHNOBLi 2026 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=fc6fd62b"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="src package" href="src.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="src-preprocessing-package">
+<h1>src.preprocessing package<a class="headerlink" href="#src-preprocessing-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-src.preprocessing.preprocess">
+<span id="src-preprocessing-preprocess-module"></span><h2>src.preprocessing.preprocess module<a class="headerlink" href="#module-src.preprocessing.preprocess" title="Link to this heading">¶</a></h2>
+<p>Includes all functions necessary to preprocess files.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.PreprocessConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">PreprocessConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ABBREVIATION_FILE</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ABBREVIATION_LIST</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">defaultdict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">KONJ</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PUNC</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'!&quot;\\#\\$%\\&amp;\'\\(\\)\\*\\+</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">\\-\\./</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">;&lt;</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&gt;\\?&#64;\\[\\\\\\]\\^_`\\{\\|\\}\\~«»„—¦¬'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IN_WORD_SPLITTERS</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SENTENCE_ENDING</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.preprocessing.preprocess.PreprocessConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for the preprocess configuration</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.PreprocessConfig.ABBREVIATION_FILE">
+<span class="sig-name descname"><span class="pre">ABBREVIATION_FILE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#src.preprocessing.preprocess.PreprocessConfig.ABBREVIATION_FILE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.PreprocessConfig.ABBREVIATION_LIST">
+<span class="sig-name descname"><span class="pre">ABBREVIATION_LIST</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">defaultdict</span></span><a class="headerlink" href="#src.preprocessing.preprocess.PreprocessConfig.ABBREVIATION_LIST" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.PreprocessConfig.IN_WORD_SPLITTERS">
+<span class="sig-name descname"><span class="pre">IN_WORD_SPLITTERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/'</span></span><a class="headerlink" href="#src.preprocessing.preprocess.PreprocessConfig.IN_WORD_SPLITTERS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.PreprocessConfig.KONJ">
+<span class="sig-name descname"><span class="pre">KONJ</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></span><a class="headerlink" href="#src.preprocessing.preprocess.PreprocessConfig.KONJ" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.PreprocessConfig.PUNC">
+<span class="sig-name descname"><span class="pre">PUNC</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'!&quot;\\#\\$%\\&amp;\'\\(\\)\\*\\+,\\-\\./:;&lt;=&gt;\\?&#64;\\[\\\\\\]\\^_`\\{\\|\\}\\~«»„—¦¬'</span></span><a class="headerlink" href="#src.preprocessing.preprocess.PreprocessConfig.PUNC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.PreprocessConfig.SENTENCE_ENDING">
+<span class="sig-name descname"><span class="pre">SENTENCE_ENDING</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></span><a class="headerlink" href="#src.preprocessing.preprocess.PreprocessConfig.SENTENCE_ENDING" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.PreprocessConfig.load_abbrevs">
+<span class="sig-name descname"><span class="pre">load_abbrevs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">defaultdict</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.PreprocessConfig.load_abbrevs" title="Link to this definition">¶</a></dt>
+<dd><p>Load abbreviations from a file and build a context dictionary.</p>
+<p>Reads abbreviations from the file and creates a dictionary where each word
+(including abbreviations) is mapped to its surrounding context. This allows
+for quick lookup of whether a word appears as an abbreviation and what
+words typically appear before and after it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary mapping each word to a list of context dictionaries.
+Each context dictionary contains ‘before’ and ‘after’ keys with lists
+of surrounding words.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>defaultdict</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<p>If the input file contains:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;Dr. John Smith&quot;</span>
+<span class="s2">&quot;Prof. Jane Doe&quot;</span>
+</pre></div>
+</div>
+<p>The returned dictionary will be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;dr.&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;john&quot;</span><span class="p">,</span> <span class="s2">&quot;smith&quot;</span><span class="p">]}],</span>
+<span class="s2">&quot;john&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dr.&quot;</span><span class="p">],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;smith&quot;</span><span class="p">]}],</span>
+<span class="s2">&quot;smith&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dr.&quot;</span><span class="p">,</span> <span class="s2">&quot;john&quot;</span><span class="p">],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[]}],</span>
+<span class="s2">&quot;prof.&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;jane&quot;</span><span class="p">,</span> <span class="s2">&quot;doe&quot;</span><span class="p">]}],</span>
+<span class="s2">&quot;jane&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;prof.&quot;</span><span class="p">],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;doe&quot;</span><span class="p">]}],</span>
+<span class="s2">&quot;doe&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;prof.&quot;</span><span class="p">,</span> <span class="s2">&quot;jane&quot;</span><span class="p">],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[]}]}</span>
+</pre></div>
+</div>
+<p>Each entry follows this structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;word&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">]}]}</span>
+</pre></div>
+</div>
+<p>This structure also helps prevent duplicate entries.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.check_for_abbrev">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">check_for_abbrev</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.preprocessing.preprocess.PreprocessConfig" title="src.preprocessing.preprocess.PreprocessConfig"><span class="pre">PreprocessConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.check_for_abbrev" title="Link to this definition">¶</a></dt>
+<dd><p>Determine whether the token at a given position is an abbreviation.</p>
+<p>Checks if the token at the specified index matches a known abbreviation
+and verifies that the surrounding words match the expected context
+patterns (words before and after) defined for that abbreviation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pos</strong> (<em>int</em>) – The index position of the token to check within the text list</p></li>
+<li><p><strong>text</strong> (<em>list</em><em> of </em><em>tuples</em>) – Tokenized text where each element is a tuple containing the
+word and possibly other metadata</p></li>
+<li><p><strong>preprocess_data</strong> (<a class="reference internal" href="#src.preprocessing.preprocess.PreprocessConfig" title="src.preprocessing.preprocess.PreprocessConfig"><em>PreprocessConfig</em></a>) – Configuration object containing preprocessing
+settings, including sentence-ending punctuation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the token is a recognized abbreviation with matching
+context; else False</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.check_roman_numeral">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">check_roman_numeral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">word</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.check_roman_numeral" title="Link to this definition">¶</a></dt>
+<dd><p>Check if a word matches the format for lowercase Roman numerals.</p>
+<p>Determines whether the input string ends with a period and contains only
+the lowercase Roman numeral characters ‘i’, ‘v’, or ‘x’ before the period.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>word</strong> (<em>str</em>) – The input string to check</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the word ends with a period and is preceded only by
+lowercase ‘i’, ‘v’, or ‘x’ characters; else False</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.execute_preprocessing">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">execute_preprocessing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.execute_preprocessing" title="Link to this definition">¶</a></dt>
+<dd><p>Execute preprocessing on files specified in the configuration.</p>
+<p>Processes all files defined in the configuration dictionary and yields
+preprocessed results for each year as they complete.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>Generator yielding tuples for each year:</p>
+<ul class="simple">
+<li><p>Year (str): The year being processed</p></li>
+<li><p>Data (dict): Dictionary of preprocessed data for that year</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Iterator[tuple]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.fuse_hyphens">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">fuse_hyphens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.preprocessing.preprocess.PreprocessConfig" title="src.preprocessing.preprocess.PreprocessConfig"><span class="pre">PreprocessConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.fuse_hyphens" title="Link to this definition">¶</a></dt>
+<dd><p>Merge words that were split across lines by hyphens in OCR output.</p>
+<p>Processes OCR text to reunite words that were broken by line breaks and
+hyphenation. Each word’s coordinate metadata is preserved and combined
+during the fusion process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>str</em>) – Raw text containing words and their coordinate        metadata</p></li>
+<li><p><strong>preprocess_data</strong> (<a class="reference internal" href="#src.preprocessing.preprocess.PreprocessConfig" title="src.preprocessing.preprocess.PreprocessConfig"><em>PreprocessConfig</em></a>) – Configuration object containing
+preprocessing settings, including sentence-ending punctuation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of dictionaries, each containing a “word” key (the fused
+text) and a “coord” key (list of associated coordinates)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sample_text</span> <span class="o">=</span> <span class="s2">&quot;Hel¬ 001122</span><span class="se">\n</span><span class="s2">lo 12345</span><span class="se">\n</span><span class="s2">World 67890&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fuse_hyphens</span><span class="p">(</span><span class="n">sample_text</span><span class="p">)</span>
+<span class="go"># output: [{&#39;word&#39;: &#39;Hello&#39;, &#39;coord&#39;: [&#39;001122&#39;, &#39;12345&#39;]},</span>
+<span class="go">#          {&#39;word&#39;: &#39;World&#39;, &#39;coord&#39;: [&#39;67890&#39;]}]</span>
+</pre></div>
+</div>
+<p><strong>Processing logic:</strong></p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Lines with fewer than two tokens are skipped</p></li>
+<li><p>Words ending with special markers (like trailing hyphens) are fused
+with the following token</p></li>
+<li><p>Coordinate metadata from both parts is combined and preserved</p></li>
+<li><p>Returns fully assembled words with their merged coordinates</p></li>
+</ol>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.get_year_chunk_paths">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">get_year_chunk_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.get_year_chunk_paths" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve and group page paths for a given year into chunks.</p>
+<p>Takes a year folder path and organizes its page files into chunks,
+returning them as grouped lists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>year</strong> (<em>str</em>) – Path to the year folder</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of chunks, where each chunk is a list of file paths</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.main">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.preprocessing.preprocess.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.prep_year_data_for_tagging">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">prep_year_data_for_tagging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.prep_year_data_for_tagging" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare year data for the tagging process.
+TODO this is the fourth function that just “starts” the preprocessing.
+Surely we can do better.</p>
+<p>Processes input files for a specific year and structures the data in a
+format ready for tagging operations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>tuple</em>) – <p>Tuple containing three elements:</p>
+<ul class="simple">
+<li><p>Year (str): The year being processed</p></li>
+<li><p>Paths (list): List of input file paths for that year</p></li>
+<li><p>Config (dict): Configuration dictionary</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Tuple containing two elements:</p>
+<ul class="simple">
+<li><p>Data dictionary (dict): Keys are years, values are prepared tagging
+data</p></li>
+<li><p>Year (str): The year that was processed</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.preprocess_file">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">preprocess_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.preprocess_file" title="Link to this definition">¶</a></dt>
+<dd><p>Preprocess OCR output file and return structured sentences.</p>
+<p>Reads and processes an OCR-generated file, applying tokenization and
+sentence segmentation to produce a structured list of sentences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>infile</strong> (<em>str</em>) – Path to the input file to preprocess</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of sentences, where each sentence is a list of token
+dictionaries</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p>FileNotFoundError: If the input file does not exist</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p>KeyError: If the configuration dictionary is missing required keys</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sentences</span> <span class="o">=</span> <span class="n">preprocess_file</span><span class="p">(</span><span class="s2">&quot;/path/to/input/file&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.split_sentences">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">split_sentences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.preprocessing.preprocess.PreprocessConfig" title="src.preprocessing.preprocess.PreprocessConfig"><span class="pre">PreprocessConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.split_sentences" title="Link to this definition">¶</a></dt>
+<dd><p>Split a list of tokens into sentences based on ending punctuation.</p>
+<p>Segments tokens into separate sentences by identifying sentence-ending
+punctuation marks as defined in the preprocessing configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>list</em>) – List of token dictionaries, each containing token
+information</p></li>
+<li><p><strong>preprocess_data</strong> (<a class="reference internal" href="#src.preprocessing.preprocess.PreprocessConfig" title="src.preprocessing.preprocess.PreprocessConfig"><em>PreprocessConfig</em></a>) – Configuration object containing preprocessing
+settings, including sentence-ending punctuation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of sentences, where each sentence is a list of token
+dictionaries</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.start_preprocessing">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">start_preprocessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year_directories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.preprocessing.preprocess.start_preprocessing" title="Link to this definition">¶</a></dt>
+<dd><p>Preprocess files from multiple year directories in chunks.
+TODO this is the third function that just “starts” the preprocessing.
+Surely we can do better.</p>
+<p>Iterates through year directories and processes their files in manageable
+chunks, yielding results for each year as they complete.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>year_directories</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of year directory paths to process</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Generator yielding tuples for each year:</p>
+<ul class="simple">
+<li><p>Year (str): The year directory being processed</p></li>
+<li><p>Data (dict): Dictionary of preprocessed data for that year</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Iterator[tuple]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.timed_execute_preprocessing">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">timed_execute_preprocessing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.timed_execute_preprocessing" title="Link to this definition">¶</a></dt>
+<dd><p>Runs execute preprocessing but also logs the time it took to run.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.preprocessing.preprocess.tokenize">
+<span class="sig-prename descclassname"><span class="pre">src.preprocessing.preprocess.</span></span><span class="sig-name descname"><span class="pre">tokenize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.preprocessing.preprocess.PreprocessConfig" title="src.preprocessing.preprocess.PreprocessConfig"><span class="pre">PreprocessConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.preprocessing.preprocess.tokenize" title="Link to this definition">¶</a></dt>
+<dd><p>Tokenize words and split punctuation from a list of word-coordinate pairs.</p>
+<p>Processes a list of dictionaries containing words and their coordinates,
+separating punctuation and normalizing text while preserving coordinate
+metadata.</p>
+<p><strong>Input format:</strong></p>
+<p>Each dictionary must contain:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;word&quot;</span><span class="p">:</span> <span class="s2">&quot;ExampleWord&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;ExampleCoordinate&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Tokenization process:</strong></p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Separates leading and trailing punctuation from words, except periods
+in abbreviations</p></li>
+<li><p>Splits certain mid-word punctuation (e.g., semicolons, dashes) into
+separate tokens</p></li>
+<li><p>Converts fully uppercase tokens to title case (e.g., “HANS” → “Hans”)</p></li>
+<li><p>Handles periods at word endings as either abbreviations or separate
+tokens</p></li>
+</ol>
+</div></blockquote>
+<p><strong>Example:</strong></p>
+<p>Input:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s2">&quot;word&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;1209745&quot;</span><span class="p">},</span>
+ <span class="p">{</span><span class="s2">&quot;word&quot;</span><span class="p">:</span> <span class="s2">&quot;v.a.&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;1908234&quot;</span><span class="p">}]</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;1;2;0;9;7;4;5:main&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;normalized&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello&quot;</span><span class="p">},</span>
+ <span class="p">{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="s2">&quot;v.&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;1;9;0;8;2;3;4:main&quot;</span><span class="p">},</span>
+ <span class="p">{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="s2">&quot;a.&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;1;9;0;8;2;3;4:main&quot;</span><span class="p">}]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>list</em><em> of </em><em>dict</em>) – <p>List of dictionaries, each containing:</p>
+<ul>
+<li><p>”word” (str): The raw text token</p></li>
+<li><p>”coord” (str): The coordinate or reference string for the token</p></li>
+</ul>
+</p></li>
+<li><p><strong>preprocess_data</strong> (<a class="reference internal" href="#src.preprocessing.preprocess.PreprocessConfig" title="src.preprocessing.preprocess.PreprocessConfig"><em>PreprocessConfig</em></a>) – Configuration object containing preprocessing
+settings, including sentence-ending punctuation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries, each containing:</p>
+<ul class="simple">
+<li><p>”token” (str): The processed token string</p></li>
+<li><p>”coord” (str): The coordinate string with type suffix
+(e.g., ‘:main’, ‘:lpunc’, ‘:rpunc’)</p></li>
+<li><p>”normalized” (str, optional): Title-cased version if originally
+uppercase</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-src.preprocessing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-src.preprocessing" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/chnobli_logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">CHNOBLi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_your_data.html">Using Your Own Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ground_truth.html">Ground-Truth Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation.html">How to Evaluate</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">CHNOBLi</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="src.html">src package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">CHNOBLi</a><ul>
+  <li><a href="src.html">src package</a><ul>
+      <li>Previous: <a href="src.html" title="previous chapter">src package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Gentiana Rashiti.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/src.preprocessing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

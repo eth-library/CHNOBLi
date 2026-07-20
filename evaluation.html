@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>How to Evaluate &#8212; CHNOBLi 2026 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=fc6fd62b"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CHNOBLi" href="modules.html" />
+    <link rel="prev" title="Ground-Truth Data" href="ground_truth.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="how-to-evaluate">
+<h1>How to Evaluate<a class="headerlink" href="#how-to-evaluate" title="Link to this heading">¶</a></h1>
+<p>To evaluate the output of this system, you need:</p>
+<section id="ground-truth-data">
+<h2>1. Ground-Truth Data<a class="headerlink" href="#ground-truth-data" title="Link to this heading">¶</a></h2>
+<p>The ground-truth data, consisting of select years and pages of the magazines [cmt, edu, fsi, gfr, hvg, obl, rep, tjb, woh, zut] was created “with fuzzy matching”, i.e., minor misspellings of the entity name are tolerated when looking for the corresponding GND entry.</p>
+<p>Your configuration file then specifies where the ground-truth data for the fuzzy level is located:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nla/configs/eval_config.json
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="evaluation-level">
+<h2>2. Evaluation Level<a class="headerlink" href="#evaluation-level" title="Link to this heading">¶</a></h2>
+<p>Evaluation can be done at an entity or reference level. To select which level of evaluation you would like to see, set the command-line argument <cite>–eval_level ref</cite> or <cite>–eval_level ent</cite>.</p>
+</section>
+<section id="run-evaluation">
+<h2>3. Run Evaluation<a class="headerlink" href="#run-evaluation" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><p>You can simply run the script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sh<span class="w"> </span>scripts/eval.sh
+</pre></div>
+</div>
+</div></blockquote>
+<p>The <cite>magazine_year_paths</cite> argument describes the path to the directory where the data to be evaluated is located. Don’t worry if that directory contains even more linked files, only the ones for which a corresponding ground-truth file exists are compared.</p>
+<p><strong>Note, however, that for each ground-truth file, there must exist a corresponding linked file.</strong> If you would like to exclude some ground-truth files, you must remove them from the ground-truth data directory. This is to ensure that your model is tested against a variety of magazines and can be fairly compared to previous runs.</p>
+</section>
+<section id="analyze-evaluation">
+<h2>4. Analyze Evaluation<a class="headerlink" href="#analyze-evaluation" title="Link to this heading">¶</a></h2>
+<p>In the <cite>PATH_TO_OUTFILE_FOLDER</cite> directory specified in your <cite>eval_config.json</cite>, you can find the evaluations for each magazine in the corresponding file, for each year in a separate file under the magazine directory, and aggregated for all magazines and years under, for example, <cite>eval_ent_with_fuzzy.json</cite>.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/chnobli_logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">CHNOBLi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_your_data.html">Using Your Own Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ground_truth.html">Ground-Truth Data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How to Evaluate</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ground-truth-data">1. Ground-Truth Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#evaluation-level">2. Evaluation Level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-evaluation">3. Run Evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analyze-evaluation">4. Analyze Evaluation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">CHNOBLi</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="ground_truth.html" title="previous chapter">Ground-Truth Data</a></li>
+      <li>Next: <a href="modules.html" title="next chapter">CHNOBLi</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Gentiana Rashiti.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/evaluation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

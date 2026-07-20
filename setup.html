@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Setup &#8212; CHNOBLi 2026 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=fc6fd62b"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quick Start" href="quickstart.html" />
+    <link rel="prev" title="Welcome to the chnobli documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="setup">
+<h1>Setup<a class="headerlink" href="#setup" title="Link to this heading">¶</a></h1>
+<p>This page describes how to install and configure CHNOBLi, a named entity
+linking pipeline for retro-digitized documents.</p>
+<section id="quick-setup-recommended">
+<h2>Quick Setup (Recommended)<a class="headerlink" href="#quick-setup-recommended" title="Link to this heading">¶</a></h2>
+<p>The easiest way to set up the project is using the interactive setup wizard:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:eth-library/CHNOBLi.git
+<span class="nb">cd</span><span class="w"> </span>CHNOBLi
+make<span class="w"> </span>setup
+</pre></div>
+</div>
+<p>The wizard will guide you through:</p>
+<ol class="arabic">
+<li><p>Creating your <code class="docutils literal notranslate"><span class="pre">.env</span></code> configuration file.</p></li>
+<li><p>Choosing between:</p>
+<ul>
+<li><p><strong>Minimal Setup</strong> (using remote APIs), or</p></li>
+<li><p><strong>Full Local Setup</strong> (cloning and setting up local databases).
+Once the databases are running, you can import the required data
+using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>import-data
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="manual-setup">
+<h2>Manual Setup<a class="headerlink" href="#manual-setup" title="Link to this heading">¶</a></h2>
+<p>If you prefer to set everything up manually, follow the steps below.</p>
+<section id="step-1-clone-the-repository">
+<h3>Step 1: Clone the Repository<a class="headerlink" href="#step-1-clone-the-repository" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:eth-library/CHNOBLi.git
+<span class="nb">cd</span><span class="w"> </span>CHNOBLi
+</pre></div>
+</div>
+</section>
+<section id="step-2-create-an-environment">
+<h3>Step 2: Create an Environment<a class="headerlink" href="#step-2-create-an-environment" title="Link to this heading">¶</a></h3>
+<p><strong>Option A: Using Conda</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>env_chnobli<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.12<span class="w"> </span>ipython
+conda<span class="w"> </span>activate<span class="w"> </span>env_chnobli
+</pre></div>
+</div>
+<p><strong>Option B: Using venv</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3.12<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.env_chnobli<span class="w">   </span><span class="c1"># Windows: py -3.12 -m venv .env_chnobli</span>
+<span class="nb">source</span><span class="w"> </span>.env_chnobli/bin/activate<span class="w">  </span><span class="c1"># Windows: .env_chnobli\\Scripts\\activate</span>
+</pre></div>
+</div>
+</section>
+<section id="step-3-install-dependencies">
+<h3>Step 3: Install Dependencies<a class="headerlink" href="#step-3-install-dependencies" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+</section>
+<section id="step-4-download-models">
+<h3>Step 4: Download Models<a class="headerlink" href="#step-4-download-models" title="Link to this heading">¶</a></h3>
+<p>Download the tagging models from the
+<a class="reference external" href="https://doi.org/10.3929/ethz-c-000799811">ETH Research Collection (DOI: 10.3929/ethz-c-000799811)</a>
+and save them to the <code class="docutils literal notranslate"><span class="pre">models/</span></code> directory.</p>
+</section>
+<section id="alternative-to-steps-2-4-docker">
+<h3>Alternative to Steps 2-4: Docker<a class="headerlink" href="#alternative-to-steps-2-4-docker" title="Link to this heading">¶</a></h3>
+<p>Instead of setting up the environment yourself, you can run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>--file<span class="w"> </span>docker-compose-dev.yml<span class="w"> </span>up
+</pre></div>
+</div>
+<p>This automatically sets up the environment for you, although you still
+need to set up your own vector database and ElasticSearch index. To run
+linking, call:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>linking<span class="w"> </span>sh<span class="w"> </span>scripts/link_example.sh
+</pre></div>
+</div>
+</section>
+<section id="step-5-configure-elasticsearch">
+<h3>Step 5: Configure ElasticSearch<a class="headerlink" href="#step-5-configure-elasticsearch" title="Link to this heading">¶</a></h3>
+<p>A public API endpoint is coming soon. To set up your own:</p>
+<ol class="arabic simple">
+<li><p>Follow the setup guide in
+<a class="reference external" href="https://github.com/eth-library/CHNOBLi-elasticsearch">CHNOBLi-elasticsearch</a>.</p></li>
+<li><p>Update <code class="docutils literal notranslate"><span class="pre">CHNOBLi/.env_template</span></code> with your endpoints and index names.</p></li>
+<li><p>Rename the file to <code class="docutils literal notranslate"><span class="pre">.env</span></code>.</p></li>
+<li><p>Copy the certificate hierarchy <code class="docutils literal notranslate"><span class="pre">secrets/certs/ca/ca.crt</span></code> from the
+CHNOBLi-elasticsearch directory into this repository.</p></li>
+</ol>
+</section>
+<section id="step-6-configure-milvus">
+<h3>Step 6: Configure Milvus<a class="headerlink" href="#step-6-configure-milvus" title="Link to this heading">¶</a></h3>
+<p>A public API endpoint is coming soon. To set up your own:</p>
+<ol class="arabic simple">
+<li><p>Set up Milvus following the setup guide in
+<a class="reference external" href="https://github.com/eth-library/CHNOBLi-vectordb">CHNOBLi-vectordb</a>.</p></li>
+<li><p>Update <code class="docutils literal notranslate"><span class="pre">CHNOBLi/.env_template</span></code> with your host and port.</p></li>
+<li><p>Rename the file to <code class="docutils literal notranslate"><span class="pre">.env</span></code>.</p></li>
+</ol>
+</section>
+</section>
+<section id="managing-the-project-with-the-makefile">
+<h2>Managing the Project with the Makefile<a class="headerlink" href="#managing-the-project-with-the-makefile" title="Link to this heading">¶</a></h2>
+<p>The project includes a <code class="docutils literal notranslate"><span class="pre">Makefile</span></code> to simplify common tasks and ensure
+consistent environments (especially regarding file permissions).</p>
+<section id="setup-data">
+<h3>Setup &amp; Data<a class="headerlink" href="#setup-data" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">setup</span></code>: Run the interactive configuration wizard.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">import-data</span></code>: Interactive tool to download and import Wikidata,
+GND, and Milvus data.</p></li>
+</ul>
+</section>
+<section id="container-management">
+<h3>Container Management<a class="headerlink" href="#container-management" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">build</span></code>: Build the Docker images from source.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">up</span></code>: Start the linking pipeline in the background.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">down</span></code>: Stop and remove all containers.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">logs</span></code>: Tail the logs from all running services.</p></li>
+</ul>
+</section>
+<section id="interactive-access">
+<h3>Interactive Access<a class="headerlink" href="#interactive-access" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">shell</span></code>: Drop into a bash shell inside the <code class="docutils literal notranslate"><span class="pre">linking</span></code> container.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">shell-root</span></code>: Same as above, but with root privileges.</p></li>
+</ul>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">¶</a></h2>
+<p>Once setup is complete, see <a class="reference internal" href="quickstart.html"><span class="doc">Quick Start</span></a> to try the pipeline on the
+provided example data.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/chnobli_logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">CHNOBLi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#quick-setup-recommended">Quick Setup (Recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manual-setup">Manual Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#managing-the-project-with-the-makefile">Managing the Project with the Makefile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_your_data.html">Using Your Own Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ground_truth.html">Ground-Truth Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation.html">How to Evaluate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">CHNOBLi</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to the chnobli documentation</a></li>
+      <li>Next: <a href="quickstart.html" title="next chapter">Quick Start</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Gentiana Rashiti.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/setup.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
