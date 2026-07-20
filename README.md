@@ -3,6 +3,7 @@
 **A named entity linking pipeline for retro-digitized documents**
 
 [![eth-library - CHNOBLi](https://img.shields.io/static/v1?label=eth-library&message=CHNOBLi&color=blue&logo=github)](https://github.com/eth-library/CHNOBLi "Go to GitHub repo")
+[![Documentation](https://img.shields.io/badge/docs-online-blue)](https://eth-library.github.io/CHNOBLi/)
 [![GitHub stars](https://img.shields.io/github/stars/eth-library/CHNOBLi?style=social)](https://github.com/eth-library/CHNOBLi)
 [![GitHub forks](https://img.shields.io/github/forks/eth-library/CHNOBLi?style=social)](https://github.com/eth-library/CHNOBLi)
 [![GitHub tag](https://img.shields.io/github/tag/eth-library/CHNOBLi?include_prereleases=&sort=semver&color=blue)](https://github.com/eth-library/CHNOBLi/releases/)
@@ -257,6 +258,10 @@ Download training and evaluation datasets from [Hugging Face](https://huggingfac
 ## Citation
 
 **Citation format coming soon...**
+
+## Documentation
+
+Full documentation is available at: [eth-library.github.io/CHNOBLi](https://eth-library.github.io/CHNOBLi/)
 
 ## License
 
