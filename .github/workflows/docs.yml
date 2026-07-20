@@ -16,7 +16,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          pip install -r docs/requirements.txt
       - name: Build docs
         run: python -m sphinx -b html docs/source docs/build/html
       - name: Deploy
