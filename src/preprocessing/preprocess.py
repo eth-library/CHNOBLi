@@ -2,13 +2,6 @@
 
 """
 Includes all functions necessary to preprocess files.
-
-TODO:
-- Verbesserte Auflösung von Abkürzungen implementieren
-    - "d.h.", "et al."
-
-- Ordinalzahlen zusammenbehalten
-    - XVII und so
 """
 
 import orjson

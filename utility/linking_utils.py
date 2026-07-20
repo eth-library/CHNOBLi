@@ -5,9 +5,11 @@ import unicodedata
 import requests
 import re
 import logging
+from pathlib import Path
 
 # Lastname Prefix GND
-with open("utility/gnd_prefix_lastnames.txt", "r", encoding="utf-8") as f:
+BASE_DIR = Path(__file__).resolve().parent
+with open(BASE_DIR / "gnd_prefix_lastnames.txt", "r", encoding="utf-8") as f:
     PREFIX = set(f.read().splitlines())
 
 # ES sessions
