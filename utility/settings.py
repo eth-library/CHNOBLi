@@ -18,8 +18,9 @@ class JsonConfigSettingsSource(PydanticBaseSettingsSource):
     """
 
     def __call__(self) -> dict[str, Any]:
+        BASE_DIR = Path(__file__).resolve().parent.parent
         config_path = Path(
-            os.environ.get("NLA_CONFIG_FILE", "configs/configurations.json")
+            os.environ.get("NLA_CONFIG_FILE", BASE_DIR / "configs" / "configurations.json")
         )
         if config_path.exists():
             return json.loads(config_path.read_text())

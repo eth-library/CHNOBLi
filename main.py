@@ -98,7 +98,7 @@ def main():
         # Validate that all paths exist before starting
         invalid_paths = [p for p in paths if not os.path.isdir(p)]
         if invalid_paths:
-            logging.error(f"The following input paths do not exist: {', '.join(invalid_paths)}")
+            logging.error(f"The following input paths do not exist: {', '.join(invalid_paths)}. Exiting program.")
             print(f"ERROR: Input paths not found: {', '.join(invalid_paths)}")
             exit(1)
             
