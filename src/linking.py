@@ -1,12 +1,6 @@
 #! /usr/bin/python3
 """
-principles of this script:
-The main point of connection is (obviously) the lastname.
-The firstname is important as well, but can possibly be omitted.
-Further criteria are the dates of birth and death.
-Also Titles (if applicable, in the database, the field for biographical infos
-sometimes contains that information.)
-Ultimately, and maybe most importantly, we are interested in the occupations.
+Linking module
 """
 import re
 import unicodedata
