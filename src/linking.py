@@ -689,7 +689,7 @@ def compare_to_target_ids_multiplexed(queryids: list[int],
         data["reference_text_ids"] = idy
         content.append(data)
 
-    if settings.EMBEDDINGS_ENDPOINT and settings.EMBEDDINGS_ENDPOINT != "":
+    if settings.EMBEDDINGS_ENDPOINT:
         response = backend_api_call(content, model, model_name, collection_name, backend_url)
         return orjson.loads(response)["results"]
     else:
