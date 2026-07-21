@@ -26,7 +26,6 @@ dependencies = [
     "rich>=15.0.0",
     "pydantic-settings>=2.14.0",
     "pymilvus[bulk-writer]>=2.6.3,<3",
-    "sentence-transformers>=5.4.1",
 ]
 
 [project.optional-dependencies]

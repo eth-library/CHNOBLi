@@ -82,6 +82,8 @@ class Settings(BaseSettings):
     VD_QUERY_CHUNK_LEN: int = 5000
     VD_MAX_DIST: float = 0.6
     VD_CONTEXT_WINDOW_LEN: int = 30
+    VD_TIMEOUT: int = 300
+    VD_TIMEOUT_RETRY: int = 600
     SENTENCE_BATCH_SIZE: int = 128
     GND_LIMIT: int = 15
     WIKIDATA_LIMIT: int = 5
@@ -95,6 +97,7 @@ class Settings(BaseSettings):
     # Embedding Service
     CLIENT_ID: str | None = None
     CLIENT_SECRET: str | None = None
+    OIDC_TOKEN_URL: str | None = None
     EMBEDDINGS_ENDPOINT: str | None = None
     MILVUS_HOST: str = "localhost"
     MILVUS_PORT: str = "19530"

@@ -27,18 +27,9 @@ from itertools import batched, takewhile
 import numpy as np
 from pymilvus import MilvusClient  # type: ignore
 from collections import OrderedDict
-from sentence_transformers import SentenceTransformer
 from typing import List
-import torch
-import gc
 
 MAX_YEAR_STR = "3000"
-
-# GPU device handling
-_DEVICE =  None
-# Limit number of models cached in GPU to avoid memory fragmentation
-_MAX_GPU_MODELS = 1
-_model_cache: OrderedDict[str, SentenceTransformer] = OrderedDict()
 
 
 def prep_word(word: str) -> str:
@@ -692,44 +683,52 @@ def compare_to_target_ids_multiplexed(queryids: list[int],
         data["reference_text_ids"] = idy
         content.append(data)
 
-    if settings.EMBEDDINGS_ENDPOINT == "https://pramanera.ethz.ch/api/embeddings":
+    if settings.EMBEDDINGS_ENDPOINT:
         response = backend_api_call(content, model, model_name, collection_name, backend_url)
         return orjson.loads(response)["results"]
     else:
-        vectors = generate_huggingface_embedding([x["query_text"] for x in content], model_name)
+        from embedding_engine.embeddings import generate_embedding
+        vectors = generate_embedding(texts=[x["query_text"] for x in content], backend="huggingface", model_name=model_name)
         return compare_vector_to_text_ids_multiplexed(content, vectors, collection_name)
+
+
+def get_paramanera_token() -> str | None:
+    """Fetches an OAuth token for the Paramanera API if configured."""
+    # Ensure OIDC_TOKEN_URL points to the actual token endpoint (e.g., https://qss.access.ethz.ch/spa1/token)
+    # and NOT the openid-configuration discovery URL.
+    if not settings.OIDC_TOKEN_URL or not settings.CLIENT_ID or not settings.CLIENT_SECRET:
+        return None
+
+    payload = {
+        "grant_type": "client_credentials",
+        "client_id": settings.CLIENT_ID,
+        "client_secret": settings.CLIENT_SECRET
+    }
+    try:
+        response = requests.post(settings.OIDC_TOKEN_URL, data=payload, timeout=10)
+        if response.status_code == 200:
+            return response.json().get("access_token")
+        else:
+            logging.error(f"Failed to fetch OIDC token. Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        logging.error(f"Exception while fetching OIDC token: {e}")
+    return None
 
 
 def backend_api_call(content, model, model_name, collection_name, backend_url):
     """
-    We call our API backend.
+    We call our API backend. If OIDC_TOKEN_URL is set, it performs the Paramanera
+    handshake and attaches the Bearer token.
     """
-    configuration_url = "https://qss.access.ethz.ch/spa1/.well-known/openid-configuration"
-    config = requests.get(configuration_url, timeout=60).json()
-    endpoint = config["token_endpoint"]
-
-    # Create Access Token
-    data = {
-        "client_id": settings.CLIENT_ID,
-        "client_secret": settings.CLIENT_SECRET,
-        "grant_type": "client_credentials",
-    }
-    response = requests.post(endpoint, data=data, timeout=60)
-    if response.status_code != 200:
-        logging.error(f"Failed to obtain access token: {response.status_code} - {response.text}")
-        raise Exception(f"Authentication failed with status {response.status_code}")
-
-    tokens = response.json()
-    if "access_token" not in tokens:
-        logging.error(f"Unexpected token response format: {tokens}")
-        raise KeyError("access_token not found in response")
-
-    access_token = tokens["access_token"]
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {access_token}"
     }
+
+    if settings.OIDC_TOKEN_URL:
+        token = get_paramanera_token()
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
 
     payload = {
         "content": content,
@@ -737,24 +736,23 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
         "model_name": model_name,
         "collection_name": collection_name
     }
+
     try:
-        response = requests.post(backend_url, json=payload, headers=headers, timeout=60)
+        response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT)
     except Exception:
         logging.warning(f"Querying the VD timed out once with payload: {payload}")
-        response = requests.post(backend_url, json=payload, headers=headers, timeout=120)
+        response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT_RETRY)
 
     # retry until it works.
     retries = 0
     while response.status_code != 200 and retries < settings.VD_MAX_RETRIES:
         retries += 1
         time.sleep(2)
-        logging.warning(f"Querying the VD timed out {retries} times with payload: {payload}")
+        logging.warning(f"Querying the VD failed or timed out {retries} times with payload: {payload}")
         try:
-            response = requests.post(backend_url, json=payload, headers=headers, timeout=60)
+            response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT)
         except requests.exceptions.ReadTimeout:
-            # Try one more time, huggingface might be down
-            # If this also causes an exception, execution should be stopped to investigate
-            response = requests.post(backend_url, json=payload, headers=headers, timeout=120)
+            response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT_RETRY)
 
         if response.status_code == 200:
             return response.text
@@ -762,6 +760,7 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
     if response.status_code == 200:
         return response.text
     logging.error(f"Max retries exceeded. Failed to retrieve distances: {response.status_code} - {response.text}")
+    return '{"results": []}'
 
 
 def compare_vector_to_text_ids_multiplexed(  # type: ignore
@@ -855,85 +854,3 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
     client.release_collection(collection_name)
     return results
 
-
-def generate_huggingface_embedding(
-    texts: List[str], model_name: str
-) -> List[List[float]]:
-    """
-    Generates an embedding using the huggingface framework.
-
-    Args:
-        texts (List[str]): List of input texts to embed.
-        model_name (str): Name of the embedding model to use (huggingface name).
-    Returns:
-        ans (List[List[float]]): resulting embeddings
-
-    """
-    if not texts:
-        return []
-
-    model = _get_model(model_name, True)
-
-    try:
-        with torch.inference_mode():
-            embeddings = model.encode(
-                texts,
-                convert_to_numpy=True,
-                normalize_embeddings=True
-            )  # type: ignore
-            ans: List[List[float]] = embeddings.tolist()
-            return ans
-    except RuntimeError as e:
-        if _DEVICE.startswith("cuda"):
-            torch.cuda.synchronize()
-            torch.cuda.empty_cache()
-        gc.collect()
-        raise e
-
-def _get_model(
-    model_name: str,
-    trust_remote_code: bool = False,
-    use_auth_token: str | None = None,
-    half: bool = False,
-) -> SentenceTransformer:
-    """
-    Return a cached model if available; otherwise, load into GPU and cache.
-    Evict least recently used model if cache limit exceeded.
-    """
-    if _DEVICE is None: #if no device has been set on a global level, we select the most best option
-        _set_best_torch_device()
-
-    if model_name in _model_cache:
-        _model_cache.move_to_end(model_name)
-        return _model_cache[model_name]
-
-    # Load model
-    print(f"model {model_name} not cached. Loading model and adding to cache")
-    model = SentenceTransformer(
-        model_name, trust_remote_code=trust_remote_code, use_auth_token=use_auth_token
-    )
-    model.eval()
-    model.to(_DEVICE)
-    if half and _DEVICE.startswith("cuda"):
-        try:
-            model.half()
-        except Exception:
-            pass
-
-    _model_cache[model_name] = model
-
-    if len(_model_cache) > _MAX_GPU_MODELS:
-        old_name, old_model = _model_cache.popitem(last=False)
-        print(f"Cache limit exceeded, dropping oldest model {old_name} from cache")
-        del old_model
-        if _DEVICE.startswith("cuda"):
-            torch.cuda.empty_cache()
-        gc.collect()
-
-    return model
-
-def _set_best_torch_device():
-    """Automatically detects the most suited device for inference
-    """
-    global _DEVICE
-    _DEVICE =  "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
