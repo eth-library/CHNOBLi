@@ -131,7 +131,7 @@ The project includes a `Makefile` to simplify common tasks and ensure consistent
 - **`make shell-root`**: Same as above, but with root privileges.
 
 ## Quick Start
-
+We highly recommend you run this on a GPU, as running this on a CPU is very slow due to the FlairNLP model and vector database components.
 ### Try It with Example Data
 
 **1. Tag example documents**
