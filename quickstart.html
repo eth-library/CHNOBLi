@@ -37,6 +37,10 @@
 <h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h1>
 <p>This page walks through running CHNOBLi on the provided example data, so
 you can confirm your setup works before using your own documents.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We highly recommend you run this on a GPU, as running this on a CPU is very slow due to the FlairNLP model and vector database components.</p>
+</div>
 <section id="try-it-with-example-data">
 <h2>Try It with Example Data<a class="headerlink" href="#try-it-with-example-data" title="Link to this heading">¶</a></h2>
 <section id="tag-example-documents">
@@ -70,7 +74,7 @@ you can confirm your setup works before using your own documents.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>main.py<span class="w"> </span>--tasks<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>--config_file<span class="w"> </span>./configs/eval_config_example.json<span class="w"> </span>--eval_level<span class="w"> </span>ref
 </pre></div>
 </div>
-<p>Output: <code class="docutils literal notranslate"><span class="pre">data/output/eval_ref_with_fuzzy/tjb/1955_030.jsonl</span></code></p>
+<p>Output: <code class="docutils literal notranslate"><span class="pre">data/output/eval_ref_top1/tjb/1955_030.jsonl</span></code></p>
 </section>
 </section>
 <section id="next-steps">
