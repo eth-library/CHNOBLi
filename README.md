@@ -150,7 +150,7 @@ Output: `data/output/link/`
 ```bash
 sh scripts/eval_example.sh # Windows: python3 main.py --tasks eval --config_file ./configs/eval_config_example.json --eval_level ref
 ```
-Output: `data/output/eval_ref_with_fuzzy/tjb/1955_030.jsonl`
+Output: `data/output/eval_ref_top1/tjb/1955_030.jsonl`
 
 ## Using Your Data
 
