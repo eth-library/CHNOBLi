@@ -16,7 +16,7 @@ class Paths:
     input files.
     """
     def __init__(self):
-        if settings.PATH_TO_GROUND_TRUTH !="" and settings.PATH_TO_OUTFILE_FOLDER is not None:
+        if settings.PATH_TO_GROUND_TRUTH != "" and settings.PATH_TO_OUTFILE_FOLDER:
             self.paths = {
                 "gt": settings.PATH_TO_GROUND_TRUTH,
                 "link": os.path.join(settings.PATH_TO_OUTFILE_FOLDER, "link"),

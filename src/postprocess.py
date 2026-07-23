@@ -280,7 +280,7 @@ def get_structure_info(year: tuple, custom_path=None) -> dict:
 
     short, year = year
 
-    if custom_path is not None:
+    if custom_path:
         # We can use this for local debugging
         root = etree.parse(custom_path).getroot()
     else:
@@ -325,7 +325,7 @@ def get_structure_info(year: tuple, custom_path=None) -> dict:
             # so we skip them specifically. For completeness sake, we might
             # take them in as well though.
             is_journal = root.find("./element-list/element[@type='Journal'][@ID='{0}']".format(article_idx))
-            if is_journal is not None:
+            if is_journal:
                 continue
             article = root.find("./element-list/element[@type='Journal']//element[@ID='{0}']".format(article_idx))
             articles.append({article_idx: get_article_info([article])})
@@ -613,7 +613,7 @@ def get_data_paths_iterative():
     :rtype: Iterator[:class:`dict`]
     """
 
-    if settings.CUSTOM_PATHS is not None:
+    if settings.CUSTOM_PATHS:
         inputs = settings.CUSTOM_PATHS
     else:
         # in this case instead of using custom paths we use paths to infile

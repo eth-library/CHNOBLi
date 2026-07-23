@@ -43,12 +43,16 @@ def execute_evaluation(
         start_time = datetime.now()
         logging.info(f"Starting Evaluation at {start_time}:")
 
-    if settings.EVAL_TOPK is not None:
+    if settings.EVAL_TOPK:
         top_k = settings.EVAL_TOPK
-    if settings.INKB_SCORE is not None:
+    else:
+        settings.EVAL_TOPK = top_k
+
+    if settings.INKB_SCORE:
         inkb_score = True if settings.INKB_SCORE == "true" else False
     else:
         inkb_score = False
+
     ref_level = eval_level == "ref"
     paths = Paths()
     if paths.success:
