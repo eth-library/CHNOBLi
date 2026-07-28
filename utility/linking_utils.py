@@ -5,6 +5,8 @@ import unicodedata
 import requests
 import re
 import logging
+from utility.settings import settings
+
 
 # Lastname Prefix GND
 with open("utility/gnd_prefix_lastnames.txt", "r", encoding="utf-8") as f:
@@ -14,8 +16,6 @@ with open("utility/gnd_prefix_lastnames.txt", "r", encoding="utf-8") as f:
 sess = requests.Session()
 adapter = requests.adapters.HTTPAdapter(max_retries=20)
 sess.mount('http://', adapter)
-
-from utility.settings import settings
 
 
 def clean_namestring(name: str) -> str:
@@ -229,6 +229,184 @@ def convert_gnd_format_kibana(person_dict: dict) -> dict:
 
     return res_dict
 
+
+def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
+    """
+    We search for this fullname in our elasticsearch GND index.
+    We return at most `gnd_limit` results.
+
+    :param fullname: Full namestring of the person to search
+    :type fullname: str
+    :param year: Year this magazine was published in
+    :type year: str
+    :param gnd_limit: Number of results, defaults to 15
+    :type gnd_limit: int, optional
+    :param fuzzy: Whether to search for the names including some edits, defaults to True
+    :type fuzzy: bool, optional
+    :return: Dictionary of each viable candidate where the keys are the\
+        gnd ids.
+    :rtype: dict
+    """
+
+    if gnd_limit == 0:
+        return {}
+
+    fullname = clean_namestring(fullname)
+    if fullname == "":
+        return {}
+
+    if fuzzy:
+        fullname_wildcard = "*"+fullname+"*"
+        fullname_fuzzy = prep_name_for_elasticsearch_query(fullname)
+    else:
+        fullname_wildcard = fullname
+        fullname_fuzzy = fullname
+
+    headers = {"Content-Type": "application/json"}
+
+    json_data = {
+            "_source": ["gndIdentifier"],
+            "from": 0,
+            "size": gnd_limit,
+            "sort": [
+                { "_score": "desc" },
+                { "gndIdentifier.keyword": "asc" }
+            ],
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "bool": {
+                                "minimum_should_match": 1,
+                                "should": [
+                                    {
+                                        "bool": {
+                                            "must_not": {
+                                                "bool": {
+                                                    "should": [
+                                                        {
+                                                            "exists": {
+                                                                "field": "dateOfBirth"
+                                                            }
+                                                        }
+                                                    ],
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "bool": {
+                                            "should": [
+                                                {
+                                                    "range": {
+                                                        "dateOfBirth": {
+                                                            "lt": year+"||/y"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ],
+                            }
+                        },
+                        {
+                        "bool": {
+                            "should": [
+                            {
+                                "wildcard": {
+                                "variantName.keyword": {
+                                    "value": fullname_wildcard,
+                                    "case_insensitive": "true"
+                                }
+                                }
+                            },
+                            {
+                                "query_string": {
+                                    "query": fullname_fuzzy,
+                                    "default_field": "variantName",
+                                    "default_operator": "and",
+                                    "analyze_wildcard": "true"
+                                }
+                            }
+                            ],
+                            "minimum_should_match": 1
+                        }
+                        }
+                    ],
+                },
+            }
+        }
+    res_candidates = {}
+    if not settings.es.base_url:
+        logging.error("Elasticsearch base_url is not set in settings!")
+        return {}
+    try:
+        data = requests.get(
+            settings.es.base_url + "/" + settings.es.index_name_gnd + "/_search?pretty",
+            headers=headers,
+            json=json_data,
+            verify=settings.PATH_TO_CA_CERT,
+            auth=(settings.es.username, settings.es.password),
+            timeout=0.5)
+    except requests.exceptions.Timeout:
+        logging.warning("GND ES Query timed out.")
+        try:
+            data = requests.get(
+                settings.es.base_url + "/" + settings.es.index_name_gnd + "/_search?pretty",
+                headers=headers,
+                json=json_data,
+                verify=settings.PATH_TO_CA_CERT,
+                auth=(settings.es.username, settings.es.password),
+                timeout=5)
+        except requests.exceptions.Timeout:
+            logging.error("GND ES query timeout. No more retries.")
+            logging.info(f"Query: {json_data}")
+            pass
+    except requests.exceptions.SSLError:
+        logging.warning("SSL error GND")
+        try:
+            data = sess.get(
+                settings.es.base_url + "/" + settings.es.index_name_gnd + "/_search?pretty",
+                headers=headers,
+                json=json_data,
+                verify=settings.PATH_TO_CA_CERT,
+                auth=(settings.es.username, settings.es.password),
+                timeout=5)
+        except requests.exceptions.Timeout:
+            logging.error("GND ES SSL Error timeout. No more retries.")
+            logging.info(f"Query: {json_data}")
+            pass
+
+    result_json = data.json()
+    if len(result_json) == 0:
+        return {}
+    try:
+        max_score = 0
+        for hit in result_json["hits"]["hits"]:
+            # score is at hit["_score"]
+            person_info = convert_gnd_format_kibana(hit["_source"])
+            if "gid" in person_info and len(person_info["gid"]) != 0:
+                # NOTE: This should never be degenerate better to put a hard check here
+                if len(person_info["gid"]) > 1:
+                    logging.error(
+                        f"GND entry with multiple GND IDs: {person_info['gid']}. "
+                        "An arbitrary one is selected."
+                    )
+                gid = person_info["gid"].pop()
+                person_info["gid"] = {gid}
+                person_info["score"] = hit["_score"]
+                if person_info["score"] > max_score:
+                    max_score = person_info["score"]
+                res_candidates[gid] = person_info
+    except Exception:
+        logging.error("This query caused an exception: "+str(result_json))
+        return {}
+    # to make scores across different indexes comparable
+    # scale them to 1
+    for per_dict in res_candidates.values():
+        per_dict["score"] = per_dict["score"]/max_score
+    return res_candidates
 
 def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
     """

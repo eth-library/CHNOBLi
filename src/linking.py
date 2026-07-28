@@ -26,7 +26,7 @@ from copy import deepcopy
 import time
 import requests
 from utility.utils import save_data_intermediate
-from utility.linking_utils import search_person_wikidata, search_person_gnd
+from utility.linking_utils import search_person_wikidata, search_person_gnd, search_person_gnd_variantName
 from utility.settings import settings
 from itertools import batched, takewhile
 # Until we can set up the API
@@ -144,7 +144,12 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
     else:
         lastname = lastname[0]
 
-    full_name = " ".join(person["firstname"]) + " " + lastname
+    if person["abbr_firstname"]:
+        fname_abbr_fname = " ".join(person["firstname"]) + " " + " ".join(person["abbr_firstname"])
+        fname_abbr_fname = fname_abbr_fname.replace("  ", " ").strip()
+        full_name = fname_abbr_fname+" " + lastname
+    else:
+        full_name = " ".join(person["firstname"]) + " " + lastname
 
     candidate_dict = dict()
     if person["abbr_firstname"] and not person["firstname"]:
@@ -153,14 +158,25 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
         full_name_abbr = " ".join(person["abbr_firstname"]) + " " + lastname
         candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit, False), "max")
         candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name_abbr, year, wikidata_limit, False), "max")
-        candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit), "max")
-        candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name_abbr, year, wikidata_limit), "max")
+        if settings.ADD_FUZZY_SEARCH == "True":
+            candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit), "max")
+            candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name_abbr, year, wikidata_limit), "max")
 
     res_dict_fullname = {}
-    res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit, False), "max")
-    res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit, False), "max")
-    res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit), "max")
-    res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit), "max")
+    if person["firstname"]:
+        res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit, False), "max")
+        if person["abbr_firstname"]:
+            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit, False), "max")
+            # basically check variant name instead
+            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd_variantName(full_name, year, gnd_limit, False), "max")
+
+        res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit, False), "max")
+        if settings.ADD_FUZZY_SEARCH == "True":
+            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit), "max")
+            if person["abbr_firstname"]:
+                res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit), "max")
+                res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd_variantName(full_name, year, gnd_limit), "max")
+            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit), "max")
     candidate_dict = update_per_dict_score(candidate_dict, res_dict_fullname, "max")
     return candidate_dict
 
