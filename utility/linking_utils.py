@@ -231,6 +231,38 @@ def convert_gnd_format_kibana(person_dict: dict) -> dict:
     return res_dict
 
 
+def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str) -> dict:
+    if not settings.es.base_url:
+        logging.error("Elasticsearch base_url is not set in settings!")
+        return {}
+
+    url = settings.es.base_url + "/" + index_name + "/_search?pretty"
+    auth = (settings.es.username, settings.es.password)
+
+    try:
+        data = requests.get(url, headers=headers, json=json_data,
+                            verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=0.5)
+    except requests.exceptions.Timeout:
+        logging.warning(f"{error_label} ES Query timed out.")
+        try:
+            data = requests.get(url, headers=headers, json=json_data,
+                                verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+        except requests.exceptions.Timeout:
+            logging.error(f"{error_label} ES query timeout. No more retries.")
+            logging.info(f"Query: {json_data}")
+            raise
+    except requests.exceptions.SSLError:
+        logging.warning(f"SSL error {error_label}")
+        try:
+            data = sess.get(url, headers=headers, json=json_data,
+                            verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+        except requests.exceptions.Timeout:
+            logging.error(f"{error_label} ES SSL Error timeout. No more retries.")
+            logging.info(f"Query: {json_data}")
+            raise
+    return data.json()
+
+
 def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
     """
     We search for this fullname in our elasticsearch GND index.
@@ -339,47 +371,7 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
             }
         }
     res_candidates = {}
-    if not settings.es.base_url:
-        logging.error("Elasticsearch base_url is not set in settings!")
-        return {}
-    try:
-        data = requests.get(
-            settings.es.base_url + "/" + settings.es.index_name_gnd + "/_search?pretty",
-            headers=headers,
-            json=json_data,
-            verify=settings.PATH_TO_CA_CERT,
-            auth=(settings.es.username, settings.es.password),
-            timeout=0.5)
-    except requests.exceptions.Timeout:
-        logging.warning("GND ES Query timed out.")
-        try:
-            data = requests.get(
-                settings.es.base_url + "/" + settings.es.index_name_gnd + "/_search?pretty",
-                headers=headers,
-                json=json_data,
-                verify=settings.PATH_TO_CA_CERT,
-                auth=(settings.es.username, settings.es.password),
-                timeout=5)
-        except requests.exceptions.Timeout:
-            logging.error("GND ES query timeout. No more retries.")
-            logging.info(f"Query: {json_data}")
-            pass
-    except requests.exceptions.SSLError:
-        logging.warning("SSL error GND")
-        try:
-            data = sess.get(
-                settings.es.base_url + "/" + settings.es.index_name_gnd + "/_search?pretty",
-                headers=headers,
-                json=json_data,
-                verify=settings.PATH_TO_CA_CERT,
-                auth=(settings.es.username, settings.es.password),
-                timeout=5)
-        except requests.exceptions.Timeout:
-            logging.error("GND ES SSL Error timeout. No more retries.")
-            logging.info(f"Query: {json_data}")
-            pass
-
-    result_json = data.json()
+    result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
     if len(result_json) == 0:
         return {}
     try:
@@ -612,47 +604,7 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
             }
         }
     res_candidates = {}
-    if not settings.es.base_url:
-        logging.error("Elasticsearch base_url is not set in settings!")
-        return {}
-    try:
-        data = requests.get(
-            settings.es.base_url + "/" + settings.es.index_name_gnd + "/_search?pretty",
-            headers=headers,
-            json=json_data,
-            verify=settings.PATH_TO_CA_CERT,
-            auth=(settings.es.username, settings.es.password),
-            timeout=0.5)
-    except requests.exceptions.Timeout:
-        logging.warning("GND ES Query timed out.")
-        try:
-            data = requests.get(
-                settings.es.base_url + "/" + settings.es.index_name_gnd + "/_search?pretty",
-                headers=headers,
-                json=json_data,
-                verify=settings.PATH_TO_CA_CERT,
-                auth=(settings.es.username, settings.es.password),
-                timeout=5)
-        except requests.exceptions.Timeout:
-            logging.error("GND ES query timeout. No more retries.")
-            logging.info(f"Query: {json_data}")
-            pass
-    except requests.exceptions.SSLError:
-        logging.warning("SSL error GND")
-        try:
-            data = sess.get(
-                settings.es.base_url + "/" + settings.es.index_name_gnd + "/_search?pretty",
-                headers=headers,
-                json=json_data,
-                verify=settings.PATH_TO_CA_CERT,
-                auth=(settings.es.username, settings.es.password),
-                timeout=5)
-        except requests.exceptions.Timeout:
-            logging.error("GND ES SSL Error timeout. No more retries.")
-            logging.info(f"Query: {json_data}")
-            pass
-
-    result_json = data.json()
+    result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
     if len(result_json) == 0:
         return {}
     try:
@@ -784,46 +736,7 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
         }
     }
     res_candidates = {}
-    if not settings.es.base_url:
-        logging.error("Elasticsearch base_url is not set in settings!")
-        return {}
-    try:
-        data = requests.get(
-            settings.es.base_url + "/" + settings.es.index_name_wikidata + "/_search?pretty",
-            headers=headers,
-            json=json_data,
-            verify=settings.PATH_TO_CA_CERT,
-            auth=(settings.es.username, settings.es.password),
-            timeout=0.5)
-    except requests.exceptions.Timeout:
-        logging.warning("Wikidata ES Query timed out.")
-        try:
-            data = requests.get(
-                settings.es.base_url + "/" + settings.es.index_name_wikidata + "/_search?pretty",
-                headers=headers,
-                json=json_data,
-                verify=settings.PATH_TO_CA_CERT,
-                auth=(settings.es.username, settings.es.password),
-                timeout=5)
-        except requests.exceptions.Timeout:
-            logging.error("Wikidata ES query timeout. No more retries.")
-            logging.info(f"Query: {json_data}")
-            pass
-    except requests.exceptions.SSLError:
-        logging.warning("SSL error wikidata")
-        try:
-            data = sess.get(
-                settings.es.base_url + "/" + settings.es.index_name_wikidata + "/_search?pretty",
-                headers=headers,
-                json=json_data,
-                verify=settings.PATH_TO_CA_CERT,
-                auth=(settings.es.username, settings.es.password),
-                timeout=5)
-        except requests.exceptions.Timeout:
-            logging.error("Wikidata ES query SSL Error timeout. No more retries.")
-            logging.info(f"Query: {json_data}")
-            pass
-    result_json = data.json()
+    result_json = _es_search(settings.es.index_name_wikidata, headers, json_data, "Wikidata")
     if len(result_json) == 0:
         return {}
     max_score = 0
