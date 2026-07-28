@@ -3084,11 +3084,6 @@ conf = {
     "PATH_TO_OUTFILE_FOLDER": "./data/output/",
     "PATH_TO_ABBREVIATION_FILE": "./src/preprocessing/abbrevs.txt",
     "PATH_TO_GROUND_TRUTH": "./data/ground_truth_linked/with_fuzzy_matching/"
-    # which path to use as GT is set via command line option and based on the
-    # config
-    # "--fuzzy True" for instance sets
-    # PATH_TO_GROUND_TRUTH = PATH_TO_GROUND_TRUTH_FUZZY
-    # here i am skipping that part and simulating setting the GT path in main
 }
 
 PARAMS_clean_raw = [

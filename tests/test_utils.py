@@ -109,7 +109,6 @@ def test_parse_arguments_defaults_copilot(monkeypatch):
     assert args.magazine_year_paths is None
     assert args.config_file == "./configs/configurations.json"
     assert args.eval_level == "ref"
-    assert args.fuzzy is True
 
 
 def test_parse_arguments_with_input_copilot(monkeypatch):
@@ -121,8 +120,7 @@ def test_parse_arguments_with_input_copilot(monkeypatch):
             "--gpu", "1",
             "--magazine_year_paths", "/path/to/data",
             "--config_file", "/path/to/config.json",
-            "--eval_level", "ent",
-            "--fuzzy", "false"
+            "--eval_level", "ent"
         ]
     )
 
@@ -133,7 +131,6 @@ def test_parse_arguments_with_input_copilot(monkeypatch):
     assert args.magazine_year_paths == "/path/to/data"
     assert args.config_file == "/path/to/config.json"
     assert args.eval_level == "ent"
-    assert args.fuzzy is False
 
 
 # -------------------------------------------------

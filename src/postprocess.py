@@ -481,40 +481,39 @@ def process_page(page: str,
 
 def get_found_names(items: tuple) -> list:
     """
-    Extracts and processes entity information (person and place names) from\
+    Extracts and processes entity information (person and place names) from
     tagged files.
 
     :param items:
-        - year (tuple): A tuple of journal shortname and year as strings\
-        (e.g., ("abc", "2025")).\n
+        - year (tuple): A tuple of journal shortname and year as strings
+          (e.g., ("abc", "2025")).
         - pages (str or list): Either a single string for the tagging
-        output file or a list of paths to the tagging output files.
+          output file or a list of paths to the tagging output files.
         - places (bool): If places should be considered as well.
     :type items: tuple
-    :return: The first entry is a list of all found entities\
-            (person and place names) with their associated metadata. The\
-            second is the year information (journal shortname and year).
-            The third is a list of all the tagged files that belong to this
-            year
+    :return: The first entry is a list of all found entities (person and
+        place names) with their associated metadata. The second is the
+        year information (journal shortname and year). The third is a
+        list of all the tagged files that belong to this year.
     :rtype: tuple (list, tuple)
 
-    Notes:
-        - Person names and place names are written in the same file but are\
-        sorted before printing (person names first).
-        - When looking up the structure information for the pages, we use the\
-        information given by the raw data folder structure at the moment.\
-        This means that in rare cases two actually different volumes might\
-        have the same short-year combination and thus there will be problems\
-        when trying to link pages to structure elements. This will only change\
-        when using the structure files as initial information for the\
-        pipeline, but that requires a rework of a lot of stuff.\
-        So we will just be missing some information for the start.
-        - Handles cases where tagged files are split into multiple lines for\
-        efficiency.
-        - Adjusts entity information to remove duplicates and ensure\
-        consistency.
-        - Missing structure information may result in incomplete metadata for\
-        some entities.
+    .. note::
+        - Person names and place names are written in the same file but
+          are sorted before printing (person names first).
+        - When looking up the structure information for the pages, we use
+          the information given by the raw data folder structure at the
+          moment. This means that in rare cases two actually different
+          volumes might have the same short-year combination, causing
+          problems when linking pages to structure elements. This will
+          change only once structure files become the initial pipeline
+          input, which requires a larger rework — for now some
+          information will simply be missing at the start.
+        - Handles cases where tagged files are split into multiple lines
+          for efficiency.
+        - Adjusts entity information to remove duplicates and ensure
+          consistency.
+        - Missing structure information may result in incomplete metadata
+          for some entities.
     """
 
     year, pages, places = items
@@ -694,6 +693,7 @@ def execute_postprocessing(magazines, tasks: list, timed=True, places=False) -> 
         the magazine. The second value of the tuple is a dictionary\
         describing the data.
     :rtype: list
+
     Notes:
         - Logs the start and end time of the postprocessing.
         - If "CUSTOM_PATHS" is not in the settings, sets the input folder \

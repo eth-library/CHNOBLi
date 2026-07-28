@@ -78,7 +78,6 @@ def main():
     paths = args.magazine_year_paths
     config_file = args.config_file
     eval_level = args.eval_level
-    fuzzy = args.fuzzy
     gpu_num = check_gpu(args)
 
     if config_file:
@@ -94,21 +93,15 @@ def main():
     if settings.BATCH_SIZE is None:
         settings.BATCH_SIZE = cpu_count() - 1
 
-    if "eval" in tasks:
-        if fuzzy:
-            settings.PATH_TO_GROUND_TRUTH = settings.PATH_TO_GROUND_TRUTH_FUZZY
-        else:
-            settings.PATH_TO_GROUND_TRUTH = settings.PATH_TO_GROUND_TRUTH_NOTFUZZY
-
     if paths:
         paths = paths.split(",")
         # Validate that all paths exist before starting
-        invalid_paths = [p for p in paths if not os.path.isdir(p)]
+        invalid_paths = [p for p in paths if not os.path.exists(p)]
         if invalid_paths:
-            logging.error(f"The following input paths do not exist: {', '.join(invalid_paths)}")
+            logging.error(f"The following input paths do not exist: {', '.join(invalid_paths)}. Exiting program.")
             print(f"ERROR: Input paths not found: {', '.join(invalid_paths)}")
             exit(1)
-            
+
         settings.CUSTOM_PATHS = paths
         if "eval" in tasks:
             logging.warning(
@@ -141,7 +134,7 @@ def main():
         execute_linking(aggregated_data, tasks)
 
     if "eval" in tasks:
-        execute_evaluation(eval_level, fuzzy)
+        execute_evaluation(eval_level)
 
     if "finish" in tasks:
         finish_data(tasks)

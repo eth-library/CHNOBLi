@@ -9,11 +9,11 @@ from utility.settings import settings
 
 
 def execute_evaluation(
-        eval_level: str, fuzziness: bool, top_k=3, timed=True
+        eval_level: str, top_k=3, timed=True
         ) -> None:
     """
-    Evaluates the F1-score of the data based on the given configuration,\
-    evaluation level, and fuzziness.
+    Evaluates the F1-score of the data based on the given configuration and\
+    evaluation level
 
     At eval_level "ent", this is done on entity level. At eval_level "ref",\
     this is done on reference level, which weighs the entities more that occur\
@@ -27,8 +27,6 @@ def execute_evaluation(
 
     :param eval_level: Evaluation level to be used ("ent" or "ref").
     :type eval_level: str
-    :param fuzziness: Whether to use fuzzy matching.
-    :type fuzziness: bool
     :raises NotImplementedError: If no path to GT was passed.
     :param top_k: How many candidates to truncate the results to,\
         defaults to 3.
@@ -51,7 +49,6 @@ def execute_evaluation(
         inkb_score = True if settings.INKB_SCORE == "true" else False
     else:
         inkb_score = False
-    gt_fuzziness = "with_fuzzy" if fuzziness else "without_fuzzy"
     ref_level = eval_level == "ref"
     paths = Paths()
     if paths.success:
@@ -77,22 +74,19 @@ def execute_evaluation(
                     type_="eval",
                     key="file",
                     doc=file_scores.get_score(),
-                    ref_level_name=eval_level,
-                    fuzziness_name=gt_fuzziness,
+                    ref_level_name=eval_level
                 )
             paths.save_json(
                 type_="eval",
                 key="magazine",
                 doc=magazine_scores.get_score(),
-                ref_level_name=eval_level,
-                fuzziness_name=gt_fuzziness,
+                ref_level_name=eval_level
             )
         paths.save_json(
             type_="eval",
             key="",
             doc=global_scores.get_score(),
-            ref_level_name=eval_level,
-            fuzziness_name=gt_fuzziness,
+            ref_level_name=eval_level
         )
         #save the config file
         paths.state["file"] = "eval_config.json"
@@ -101,8 +95,7 @@ def execute_evaluation(
             type_="eval",
             key="file",
             doc=settings.model_dump(exclude={"es"}),
-            ref_level_name=eval_level,
-            fuzziness_name=gt_fuzziness,
+            ref_level_name=eval_level
         )
     else:
         logging.info(settings.model_dump(exclude={"es"}))

@@ -6,10 +6,11 @@ import requests
 import re
 import logging
 from utility.settings import settings
-
+from pathlib import Path
 
 # Lastname Prefix GND
-with open("utility/gnd_prefix_lastnames.txt", "r", encoding="utf-8") as f:
+BASE_DIR = Path(__file__).resolve().parent
+with open(BASE_DIR / "gnd_prefix_lastnames.txt", "r", encoding="utf-8") as f:
     PREFIX = set(f.read().splitlines())
 
 # ES sessions
@@ -311,27 +312,27 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
                             }
                         },
                         {
-                        "bool": {
-                            "should": [
-                            {
-                                "wildcard": {
-                                "variantName.keyword": {
-                                    "value": fullname_wildcard,
-                                    "case_insensitive": "true"
-                                }
-                                }
-                            },
-                            {
-                                "query_string": {
-                                    "query": fullname_fuzzy,
-                                    "default_field": "variantName",
-                                    "default_operator": "and",
-                                    "analyze_wildcard": "true"
-                                }
+                            "bool": {
+                                "should": [
+                                    {
+                                        "wildcard": {
+                                            "variantName.keyword": {
+                                                "value": fullname_wildcard,
+                                                "case_insensitive": "true"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "query_string": {
+                                            "query": fullname_fuzzy,
+                                            "default_field": "variantName",
+                                            "default_operator": "and",
+                                            "analyze_wildcard": "true"
+                                        }
+                                    }
+                                ],
+                                "minimum_should_match": 1
                             }
-                            ],
-                            "minimum_should_match": 1
-                        }
                         }
                     ],
                 },
@@ -408,6 +409,7 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
         per_dict["score"] = per_dict["score"]/max_score
     return res_candidates
 
+
 def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
     """
     We search for this firstnames lastname in our elasticsearch GND index.
@@ -468,6 +470,10 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
                 "_source": ["gndIdentifier"],
                 "from": 0,
                 "size": gnd_limit,
+                "sort": [
+                    { "_score": "desc" },
+                    { "gndIdentifier.keyword": "asc" }
+                ],
                 "query": {
                     "bool": {
                         "must": [
@@ -543,6 +549,10 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
             "_source": ["gndIdentifier"],
             "from": 0,
             "size": gnd_limit,
+            "sort": [
+                { "_score": "desc" },
+                { "gndIdentifier.keyword": "asc" }
+            ],
             "query": {
                 "bool": {
                     "must": [
@@ -651,6 +661,12 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
             # score is at hit["_score"]
             person_info = convert_gnd_format_kibana(hit["_source"])
             if "gid" in person_info and len(person_info["gid"]) != 0:
+                # NOTE: This should never be degenerate better to put a hard check here
+                if len(person_info["gid"]) > 1:
+                    logging.error(
+                        f"GND entry with multiple GND IDs: {person_info['gid']}. "
+                        "An arbitrary one is selected."
+                    )
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
                 person_info["score"] = hit["_score"]
@@ -702,6 +718,11 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
         "_source": ["GND_ID", "GND_ID_2"],
         "from": 0,
         "size": wikidata_limit,
+        "sort": [
+            { "_score": "desc" },
+            { "GND_ID.keyword": "asc" },
+            { "GND_ID_2.keyword": "asc" }
+        ],
         "query": {
             "bool": {
                 "must": [
@@ -812,6 +833,10 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
 
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 person_info["score"] = hit["_score"]
+                if len(person_info["gid"]) > 1:
+                    logging.warning(
+                        f"Wikidata entry with multiple GND IDs: {person_info['gid']}."
+                    )
                 for gid in person_info["gid"]:
                     # sometimes one entity is assigned several gids.
                     # this unfortunately breaks a lot of what we did logically
@@ -820,9 +845,12 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
                     if person_info["score"] > max_score:
                         max_score = person_info["score"]
 
-    # to make scores across different indexes comparable
-    # scale them to 1
-    for _, per_dict in res_candidates.items():
-        per_dict["score"] = per_dict["score"]/max_score
+    # to make scores across different indexes comparable scale them to 1
+    normalized_gids = set()
+    for gid, per_dict in res_candidates.items():
+        if gid in normalized_gids:
+            continue
+        normalized_gids.update(per_dict["gid"])
+        per_dict["score"] = per_dict["score"] / max_score
 
     return res_candidates

@@ -229,31 +229,6 @@ def tag_year_data_and_save(collection: dict,
                     add_sentences(new_data, collected_sentences)
                     collected_sentences = []
 
-                # Create Flair tokens for this chunk
-                flair_tokens = [
-                    CustomToken(
-                        text=(t["normalized"] if "normalized" in t else t["token"]),
-                        coords=t["coord"],
-                        orig=t["token"],
-                    )
-                    for t in chunk
-                ]
-
-                # Create sentence with tokens and metadata immediately
-                # to avoid empty sentence warnings
-                new_sentence = CustomSentence(filename, flair_tokens)
-                collected_sentences.append(new_sentence)
-
-                if len(collected_sentences) >= sentence_batch_size:
-                    tagger.predict(
-                        collected_sentences,
-                        verbose=False,
-                        mini_batch_size=4,
-                        force_token_predictions=True,
-                    )
-                    add_sentences(new_data, collected_sentences)
-                    collected_sentences = []
-
                     write_sentences_to_outfile(outfile, new_data)
 
     if collected_sentences:

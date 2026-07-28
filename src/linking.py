@@ -1,12 +1,6 @@
 #! /usr/bin/python3
 """
-principles of this script:
-The main point of connection is (obviously) the lastname.
-The firstname is important as well, but can possibly be omitted.
-Further criteria are the dates of birth and death.
-Also Titles (if applicable, in the database, the field for biographical infos
-sometimes contains that information.)
-Ultimately, and maybe most importantly, we are interested in the occupations.
+Linking module
 """
 import re
 import unicodedata
@@ -70,7 +64,7 @@ def update_per_dict_score(dict_in: dict, dict_to_add: dict, strategy="max") -> d
                 if v["score"] > dict_in[k]["score"]:
                     dict_in[k]["score"] = v["score"]
             elif strategy == "min":
-                if v["score"] > dict_in[k]["score"]:
+                if v["score"] < dict_in[k]["score"]:
                     dict_in[k]["score"] = v["score"]
             elif strategy == "avg":
                 dict_in[k]["score"] = (v["score"]+dict_in[k]["score"])/2
@@ -167,7 +161,6 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
         res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit, False), "max")
         if person["abbr_firstname"]:
             res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit, False), "max")
-            # basically check variant name instead
             res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd_variantName(full_name, year, gnd_limit, False), "max")
 
         res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit, False), "max")
@@ -177,6 +170,7 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
                 res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit), "max")
                 res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd_variantName(full_name, year, gnd_limit), "max")
             res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit), "max")
+
     candidate_dict = update_per_dict_score(candidate_dict, res_dict_fullname, "max")
     return candidate_dict
 
