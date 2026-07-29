@@ -232,6 +232,29 @@ def convert_gnd_format_kibana(person_dict: dict) -> dict:
 
 
 def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str) -> dict:
+    """
+    Executes an ElasticSearch query against the given index.
+
+    Retries once with a longer timeout on a plain timeout, and once more
+    via the shared `sess` session on an SSL error.
+
+    :param index_name: Name of the ES index to query, e.g.\
+        settings.es.index_name_gnd.
+    :type index_name: str
+    :param headers: Request headers.
+    :type headers: dict
+    :param json_data: The ES query body.
+    :type json_data: dict
+    :param error_label: Short label used in log messages, e.g. "GND" or\
+        "Wikidata".
+    :type error_label: str
+    :return: Parsed JSON response from ElasticSearch, or {} if the\
+        base_url isn't configured or every attempt failed.
+    :rtype: dict
+
+    :raises requests.exceptions.Timeout: If all queries time out.
+    """
+
     if not settings.es.base_url:
         logging.error("Elasticsearch base_url is not set in settings!")
         return {}
@@ -261,6 +284,47 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
             logging.info(f"Query: {json_data}")
             raise
     return data.json()
+
+
+def _alive_before_year_filter(year: str) -> dict:
+    """
+    Builds the ES filter clause matching entities with no known dateOfBirth,
+    or with a dateOfBirth strictly before `year`.
+
+    Used to exclude candidates who could not plausibly be mentioned in a
+    document published in that year.
+
+    :param year: Year the magazine was published in.
+    :type year: str
+    :return: The bool/should filter clause.
+    :rtype: dict
+    """
+
+    return {
+        "bool": {
+            "minimum_should_match": 1,
+            "should": [
+                {
+                    "bool": {
+                        "must_not": {
+                            "bool": {
+                                "should": [
+                                    {"exists": {"field": "dateOfBirth"}}
+                                ],
+                            }
+                        }
+                    }
+                },
+                {
+                    "bool": {
+                        "should": [
+                            {"range": {"dateOfBirth": {"lt": year + "||/y"}}}
+                        ]
+                    }
+                }
+            ],
+        }
+    }
 
 
 def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
@@ -308,41 +372,7 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
             "query": {
                 "bool": {
                     "must": [
-                        {
-                            "bool": {
-                                "minimum_should_match": 1,
-                                "should": [
-                                    {
-                                        "bool": {
-                                            "must_not": {
-                                                "bool": {
-                                                    "should": [
-                                                        {
-                                                            "exists": {
-                                                                "field": "dateOfBirth"
-                                                            }
-                                                        }
-                                                    ],
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "bool": {
-                                            "should": [
-                                                {
-                                                    "range": {
-                                                        "dateOfBirth": {
-                                                            "lt": year+"||/y"
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                ],
-                            }
-                        },
+                        _alive_before_year_filter(year),
                         {
                             "bool": {
                                 "should": [
@@ -441,16 +471,15 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
 
     headers = {"Content-Type": "application/json"}
 
-    # If the lastname contains a prefix, split it
-    found_prefix = False
+    # If the lastname contains a prefix, split it off and search for it
+    # in its own field; otherwise just clean/prep the lastname as usual.
+    prefix = None
     for p in PREFIX:
         split_lname = re.split("(^"+p+")", lastname)
         if len(split_lname) > 1:
-            found_prefix = True
             split_lname = [x.strip() for x in split_lname if x != ""]
             if len(split_lname) != 2:
                 logging.warning(f"lastname {lastname} split by {p} splits it into more than len two {split_lname}")
-                found_prefix = False
                 break
             if fuzzy:
                 lastname = prep_name_for_elasticsearch_query(split_lname[1])
@@ -458,151 +487,56 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
             else:
                 lastname = split_lname[1]
                 prefix = split_lname[0]
-            json_data = {
-                "_source": ["gndIdentifier"],
-                "from": 0,
-                "size": gnd_limit,
-                "sort": [
-                    { "_score": "desc" },
-                    { "gndIdentifier.keyword": "asc" }
-                ],
-                "query": {
-                    "bool": {
-                        "must": [
-                            {
-                                "bool": {
-                                    "minimum_should_match": 1,
-                                    "should": [
-                                        {
-                                            "bool": {
-                                                "must_not": {
-                                                    "bool": {
-                                                        "should": [
-                                                            {
-                                                                "exists": {
-                                                                    "field": "dateOfBirth"
-                                                                }
-                                                            }
-                                                        ],
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "bool": {
-                                                "should": [
-                                                    {
-                                                        "range": {
-                                                            "dateOfBirth": {
-                                                                "lt": year+"||/y"
-                                                            }
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    ],
-                                }
-                            },
-                            {
-                                "query_string": {
-                                    "default_field": "preferredNameEntityForThePerson.forename",
-                                    "query": fnames,
-                                    "default_operator": "and",
-                                    "analyze_wildcard": "true"
-                                }
-                            },
-                            {
-                                "query_string": {
-                                    "default_field": "preferredNameEntityForThePerson.surname",
-                                    "query": lastname,
-                                    "default_operator": "and",
-                                    "analyze_wildcard": "true"
-                                }
-                            },
-                            {
-                                "query_string": {
-                                    "default_field": "preferredNameEntityForThePerson.prefix",
-                                    "query": prefix,
-                                    "default_operator": "and",
-                                    "analyze_wildcard": "true"
-                                }
-                            }
-                        ],
-                    },
-                }
-            }
             break
 
-    if not found_prefix:
-        if fuzzy:
-            lastname = prep_name_for_elasticsearch_query(lastname)
-        json_data = {
-            "_source": ["gndIdentifier"],
-            "from": 0,
-            "size": gnd_limit,
-            "sort": [
-                { "_score": "desc" },
-                { "gndIdentifier.keyword": "asc" }
-            ],
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "bool": {
-                                "minimum_should_match": 1,
-                                "should": [
-                                    {
-                                        "bool": {
-                                            "must_not": {
-                                                "bool": {
-                                                    "should": [
-                                                        {
-                                                            "exists": {
-                                                                "field": "dateOfBirth"
-                                                            }
-                                                        }
-                                                    ],
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "bool": {
-                                            "should": [
-                                                {
-                                                    "range": {
-                                                        "dateOfBirth": {
-                                                            "lt": year+"||/y"
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                ],
-                            }
-                        },
-                        {
-                            "query_string": {
-                                "default_field": "preferredNameEntityForThePerson.forename",
-                                "query": fnames,
-                                "default_operator": "and",
-                                "analyze_wildcard": "true"
-                            }
-                        },
-                        {
-                            "query_string": {
-                                "default_field": "preferredNameEntityForThePerson.surname",
-                                "query": lastname,
-                                "default_operator": "and",
-                                "analyze_wildcard": "true"
-                            }
-                        }
-                    ],
-                },
+    if not prefix and fuzzy:
+        lastname = prep_name_for_elasticsearch_query(lastname)
+
+    must_clauses = [
+        _alive_before_year_filter(year),
+        {
+            "query_string": {
+                "default_field": "preferredNameEntityForThePerson.forename",
+                "query": fnames,
+                "default_operator": "and",
+                "analyze_wildcard": "true"
             }
+        },
+        {
+            "query_string": {
+                "default_field": "preferredNameEntityForThePerson.surname",
+                "query": lastname,
+                "default_operator": "and",
+                "analyze_wildcard": "true"
+            }
+        },
+    ]
+
+    if prefix is not None:
+        must_clauses.append({
+            "query_string": {
+                "default_field": "preferredNameEntityForThePerson.prefix",
+                "query": prefix,
+                "default_operator": "and",
+                "analyze_wildcard": "true"
+            }
+        })
+
+    json_data = {
+        "_source": ["gndIdentifier"],
+        "from": 0,
+        "size": gnd_limit,
+        "sort": [
+            { "_score": "desc" },
+            { "gndIdentifier.keyword": "asc" }
+        ],
+        "query": {
+            "bool": {
+                "must": must_clauses,
+            },
         }
+    }
+
     res_candidates = {}
     result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
     if len(result_json) == 0:
@@ -678,42 +612,7 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
         "query": {
             "bool": {
                 "must": [
-                    {
-                        "bool": {
-                            "minimum_should_match": 1,
-                            "should": [
-                                {
-                                    "bool": {
-                                        "must_not": {
-                                            "bool": {
-                                                "should": [
-                                                    {
-                                                        "exists": {
-                                                           "field": "dateOfBirth"
-                                                        }
-                                                    }
-                                                ],
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    "bool": {
-                                        "should": [
-                                            {
-                                                "range": {
-                                                    "dateOfBirth": {
-                                                        "lt": year+"||/y"
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    }
-                                }
-                            ],
-                        }
-
-                    },
+                    _alive_before_year_filter(year),
                     {
                         "bool": {
                             "minimum_should_match": 1,
