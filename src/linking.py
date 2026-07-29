@@ -70,6 +70,9 @@ def update_per_dict_score(dict_in: dict, dict_to_add: dict, strategy="max") -> d
                 dict_in[k]["score"] = (v["score"]+dict_in[k]["score"])/2
             else:
                 raise ValueError("Not a valid strategy. Choose: max, min, avg.")
+            for k_j, v_j in v.items():
+                if k_j not in dict_in[k]:
+                    dict_in[k][k_j] = v_j
         else:
             dict_in[k] = v
     return dict_in
@@ -211,6 +214,32 @@ def prep_person_entry(person: dict, mag_year: str) -> None:
     person["id"] = mag_year[0]+":"+mag_year[1].replace("_", ":")+":"+str(person["id"])
 
 
+def _name_matches(person: dict) -> bool:
+    """
+    If the first of the candidates (they're ordered by score) have a matching
+    name, we return True, else False
+    """
+    first_cand_firstname = " ".join(person["candidates"][0].get("prefForename", ""))
+    first_cand_lastname = " ".join(person["candidates"][0].get("prefSurname", ""))
+    first_cand_varname = person["candidates"][0].get("varName", None)
+    if person["firstname"] and person["lastname"]:
+        if first_cand_firstname == " ".join(person["firstname"])\
+             and first_cand_lastname == person["lastname"]:
+            return True
+        elif first_cand_varname and \
+            person["lastname"]+", "+" ".join(person["firstname"]) in first_cand_varname:
+            return True
+    elif person["abbr_firstname"] and person["lastname"]:
+        if first_cand_firstname.startswith(
+             " ".join(person["abbr_firstname"]).replace(".", "")
+             ) and first_cand_lastname == person["lastname"]:
+            return True
+        elif first_cand_varname and \
+            person["lastname"]+", "+" ".join(person["abbr_firstname"]) in first_cand_varname:
+            return True
+    return False
+
+
 def prep_person_out(person: dict) -> None:
     """For a given dictionary, joins the fields "firstname", "abbr_firstname"\
     and "lastname" repectively to make them strings. Maps the candidate scores
@@ -220,41 +249,46 @@ def prep_person_out(person: dict) -> None:
         "firstname", "abbr_firstname", and "lastname".
     :type person: dict
     """
-
     person["lastname"] = " ".join(person["lastname"])
     # precision 5 is excellent, 4 is very good, 3 is good, 2 is medium, 1 is minimal and 0 is experimental
-    # oh experimental i like that
-    # and 4 is max_confidence:4-5
-    # and 5 is max_confidence:5-5
-    # the "gnd_confidence" are only full numbers 0,1,2,3,4,5
-    #for key in ["same_score_cand", "context", "gnd_ids_scores_dist", "gnd_ids_scores_sim"]:
-    #    person.pop(key, None)
-    # if we have a same_score_cand what does that mean? that we called the vd
-    # if we have gnd_ids_scores_dist that means we called the vd
-    # if we have gnd_ids_scores_sim that means the similarity of the names
-    # so if we have
-    # Confidence that this person cannot be linked
-    if person["gnd_ids"] == []:
-        if "gnd_ids_scores_dist" not in person:
-            if "gnd_ids_scores_sim" not in person:
-                person["gnd_confidence"] = 5
-            else:
-                person["gnd_confidence"] = 4
+    if person["gnd_ids"] == []:  # Confidence that this person cannot be linked
+        if "gnd_ids_scores_dist" in person:
+            person["gnd_confidence"] = 4
         else:
-            person["gnd_confidence"] = 3
+            person["gnd_confidence"] = 5
     else:
-        if len(person["gnd_ids"]) == 1:
-            if "gnd_ids_scores_dist" not in person:
-                person["gnd_confidence"] = 5
+        assert "candidates" in person, person
+        if person["firstname"] and person["lastname"]:
+            if len(person["gnd_ids"]) == 1:
+                if _name_matches(person):
+                    person["gnd_confidence"] = 5
+                else:
+                    person["gnd_confidence"] = 4
             else:
-                person["gnd_confidence"] = 4
+                if "gnd_ids_scores_dist" in person:
+                    if _name_matches(person):
+                        person["gnd_confidence"] = 4
+                    else:
+                        person["gnd_confidence"] = 3
+                else:
+                    person["gnd_confidence"] = 3
         else:
-            if "gnd_ids_scores_dist" not in person:
-                person["gnd_confidence"] = 4
+            if len(person["gnd_ids"]) == 1:
+                if _name_matches(person):
+                    person["gnd_confidence"] = 4
+                else:
+                    person["gnd_confidence"] = 3
             else:
-                person["gnd_confidence"] = 3
+                if _name_matches(person):
+                    person["gnd_confidence"] = 2
+                else:
+                    if "gnd_ids_scores_dist" in person:
+                        person["gnd_confidence"] = 2
+                    else:
+                        person["gnd_confidence"] = 1
 
-    for key in ["same_score_cand", "context", "gnd_ids_scores_dist", "gnd_ids_scores_sim"]:
+    for key in ["same_score_cand", "context", "gnd_ids_scores_dist",
+                "gnd_ids_scores_sim", "candidates"]:
         person.pop(key, None)
 
     # For the frontend: delete pid if it's None
@@ -324,10 +358,12 @@ def link_person(data_in) -> dict:
 
         person["context"] = context
         person["same_score_cand"] = same_score_cand
+        person["candidates"] = {c_k: candidates[c_k] for c_k in same_score_cand}
         return person
 
     person["gnd_ids"] = list(candidates.keys())[:settings.LINKED_PERSONS_LIMIT]
     person["gnd_ids_scores_sim"] = [candidates[x]["score"] for x in person["gnd_ids"]]
+    person["candidates"] = [candidates[c_k] for c_k in person["gnd_ids"]]
     prep_person_out(person)
     return person
 
@@ -490,6 +526,7 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
                     raise
                 links[idx_i][1][idx_j]["gnd_ids"] = response_i[:settings.LINKED_PERSONS_LIMIT]
                 links[idx_i][1][idx_j]["gnd_ids_scores_dist"] = response_d[:settings.LINKED_PERSONS_LIMIT]
+                links[idx_i][1][idx_j]["candidates"] = [links[idx_i][1][idx_j]["candidates"][c_k] for c_k in links[idx_i][1][idx_j]["gnd_ids"]]
                 prep_person_out(links[idx_i][1][idx_j])
 
     for i in links:
