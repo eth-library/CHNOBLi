@@ -127,8 +127,7 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
     if (
         len(person["lastname"]) == 0
         or (len(" ".join(person["lastname"])) < 3)
-        or ((not person["firstname"] and not person["abbr_firstname"])
-            and len(person["lastname"]) < 2)  # if the lastname is two words long, might be identifiable
+        or (not person["firstname"] and not person["abbr_firstname"])
        ):
         return {}
 
