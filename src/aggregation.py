@@ -305,7 +305,7 @@ def abbrev_firstname_match(reference: dict, aggregated_names: list) -> list:
         if [x.lower() for x in reference["info"]["lastnames"]] == [x.lower() for x in entry["lastname"]]:
             set_abbr_fnames = set(
                 [
-                    x[0]+".".lower()
+                    x[0].lower()+"."
                     for x in reference["info"]["abbr_firstnames"].split()
                     if x != ""
                 ]
@@ -313,11 +313,11 @@ def abbrev_firstname_match(reference: dict, aggregated_names: list) -> list:
             if (
                 set_abbr_fnames.isdisjoint(
                     [
-                        y[0]+".".lower() for x in entry["firstname"] for y in x
+                        y[0].lower()+"." for x in entry["firstname"] for y in x
                     ]
                 ) and set_abbr_fnames.isdisjoint(
                     [
-                        y[0]+".".lower() for x in entry["abbr_firstname"] for y in x
+                        y[0].lower()+"." for x in entry["abbr_firstname"] for y in x
                     ]
                 )
             ):
