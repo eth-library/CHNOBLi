@@ -1,5 +1,5 @@
 utility package
-===========
+===============
 
 Subpackages
 -----------
@@ -20,7 +20,7 @@ utility.compare module
    :show-inheritance:
 
 utility.evaluation_utils module
----------------------
+-------------------------------
 
 .. automodule:: utility.evaluation_utils
    :members:
@@ -28,7 +28,7 @@ utility.evaluation_utils module
    :show-inheritance:
 
 utility.linking\_utils module
-------------------
+-----------------------------
 
 .. automodule:: utility.linking_utils
    :members:
@@ -36,7 +36,7 @@ utility.linking\_utils module
    :show-inheritance:
 
 utility.settings module
-----------------------
+-----------------------
 
 .. automodule:: utility.settings
    :members:
@@ -44,7 +44,7 @@ utility.settings module
    :show-inheritance:
 
 utility.split\_year module
----------------------
+--------------------------
 
 .. automodule:: utility.split_year
    :members:
@@ -52,7 +52,7 @@ utility.split\_year module
    :show-inheritance:
 
 utility.utils module
----------------------
+--------------------
 
 .. automodule:: utility.utils
    :members:
