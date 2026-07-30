@@ -1,4 +1,3 @@
-#! /usr/bin/python3
 """
 Linking module
 """
@@ -35,7 +34,7 @@ import gc
 MAX_YEAR_STR = "3000"
 
 # GPU device handling
-_DEVICE =  None
+_DEVICE = None
 # Limit number of models cached in GPU to avoid memory fragmentation
 _MAX_GPU_MODELS = 1
 _model_cache: OrderedDict[str, SentenceTransformer] = OrderedDict()
@@ -53,7 +52,7 @@ def prep_word(word: str) -> str:
     word = word.replace("^", "")
     word = unicodedata.normalize("NFC", word)
     word = word.title() if word.isupper() else word
-    word = re.sub("""["']""", '', word)  # this removes ' within a word
+    word = re.sub("""["']""", "", word)  # this removes ' within a word
     return word
 
 
@@ -61,13 +60,11 @@ def update_per_dict_score(dict_in: dict, dict_to_add: dict, strategy="max") -> d
     for k, v in dict_to_add.items():
         if k in dict_in:
             if strategy == "max":
-                if v["score"] > dict_in[k]["score"]:
-                    dict_in[k]["score"] = v["score"]
+                dict_in[k]["score"] = max(v["score"], dict_in[k]["score"])
             elif strategy == "min":
-                if v["score"] < dict_in[k]["score"]:
-                    dict_in[k]["score"] = v["score"]
+                dict_in[k]["score"] = min(v["score"], dict_in[k]["score"])
             elif strategy == "avg":
-                dict_in[k]["score"] = (v["score"]+dict_in[k]["score"])/2
+                dict_in[k]["score"] = (v["score"] + dict_in[k]["score"]) / 2
             else:
                 raise ValueError("Not a valid strategy. Choose: max, min, avg.")
             for k_j, v_j in v.items():
@@ -130,9 +127,8 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
     if (
         len(person["lastname"]) == 0
         or (len(" ".join(person["lastname"])) < 3)
-        or ((not person["firstname"] and not person["abbr_firstname"])
-            and len(person["lastname"]) < 2)  # if the lastname is two words long, might be identifiable
-       ):
+        or (not person["firstname"] and not person["abbr_firstname"])
+    ):
         return {}
 
     lastname = person["lastname"]
@@ -141,14 +137,11 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
     else:
         lastname = lastname[0]
 
-    if person["abbr_firstname"]:
-        fname_abbr_fname = " ".join(person["firstname"]) + " " + " ".join(person["abbr_firstname"])
-        fname_abbr_fname = fname_abbr_fname.replace("  ", " ").strip()
-        full_name = fname_abbr_fname+" " + lastname
-    else:
-        full_name = " ".join(person["firstname"]) + " " + lastname
+    fname_abbr_fname = " ".join(person["firstname"]) + " " + " ".join(person["abbr_firstname"])
+    fname_abbr_fname = fname_abbr_fname.replace("  ", " ").strip()
+    full_name = fname_abbr_fname + " " + lastname
 
-    candidate_dict = dict()
+    candidate_dict = {}
     if person["abbr_firstname"] and not person["firstname"]:
         # If we have an abbr_fnames we usually don't have fnames
         # or they don't overlap in some way.
@@ -222,21 +215,48 @@ def _name_matches(person: dict) -> bool:
     first_cand_firstname = " ".join(person["candidates"][0].get("prefForename", ""))
     first_cand_lastname = " ".join(person["candidates"][0].get("prefSurname", ""))
     first_cand_varname = person["candidates"][0].get("varName", None)
+    joined_fname = " ".join(person["firstname"])
+    joined_abbr_fname = " ".join(person["abbr_firstname"])
     if person["firstname"] and person["lastname"]:
-        if first_cand_firstname == " ".join(person["firstname"])\
-             and first_cand_lastname == person["lastname"]:
+        if (
+            (
+                first_cand_firstname == joined_fname
+                and first_cand_lastname == person["lastname"]
+            )
+            or (
+                first_cand_firstname
+                == (joined_fname + joined_abbr_fname).replace("  ", " ").strip()
+                and first_cand_lastname == person["lastname"]
+            )
+            or (
+                first_cand_varname
+                and (
+                    (person["lastname"] + ", " + joined_fname in first_cand_varname)
+                    or (
+                        person["lastname"]
+                        + ", "
+                        + (joined_fname + joined_abbr_fname).replace("  ", " ").strip()
+                        in first_cand_varname
+                    )
+                )
+            )
+        ):
             return True
-        elif first_cand_varname and \
-            person["lastname"]+", "+" ".join(person["firstname"]) in first_cand_varname:
-            return True
-    elif person["abbr_firstname"] and person["lastname"]:
-        if first_cand_firstname.startswith(
-             " ".join(person["abbr_firstname"]).replace(".", "")
-             ) and first_cand_lastname == person["lastname"]:
-            return True
-        elif first_cand_varname and \
-            person["lastname"]+", "+" ".join(person["abbr_firstname"]) in first_cand_varname:
-            return True
+    elif (
+        person["abbr_firstname"]
+        and person["lastname"]
+        and (
+            (
+                first_cand_firstname.startswith(joined_abbr_fname.replace(".", ""))
+                and first_cand_lastname == person["lastname"]
+            )
+            or (
+                first_cand_varname
+                and person["lastname"] + ", " + joined_abbr_fname in first_cand_varname
+            )
+        )
+    ):
+        return True
     return False
 
 
@@ -287,8 +307,13 @@ def prep_person_out(person: dict) -> None:
                     else:
                         person["gnd_confidence"] = 1
 
-    for key in ["same_score_cand", "context", "gnd_ids_scores_dist",
-                "gnd_ids_scores_sim", "candidates"]:
+    for key in [
+        "same_score_cand",
+        "context",
+        "gnd_ids_scores_dist",
+        "gnd_ids_scores_sim",
+        "candidates",
+    ]:
         person.pop(key, None)
 
     # For the frontend: delete pid if it's None
@@ -341,7 +366,7 @@ def link_person(data_in) -> dict:
         prep_person_out(person)
         return person
 
-    most_imp_sc = candidates[list(candidates)[0]]["score"]
+    most_imp_sc = candidates[next(iter(candidates))]["score"]
     # if several of the first gnds have the same score,
     # take all of them and re-rank with our vdb
     same_score_cand = list(takewhile(
@@ -500,10 +525,10 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
             batched_queryids[i],
             batched_text[i],
             batched_targettextids[i],
-            settings.EMBEDDINGS_ENDPOINT+"/compare_to_text_ids_multiplexed", #TODO replace by an entry in an .env file.
+            settings.EMBEDDINGS_ENDPOINT + "/compare_to_text_ids_multiplexed",
             "gnd_de_snowflakearctic",
             "huggingface",
-            "Snowflake/snowflake-arctic-embed-l-v2.0"
+            "Snowflake/snowflake-arctic-embed-l-v2.0",
         )
 
         if response != []:
@@ -576,12 +601,12 @@ def get_person_context(per: dict, tagging_output_paths: list) -> str:
             raise Exception(f"Tagging output: {p} is not a valid path.")
 
         # Each line should be exactly one page
-        if not all([len(x) == 1 for x in pages]):
+        if not all(len(x) == 1 for x in pages):
             # flatten it
             pages = [{k: v} for subpages_dict in pages for (k, v) in subpages_dict.items()]
-            assert all([len(x) == 1 for x in pages]), list(pages[0].keys())
+            assert all(len(x) == 1 for x in pages), list(pages[0].keys())
         # Only keep pages relevant to the person
-        pages = [x for x in pages if list(x.keys())[0] in all_relevant_pages]
+        pages = [x for x in pages if next(iter(x.keys())) in all_relevant_pages]
 
         # Flatten all tokens into a single list for fast lookup
         all_tokens = []
@@ -704,13 +729,15 @@ def get_person_context_reflevel(per: dict, tagging_output_path: str) -> list:
     return all_context
 
 
-def compare_to_target_ids_multiplexed(queryids: list[int],
-                                      text: list[str],
-                                      target_text_ids: list[list[str]],
-                                      backend_url: str,
-                                      collection_name: str,
-                                      model: str,
-                                      model_name: str):
+def compare_to_target_ids_multiplexed(
+    queryids: list[int],
+    text: list[str],
+    target_text_ids: list[list[str]],
+    backend_url: str,
+    collection_name: str,
+    model: str,
+    model_name: str,
+):
     """
     Compare query texts to target texts using embeddings and return distances.
 
@@ -779,14 +806,14 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {access_token}"
+        "Authorization": f"Bearer {access_token}",
     }
 
     payload = {
         "content": content,
         "model": model,
         "model_name": model_name,
-        "collection_name": collection_name
+        "collection_name": collection_name,
     }
     try:
         response = requests.post(backend_url, json=payload, headers=headers, timeout=60)
@@ -818,8 +845,8 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
 def compare_vector_to_text_ids_multiplexed(  # type: ignore
     input: list[dict],
     vectors: list[list[float]],
-    collection_name:str,
-    distance_metric:str = "cosine"
+    collection_name: str,
+    distance_metric: str = "cosine",
 ) -> list[dict]:
     """
     Compare query embeddings to candidate embeddings stored in Milvus,
@@ -849,7 +876,7 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
     candidate_rows = client.query(
         collection_name=collection_name,
         filter=expr,
-        output_fields=["text_id", "embedding"]
+        output_fields=["text_id", "embedding"],
     )
 
     id_to_emb = {
@@ -941,6 +968,7 @@ def generate_huggingface_embedding(
         gc.collect()
         raise e
 
+
 def _get_model(
     model_name: str,
     trust_remote_code: bool = False,
@@ -983,8 +1011,8 @@ def _get_model(
 
     return model
 
+
 def _set_best_torch_device():
-    """Automatically detects the most suited device for inference
-    """
+    """Automatically detects the most suited device for inference"""
     global _DEVICE
-    _DEVICE =  "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
+    _DEVICE = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
