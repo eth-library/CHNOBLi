@@ -57,7 +57,27 @@ def prep_word(word: str) -> str:
 
 
 def update_per_dict_score(dict_in: dict, dict_to_add: dict, strategy="max") -> dict:
+    if strategy not in ("max", "min", "avg"):
+        raise ValueError("Not a valid strategy. Choose: max, min, avg.")
+
+    # Handle multiple gnd-ids returned by Wikidata
+    cleaned_dict_to_add = {}
     for k, v in dict_to_add.items():
+        if len(v["gid"]) > 1:
+            found = False
+            for gid in v["gid"]:
+                if gid in dict_in:
+                    cleaned_dict_to_add[gid] = v.copy()
+                    cleaned_dict_to_add[gid]["gid"] = {gid}
+                    found = True
+                    break
+            if not found:
+                cleaned_dict_to_add[k] = v.copy()
+        else:
+            cleaned_dict_to_add[k] = v.copy()
+
+    for k, v in cleaned_dict_to_add.items():
+        # Aggregate scores
         if k in dict_in:
             if strategy == "max":
                 dict_in[k]["score"] = max(v["score"], dict_in[k]["score"])
@@ -65,8 +85,6 @@ def update_per_dict_score(dict_in: dict, dict_to_add: dict, strategy="max") -> d
                 dict_in[k]["score"] = min(v["score"], dict_in[k]["score"])
             elif strategy == "avg":
                 dict_in[k]["score"] = (v["score"] + dict_in[k]["score"]) / 2
-            else:
-                raise ValueError("Not a valid strategy. Choose: max, min, avg.")
             for k_j, v_j in v.items():
                 if k_j not in dict_in[k]:
                     dict_in[k][k_j] = v_j
