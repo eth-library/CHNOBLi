@@ -52,8 +52,8 @@ def prep_name_for_elasticsearch_query(name: str) -> str:
     :return: Name to be searched including allowed edit distances.
     :rtype: str
     :Example:
-    >>> "D. Birchall" => "D* Birchall~2"
-    >>> "J.P. Wittbach => J*P* Wittbach~2"
+        >>> "D. Birchall" => "D* Birchall~2"
+        >>> "J.P. Wittbach => J*P* Wittbach~2"
     """
 
     name_list = name.split(" ")
