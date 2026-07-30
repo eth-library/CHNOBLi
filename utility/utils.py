@@ -7,6 +7,7 @@ import os
 import orjson
 import logging
 import xml.etree.ElementTree as ET
+from .settings import settings
 
 
 def set_default(obj):
@@ -218,7 +219,7 @@ def erara_xml_to_word_coord(xml_path,
     out_str = ""
     for z in root.findall(schema+'Layout'):
         for a in z.findall(schema+'Page'):
-            #if a.attrib["ID"] == "p703360":  # for a certain page
+            # if a.attrib["ID"] == "p703360":  # for a certain page
             image_width = a.attrib["WIDTH"]
             image_height = a.attrib["HEIGHT"]
             out_str += f"{image_width}, {image_height}\n"
@@ -255,8 +256,8 @@ def txt_file_to_word_coord(txt_path: str) -> str:
     out_str = ""
     running_idx = 0
     for c in input_str.split("\n\n\n"):
-        for i,a in enumerate(c.split("\n")):
-            for j,b in enumerate(a.split(" ")):
+        for i, a in enumerate(c.split("\n")):
+            for j, b in enumerate(a.split(" ")):
                 x = input_str.find(b, running_idx)
                 y = x + len(b)
                 w = i
@@ -267,12 +268,13 @@ def txt_file_to_word_coord(txt_path: str) -> str:
         out_str += "<EOP>\n"
     return out_str
 
-def offset_len_to_linking_input(mention_list:list[dict]):
+
+def offset_len_to_linking_input(mention_list: list[dict]):
     """
     Transforms tagging output that contains the mention,
     offset, length and the document name into a tagging
     output that can be used by the CHNOBLi system.
-    
+
     :param mention_list: List of mention dictionaries.
     :type mention_list: list[dict]
     :return: A list of dictionaries of the format used\
@@ -281,8 +283,8 @@ def offset_len_to_linking_input(mention_list:list[dict]):
     """
 
     chnobli_tagging = []
-    for idx,mention in enumerate(mention_list):
-        out={
+    for idx, mention in enumerate(mention_list):
+        out = {
             "info": {
                 "lastnames": [mention["mention"].split(" ")[-1]],
                 "firstnames": mention["mention"].split(" ")[:-1],
@@ -304,7 +306,10 @@ def offset_len_to_linking_input(mention_list:list[dict]):
             }
         with open(mention["docName"], encoding="utf-8") as f:
             text = f.read()
-            out["context"] = text[max(mention["offset"]-settings.VD_CONTEXT_WINDOW_LEN*4,0):min(mention["offset"]+mention["length"]+settings.VD_CONTEXT_WINDOW_LEN*4,len(text))]
+            out["context"] = text[
+                max(mention["offset"]-settings.VD_CONTEXT_WINDOW_LEN*4, 0):
+                min(mention["offset"]+mention["length"]+settings.VD_CONTEXT_WINDOW_LEN*4, len(text))
+            ]
+            out["context"] = out["context"].strip()
         chnobli_tagging.append(out)
     return chnobli_tagging
-

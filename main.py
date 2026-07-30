@@ -81,7 +81,6 @@ def main():
     gpu_num = check_gpu(args)
 
     if config_file:
-        import os
         os.environ["NLA_CONFIG_FILE"] = config_file
         # Re-initialize a temporary settings object to re-run the whole Pydantic
         # resolution logic (Env vars > JSON configs > defaults)
