@@ -146,26 +146,74 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
         # If we have an abbr_fnames we usually don't have fnames
         # or they don't overlap in some way.
         full_name_abbr = " ".join(person["abbr_firstname"]) + " " + lastname
-        candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit, False), "max")
-        candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name_abbr, year, wikidata_limit, False), "max")
+        candidate_dict = update_per_dict_score(
+            candidate_dict,
+            search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit, False),
+            "max",
+        )
+        candidate_dict = update_per_dict_score(
+            candidate_dict,
+            search_person_wikidata(full_name_abbr, year, wikidata_limit, False),
+            "max",
+        )
         if settings.ADD_FUZZY_SEARCH == "True":
-            candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit), "max")
-            candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name_abbr, year, wikidata_limit), "max")
+            candidate_dict = update_per_dict_score(
+                candidate_dict,
+                search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit),
+                "max",
+            )
+            candidate_dict = update_per_dict_score(
+                candidate_dict,
+                search_person_wikidata(full_name_abbr, year, wikidata_limit),
+                "max",
+            )
 
     res_dict_fullname = {}
     if person["firstname"]:
-        res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit, False), "max")
+        res_dict_fullname = update_per_dict_score(
+            res_dict_fullname,
+            search_person_gnd(person["firstname"], lastname, year, gnd_limit, False),
+            "max",
+        )
         if person["abbr_firstname"]:
-            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit, False), "max")
-            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd_variantName(full_name, year, gnd_limit, False), "max")
+            res_dict_fullname = update_per_dict_score(
+                res_dict_fullname,
+                search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit, False),
+                "max",
+            )
+            res_dict_fullname = update_per_dict_score(
+                res_dict_fullname,
+                search_person_gnd_variantName(full_name, year, gnd_limit, False),
+                "max",
+            )
 
-        res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit, False), "max")
+        res_dict_fullname = update_per_dict_score(
+            res_dict_fullname,
+            search_person_wikidata(full_name, year, wikidata_limit, False),
+            "max",
+        )
         if settings.ADD_FUZZY_SEARCH == "True":
-            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit), "max")
+            res_dict_fullname = update_per_dict_score(
+                res_dict_fullname,
+                search_person_gnd(person["firstname"], lastname, year, gnd_limit),
+                "max",
+            )
             if person["abbr_firstname"]:
-                res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit), "max")
-                res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd_variantName(full_name, year, gnd_limit), "max")
-            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit), "max")
+                res_dict_fullname = update_per_dict_score(
+                    res_dict_fullname,
+                    search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit),
+                    "max",
+                )
+                res_dict_fullname = update_per_dict_score(
+                    res_dict_fullname,
+                    search_person_gnd_variantName(full_name, year, gnd_limit),
+                    "max",
+                )
+            res_dict_fullname = update_per_dict_score(
+                res_dict_fullname,
+                search_person_wikidata(full_name, year, wikidata_limit),
+                "max",
+            )
 
     candidate_dict = update_per_dict_score(candidate_dict, res_dict_fullname, "max")
     return candidate_dict
@@ -204,7 +252,7 @@ def prep_person_entry(person: dict, mag_year: str) -> None:
     person["profession"].sort()
     person["other"] = [prep_word(x) for x in person["other"]]
     person["other"] = [x for x in person["other"] if x not in string.punctuation]
-    person["id"] = mag_year[0]+":"+mag_year[1].replace("_", ":")+":"+str(person["id"])
+    person["id"] = mag_year[0] + ":" + mag_year[1].replace("_", ":") + ":" + str(person["id"])
 
 
 def _name_matches(person: dict) -> bool:
@@ -369,24 +417,20 @@ def link_person(data_in) -> dict:
     most_imp_sc = candidates[next(iter(candidates))]["score"]
     # if several of the first gnds have the same score,
     # take all of them and re-rank with our vdb
-    same_score_cand = list(takewhile(
-        lambda c: candidates[c]["score"] == most_imp_sc,
-        candidates
-    ))
+    same_score_cand = list(
+        takewhile(lambda c: candidates[c]["score"] == most_imp_sc, candidates)
+    )
 
     if len(same_score_cand) > 1:
         person_context_dict = deepcopy(person)
-        context = get_person_context(
-            person_context_dict,
-            tagging_paths
-        )
+        context = get_person_context(person_context_dict, tagging_paths)
 
         person["context"] = context
         person["same_score_cand"] = same_score_cand
         person["candidates"] = {c_k: candidates[c_k] for c_k in same_score_cand}
         return person
 
-    person["gnd_ids"] = list(candidates.keys())[:settings.LINKED_PERSONS_LIMIT]
+    person["gnd_ids"] = list(candidates.keys())[: settings.LINKED_PERSONS_LIMIT]
     person["gnd_ids_scores_sim"] = [candidates[x]["score"] for x in person["gnd_ids"]]
     person["candidates"] = [candidates[c_k] for c_k in person["gnd_ids"]]
     prep_person_out(person)
@@ -420,12 +464,8 @@ def find_links(data_in) -> list:
         year = year.group(0)
 
     person_list = [
-        (
-            mag_year,
-            year,
-            x,
-            tagging_paths
-        ) for x in data if x["type"] == "PER"]
+        (mag_year, year, x, tagging_paths) for x in data if x["type"] == "PER"
+    ]
 
     if settings.BATCH_SIZE == 1:
         person_list = [link_person(x) for x in person_list]
@@ -468,12 +508,12 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
         start_time = datetime.now()
         logging.info(f"Starting Linking at {start_time} :")
 
-    if (
-        ("finish" not in tasks)
-        or
-        ("link" in tasks and ("agg" not in tasks or "post" not in tasks))
-       ):
-        raise Exception("'post,agg,link' must be called together, or call 'finish' instead.")
+    if ("finish" not in tasks) or (
+        "link" in tasks and ("agg" not in tasks or "post" not in tasks)
+    ):
+        raise Exception(
+            "'post,agg,link' must be called together, or call 'finish' instead."
+        )
 
     # NOTE this cannot be called seperately after the aggregation step,
     # "post,agg,link" need to be called together after "tag",
@@ -485,10 +525,11 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
         [
             k,  # tuple of (mag, year) like ("cmt", "1998_076")
             v["agg_data"],  # list of person dictionaries
-            v["paths"]  # list of paths to the tagging files for this year
-        ] for (k, v) in data.items()
+            v["paths"],  # list of paths to the tagging files for this year
+        ]
+        for (k, v) in data.items()
     ]
-    #for idx, i in enumerate(links):
+    # for idx, i in enumerate(links):
     #    links[idx][1] = find_links(i)  # I basically update v
     if settings.BATCH_SIZE == 1:
         links = [find_links(x) for x in links]
@@ -535,13 +576,17 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
             for resp_dict in response:
                 try:
                     response_i = [
-                        k["reference_text_id"] for k in
-                        sorted(resp_dict["distances"], key=lambda item: item["distance"])
+                        k["reference_text_id"]
+                        for k in sorted(
+                            resp_dict["distances"], key=lambda item: item["distance"]
+                        )
                         if k["distance"] < settings.VD_MAX_DIST
                     ]
                     response_d = [
-                        k["distance"] for k in
-                        sorted(resp_dict["distances"], key=lambda item: item["distance"])
+                        k["distance"]
+                        for k in sorted(
+                            resp_dict["distances"], key=lambda item: item["distance"]
+                        )
                         if k["distance"] < settings.VD_MAX_DIST
                     ]
                     idx_i = resp_dict["query_id"] & 0xFFFFFFFF
@@ -551,14 +596,17 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
                     raise
                 links[idx_i][1][idx_j]["gnd_ids"] = response_i[:settings.LINKED_PERSONS_LIMIT]
                 links[idx_i][1][idx_j]["gnd_ids_scores_dist"] = response_d[:settings.LINKED_PERSONS_LIMIT]
-                links[idx_i][1][idx_j]["candidates"] = [links[idx_i][1][idx_j]["candidates"][c_k] for c_k in links[idx_i][1][idx_j]["gnd_ids"]]
+                links[idx_i][1][idx_j]["candidates"] = [
+                    links[idx_i][1][idx_j]["candidates"][c_k]
+                    for c_k in links[idx_i][1][idx_j]["gnd_ids"]
+                ]
                 prep_person_out(links[idx_i][1][idx_j])
 
     for i in links:
         save_data_intermediate([i[0][0], i[0][1]], i[1], "link")
 
     if timed:
-        logging.info("Linking took: "+str(datetime.now() - start_time))
+        logging.info("Linking took: " + str(datetime.now() - start_time))
 
 
 def get_person_context(per: dict, tagging_output_paths: list) -> str:
@@ -642,8 +690,7 @@ def get_person_context(per: dict, tagging_output_paths: list) -> str:
             for ref in ref_list.get("refs", []):
                 if "coords" in ref and len(ref["coords"]) > 0:
                     coords = [
-                        x.split(":")[0]
-                        if isinstance(x, str) else x.get("c", "")
+                        x.split(":")[0] if isinstance(x, str) else x.get("c", "")
                         for x in ref["coords"]
                     ]
                     indices = [coord_to_indices.get(x, []) for x in coords]
@@ -656,7 +703,6 @@ def get_person_context(per: dict, tagging_output_paths: list) -> str:
                     all_context += ";" + extract + " "
                     # I'm fine with overlap, works better this way
     all_context = all_context[1:]
-    # return " ".join(all_context.strip().split(" ")[:1024])
     return all_context[:2048]  # https://huggingface.co/Snowflake/snowflake-arctic-embed-l-v2.0/discussions/3#6751e3b48409e4c1b2330c2d
 
 
@@ -842,7 +888,7 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
     logging.error(f"Max retries exceeded. Failed to retrieve distances: {response.status_code} - {response.text}")
 
 
-def compare_vector_to_text_ids_multiplexed(  # type: ignore
+def compare_vector_to_text_ids_multiplexed(
     input: list[dict],
     vectors: list[list[float]],
     collection_name: str,
@@ -866,7 +912,7 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
     all_ids = set()
     for item in input:
         all_ids.update(item["reference_text_ids"])
-    all_ids = list(all_ids)  # type: ignore
+    all_ids = list(all_ids)
 
     if not all_ids:
         return [{"query_id": item["query_id"], "distances": []} for item in input]
@@ -903,7 +949,7 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
             results.append({"query_id": query_id, "distances": []})
             continue
 
-        cand_embs = np.vstack(cand_embs)  # type: ignore
+        cand_embs = np.vstack(cand_embs)
 
         # Distance computation
         if distance_metric == "cosine":
@@ -955,10 +1001,8 @@ def generate_huggingface_embedding(
     try:
         with torch.inference_mode():
             embeddings = model.encode(
-                texts,
-                convert_to_numpy=True,
-                normalize_embeddings=True
-            )  # type: ignore
+                texts, convert_to_numpy=True, normalize_embeddings=True
+            )
             ans: List[List[float]] = embeddings.tolist()
             return ans
     except RuntimeError as e:

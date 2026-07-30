@@ -1,20 +1,23 @@
+from unittest.mock import Mock, patch
+
 import orjson
-from unittest.mock import patch, Mock
 import pytest
 from src.linking import (
-    prep_word,
-    remove_obsolete_abbrevs,
+    compare_to_target_ids_multiplexed,
+    execute_linking,
+    find_links,
     get_candidates,
+    get_person_context,
+    link_person,
     prep_person_entry,
     prep_person_out,
-    link_person,
-    find_links,
-    execute_linking,
-    get_person_context,
-    compare_to_target_ids_multiplexed
+    prep_word,
+    remove_obsolete_abbrevs,
 )
 from utility.settings import settings
-from .test_data.params import PARAMS_prep_person_out, PARAMS_get_candidates
+
+from .test_data.params import PARAMS_get_candidates, PARAMS_prep_person_out
+
 
 # -------------------------------------------------
 # Test prep_word
@@ -22,10 +25,10 @@ from .test_data.params import PARAMS_prep_person_out, PARAMS_get_candidates
 @pytest.mark.parametrize(
     "word,expected",
     [
-        ("Otmar M\u00e4der", 'Otmar Mäder'),
+        ("Otmar M\u00e4der", "Otmar Mäder"),
         ("P* Scha^mann", "P* Schamann"),
-        ("URS CAVELTI", 'Urs Cavelti'),
-        ("d'Estouilly", "dEstouilly")
+        ("URS CAVELTI", "Urs Cavelti"),
+        ("d'Estouilly", "dEstouilly"),
     ],
 )
 def test_prep_word(word, expected):
@@ -39,9 +42,9 @@ def test_prep_word(word, expected):
     "fnames, abbr_firstnames, expected",
     [
         (["Richard"], ["R."], [[]]),
-        (["Richard"], ["A.", "R."], [['A.'], []]),
-        (["Richard"], ["A.", "R.", "B"], [['A.'], [], ['B.']]),
-        (["Richard", "Albert"], ["A.", "R.", "B"], [[], [], ['B.']]),
+        (["Richard"], ["A.", "R."], [["A."], []]),
+        (["Richard"], ["A.", "R.", "B"], [["A."], [], ["B."]]),
+        (["Richard", "Albert"], ["A.", "R.", "B"], [[], [], ["B."]]),
         (["Richard"], [], []),
     ],
 )
@@ -58,15 +61,17 @@ def test_remove_obsolete_abbrevs(fnames, abbr_firstnames, expected):
     "person, year, gnd_limit, wikidata_limit, gnd_return, wikidata_return, expected",
     PARAMS_get_candidates,
 )
-def test_get_candidates(mock_search_person_gnd,
-                        mock_search_person_wikidata,
-                        person,
-                        year,
-                        gnd_limit,
-                        wikidata_limit,
-                        expected,
-                        gnd_return,
-                        wikidata_return):
+def test_get_candidates(
+    mock_search_person_gnd,
+    mock_search_person_wikidata,
+    person,
+    year,
+    gnd_limit,
+    wikidata_limit,
+    expected,
+    gnd_return,
+    wikidata_return,
+):
     # Mock GND and Wikidata search results
     mock_search_person_gnd.return_value = gnd_return
     mock_search_person_wikidata.return_value = wikidata_return
@@ -80,17 +85,23 @@ def test_get_candidates_no_lastname():
 
 def test_get_candidates_no_firstname_or_abbr():
     """Do not search for only a lastname."""
-    assert get_candidates(
-        {"lastname": ["A", "B"], "firstname": [], "abbr_firstname": []},
-        "0000", 15, 5
-        ) == {}
+    assert (
+        get_candidates(
+            {"lastname": ["A", "B"], "firstname": [], "abbr_firstname": []},
+            "0000",
+            15,
+            5,
+        )
+        == {}
+    )
 
 
 def test_get_candidates_short_lastname():
     assert not get_candidates(
-        {"lastname": ["B"],
-         "firstname": [["Alice"]],
-         "abbr_firstname": ["A."]}, "", 15, 5
+        {"lastname": ["B"], "firstname": [["Alice"]], "abbr_firstname": ["A."]},
+        "",
+        15,
+        5,
     )
 
 
@@ -100,18 +111,24 @@ def test_get_candidates_short_lastname():
 @pytest.mark.parametrize(
     "person, expected",
     [
-        ({"firstname": ["ALLIE Marie"],
-          "lastname": "K^ann MEIÉR",
-          "abbr_firstname": "",
-          "profession": ["Schauspielerin", "Musikerin"],
-          "other": [],
-          "id": 0},
-         {'firstname': ['Allie', 'Marie'],
-          'lastname': ['Kann', 'Meiér'],
-          'abbr_firstname': [],
-          'other': [],
-          'profession': ['Musikerin', 'Schauspielerin'],
-          "id": 'a:b:0'})
+        (
+            {
+                "firstname": ["ALLIE Marie"],
+                "lastname": "K^ann MEIÉR",
+                "abbr_firstname": "",
+                "profession": ["Schauspielerin", "Musikerin"],
+                "other": [],
+                "id": 0,
+            },
+            {
+                "firstname": ["Allie", "Marie"],
+                "lastname": ["Kann", "Meiér"],
+                "abbr_firstname": [],
+                "other": [],
+                "profession": ["Musikerin", "Schauspielerin"],
+                "id": "a:b:0",
+            },
+        )
     ],
 )
 def test_prep_person_entry(person, expected):
@@ -130,6 +147,7 @@ def test_prep_person_out(person, expected_confidence):
     prep_person_out(person)
     assert person["gnd_confidence"] == expected_confidence
 
+
 # -------------------------------------------------
 # Test link_person
 # -------------------------------------------------
@@ -143,9 +161,7 @@ def test_link_person_with_valid_data(mock_get_candidates):
         "titles": ["Dr."],
         "profession": ["Engineer"],
         "other": [],
-        "references": {
-            "1": {"refs": [{"sent": "Example sentence", "coords": "0,0"}]}
-        },
+        "references": {"1": {"refs": [{"sent": "Example sentence", "coords": "0,0"}]}},
         "type": "PER",
         "id": 1,
     }
@@ -155,17 +171,10 @@ def test_link_person_with_valid_data(mock_get_candidates):
         "2222": {"prefForename": {"John"}, "score": 25},
         "3333": {"prefForename": {"J."}, "score": 30},
     }
-    settings.GND_LIMIT =  15
+    settings.GND_LIMIT = 15
     settings.WIKIDATA_LIMIT = 5
     settings.LINKED_PERSONS_LIMIT = 10
-    result = link_person(
-        (
-            ("obl", "2004_000"),
-            "2004",
-            person,
-            ["page1", "page2"]
-        )
-    )
+    result = link_person((("obl", "2004_000"), "2004", person, ["page1", "page2"]))
 
     assert "gnd_ids" in result
     # the results from get gnd/wikidata values are assumed to be
@@ -185,9 +194,7 @@ def test_link_person_with_no_candidates_copilot():
         "titles": ["Dr."],
         "profession": ["Engineer"],
         "other": [],
-        "references": {
-            "1": {"refs": [{"sent": "Example sentence", "coords": "0,0"}]}
-        },
+        "references": {"1": {"refs": [{"sent": "Example sentence", "coords": "0,0"}]}},
         "type": "PER",
         "id": 1,
     }
@@ -195,17 +202,10 @@ def test_link_person_with_no_candidates_copilot():
     # Mock candidates returned by get_candidates
     mock_get_candidates = patch("src.linking.get_candidates").start()
     mock_get_candidates.return_value = {}
-    settings.GND_LIMIT =  15
+    settings.GND_LIMIT = 15
     settings.WIKIDATA_LIMIT = 5
     settings.LINKED_PERSONS_LIMIT = 10
-    result = link_person(
-        (
-            ("abc", "1234_000"),
-            "1234",
-            person,
-            ["page1", "page2"]
-        )
-    )
+    result = link_person((("abc", "1234_000"), "1234", person, ["page1", "page2"]))
 
     assert "gnd_ids" in result
     assert result["gnd_ids"] == []  # No candidates found
@@ -223,9 +223,7 @@ def test_link_person_with_abbr_firstname_filtering():
         "titles": ["Dr."],
         "profession": ["Engineer"],
         "other": [],
-        "references": {
-            "1": {"refs": [{"sent": "Example sentence", "coords": "0,0"}]}
-        },
+        "references": {"1": {"refs": [{"sent": "Example sentence", "coords": "0,0"}]}},
         "type": "PER",
         "id": 1,
     }
@@ -236,17 +234,10 @@ def test_link_person_with_abbr_firstname_filtering():
         "12345": {"prefForename": {"John"}, "score": 20},
         "67890": {"prefForename": {"Kane"}, "score": 15},
     }
-    settings.GND_LIMIT =  15
+    settings.GND_LIMIT = 15
     settings.WIKIDATA_LIMIT = 5
     settings.LINKED_PERSONS_LIMIT = 1
-    result = link_person(
-        (
-            ("abc", "1234_000"),
-            "1234",
-            person,
-            ["page1", "page2"]
-        )
-    )
+    result = link_person((("abc", "1234_000"), "1234", person, ["page1", "page2"]))
 
     assert "gnd_ids" in result
     # Filtered by matching abbr_firstname
@@ -293,22 +284,20 @@ def test_find_links(mock_save_data_intermediate, mock_link_person):
             "id": 2,
         },
     ]
-    settings.GND_LIMIT =  5
+    settings.GND_LIMIT = 5
     settings.WIKIDATA_LIMIT = 10
     settings.LINKED_PERSONS_LIMIT = 3
     settings.PATH_TO_OUTFILE_FOLDER = "./tests/test_data/output/"
     settings.VD_QUERY_CHUNK_LEN = 30
     settings.BATCH_SIZE = 1
 
-    mock_link_person.side_effect = lambda x: {
-        **x[2], "gnd_ids": ["12345", "67890"]
-    }
+    mock_link_person.side_effect = lambda x: {**x[2], "gnd_ids": ["12345", "67890"]}
 
     # Patch Pool so pytest doesn't spawn subprocesses (which break mocks)
     with patch("src.linking.Pool") as mock_pool:
-        mock_pool.return_value.__enter__.return_value.map = (
-            lambda func, args: [func(x) for x in args]
-        )
+        mock_pool.return_value.__enter__.return_value.map = lambda func, args: [
+            func(x) for x in args
+        ]
         result = find_links((mag_year, data, ["page1", "page2"]))
 
     assert len(result) == 3
@@ -335,12 +324,16 @@ def test_execute_linking(mock_save_data_intermediate, mock_find_links):
     """
     with pytest.raises(Exception) as excinfo:
         execute_linking(None, ["post", "link"])
-    assert str(excinfo.value) == "'post,agg,link' must be called together, \
+    assert (
+        str(excinfo.value)
+        == "'post,agg,link' must be called together, \
 or call 'finish' instead."
+    )
 
     data = {
-        ("abc", "2023_000"):
-            {"agg_data": [{
+        ("abc", "2023_000"): {
+            "agg_data": [
+                {
                     "lastname": "Doe",
                     "firstname": ["John"],
                     "abbr_firstname": ["J."],
@@ -367,10 +360,12 @@ or call 'finish' instead."
                     },
                     "type": "PER",
                     "id": 2,
-                }],
-             "paths": ["2", "1"]}
+                },
+            ],
+            "paths": ["2", "1"],
+        }
     }
-    settings.GND_LIMIT =  5
+    settings.GND_LIMIT = 5
     settings.WIKIDATA_LIMIT = 10
     settings.LINKED_PERSONS_LIMIT = 3
     settings.PATH_TO_OUTFILE_FOLDER = "./tests/test_data/output/"
@@ -383,11 +378,13 @@ or call 'finish' instead."
     -> is this even a case for multiplexing??
     @patch("src.linking.get_person_context")
     """
-    with patch("src.linking.Pool") as mock_pool, \
-         patch("builtins.open", create=True) as mock_open_:
-        mock_pool.return_value.__enter__.return_value.map = (
-            lambda func, args: [func(x) for x in args]
-        )
+    with (
+        patch("src.linking.Pool") as mock_pool,
+        patch("builtins.open", create=True) as mock_open_,
+    ):
+        mock_pool.return_value.__enter__.return_value.map = lambda func, args: [
+            func(x) for x in args
+        ]
         execute_linking(data, ["finish"])  # Can't check the result, returns None
     mock_open_.assert_called()  # Ensure logs were written
 
@@ -398,8 +395,9 @@ or call 'finish' instead."
     mock_save_data_intermediate.assert_called_once_with(
         [mock_find_links.return_value[0][0], mock_find_links.return_value[0][1]],
         mock_find_links.return_value[1],
-        "link"
+        "link",
     )
+
 
 # -------------------------------------------------
 # Test get_person_context
@@ -409,12 +407,16 @@ or call 'finish' instead."
 @pytest.fixture
 def tagging_file(tmp_path):
     # Create a tagging output file with two tokens and coords
-    page = {"page1": [[
-        {"token": "Alice", "coord": "c1:0"},
-        {"token": ",", "coord": "c2:1"},
-        {"token": "Bob", "coord": "c3:2"},
-        {"token": ".", "coord": "c4:3"},
-    ]]}
+    page = {
+        "page1": [
+            [
+                {"token": "Alice", "coord": "c1:0"},
+                {"token": ",", "coord": "c2:1"},
+                {"token": "Bob", "coord": "c3:2"},
+                {"token": ".", "coord": "c4:3"},
+            ]
+        ]
+    }
     file_path = tmp_path / "tagging.jsonl"
     with open(file_path, "wb") as f:
         f.write(orjson.dumps(page))
@@ -423,15 +425,7 @@ def tagging_file(tmp_path):
 
 
 def test_get_person_context_basic(tagging_file):
-    per = {
-        "references": {
-            "page1": {
-                "refs": [
-                    {"coords": ["c1:0"]}
-                ]
-            }
-        }
-    }
+    per = {"references": {"page1": {"refs": [{"coords": ["c1:0"]}]}}}
     context = get_person_context(per, [tagging_file[0]])
     # Should include "Alice" and some context (window)
     assert "Alice" in context
@@ -439,14 +433,7 @@ def test_get_person_context_basic(tagging_file):
 
 def test_get_person_context_multiple_mentions(tagging_file):
     per = {
-        "references": {
-            "page1": {
-                "refs": [
-                    {"coords": ["c1:0"]},
-                    {"coords": ["c3:2"]}
-                ]
-            }
-        }
+        "references": {"page1": {"refs": [{"coords": ["c1:0"]}, {"coords": ["c3:2"]}]}}
     }
     context = get_person_context(per, [tagging_file[0]])
     assert "Alice" in context
@@ -489,7 +476,7 @@ sample_args_multi = {
     "backend_url": "http://localhost:8000/embeddings/compare_to_text_ids_multiplexed",
     "collection_name": "test_collection",
     "model": "ollama",
-    "model_name": "jina/jina-embeddings-v2-base-de"
+    "model_name": "jina/jina-embeddings-v2-base-de",
 }
 
 
@@ -497,7 +484,7 @@ def test_compare_to_target_ids_multiplexed_success():
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.text = '{"results": [{"text_id": "id1", "distance": 0.1}]}'
-    mock_response.json = (lambda: {"access_token": 0})
+    mock_response.json = lambda: {"access_token": 0}
     with patch("requests.post", return_value=mock_response) as mock_post:
         result = compare_to_target_ids_multiplexed(
             [1, 2],
@@ -506,32 +493,43 @@ def test_compare_to_target_ids_multiplexed_success():
             sample_args_multi["backend_url"],
             sample_args_multi["collection_name"],
             sample_args_multi["model"],
-            sample_args_multi["model_name"]
+            sample_args_multi["model_name"],
         )
         assert result == [{"text_id": "id1", "distance": 0.1}]
         assert mock_post.call_count == 2
         _, kwargs = mock_post.call_args
-        assert kwargs["json"]["content"][0]["query_text"] == sample_args_multi["text"][0]
-        assert kwargs["json"]["content"][1]["query_text"] == sample_args_multi["text"][1]
-        assert kwargs["json"]["content"][0]["reference_text_ids"] == sample_args_multi["target_text_ids"][0]
-        assert kwargs["json"]["content"][1]["reference_text_ids"] == sample_args_multi["target_text_ids"][1]
+        assert (
+            kwargs["json"]["content"][0]["query_text"] == sample_args_multi["text"][0]
+        )
+        assert (
+            kwargs["json"]["content"][1]["query_text"] == sample_args_multi["text"][1]
+        )
+        assert (
+            kwargs["json"]["content"][0]["reference_text_ids"]
+            == sample_args_multi["target_text_ids"][0]
+        )
+        assert (
+            kwargs["json"]["content"][1]["reference_text_ids"]
+            == sample_args_multi["target_text_ids"][1]
+        )
 
 
 def test_compare_to_target_ids_multiplexed_failure_logs(caplog):
     mock_response = Mock()
     mock_response.status_code = 400
     mock_response.text = "Bad Request"
-    mock_response.json = (lambda: {"access_token": 0})
-    with patch("requests.post", return_value=mock_response):
-        with pytest.raises(Exception) as excinfo:
-            result = compare_to_target_ids_multiplexed(
-                [1, 2],
-                sample_args_multi["text"],
-                sample_args_multi["target_text_ids"],
-                sample_args_multi["backend_url"],
-                sample_args_multi["collection_name"],
-                sample_args_multi["model"],
-                sample_args_multi["model_name"]
-            )
-            assert result is None
-            assert "Authentication failed with status 400" in str(excinfo.value)
+    mock_response.json = lambda: {"access_token": 0}
+    with (
+        patch("requests.post", return_value=mock_response),
+        pytest.raises(Exception) as excinfo,
+    ):
+        compare_to_target_ids_multiplexed(
+            [1, 2],
+            sample_args_multi["text"],
+            sample_args_multi["target_text_ids"],
+            sample_args_multi["backend_url"],
+            sample_args_multi["collection_name"],
+            sample_args_multi["model"],
+            sample_args_multi["model_name"],
+        )
+    assert "Authentication failed with status 400" in str(excinfo.value)

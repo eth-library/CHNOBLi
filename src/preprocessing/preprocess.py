@@ -1,40 +1,29 @@
-#! /usr/bin/python3
-
 """
 Includes all functions necessary to preprocess files.
 """
 
-import orjson
+import glob
+import logging
 import os
-import pprint as pp
 import re
 import string
-import sys
-import logging
-import glob
-from datetime import datetime
-
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import List
-from utility.settings import settings
+from datetime import datetime
 from multiprocessing import Pool
+
 from utility import split_year
+from utility.settings import settings
 
 
 @dataclass
 class PreprocessConfig:
-    """Class for the preprocess configuration
-    """
+    """Class for the preprocess configuration"""
 
     ABBREVIATION_FILE: str = None
-    ABBREVIATION_LIST: defaultdict = field(
-        default_factory=lambda: defaultdict(list))
+    ABBREVIATION_LIST: defaultdict = field(default_factory=lambda: defaultdict(list))
     KONJ: list = field(
-        default_factory=lambda: [
-            "und", "in", "oder", "&", "u.", "während", "auch"
-        ]
+        default_factory=lambda: ["und", "in", "oder", "&", "u.", "während", "auch"]
     )
     PUNC: str = re.escape(string.punctuation + "«»„—¦¬")
     IN_WORD_SPLITTERS: str = re.escape("/")
@@ -93,7 +82,7 @@ class PreprocessConfig:
                     self.ABBREVIATION_LIST[word].append(
                         {
                             "before": words_in_abbrev[:pos],
-                            "after": words_in_abbrev[pos + 1:],
+                            "after": words_in_abbrev[pos + 1 :],
                         }
                     )
 
@@ -155,8 +144,7 @@ def fuse_hyphens(content: str, preprocess_data: PreprocessConfig) -> list:
                 word = maybe_lastword + "-" + word
                 coord = lastcoord + coord
             else:
-                output.append({"word": maybe_lastword + "-",
-                               "coord": lastcoord})
+                output.append({"word": maybe_lastword + "-", "coord": lastcoord})
             maybe_lastword = None
             lastcoord = []
         if word[-1] == "¬":
@@ -174,9 +162,7 @@ def fuse_hyphens(content: str, preprocess_data: PreprocessConfig) -> list:
     return output
 
 
-def check_for_abbrev(pos: int,
-                     text,
-                     preprocess_data: PreprocessConfig) -> bool:
+def check_for_abbrev(pos: int, text, preprocess_data: PreprocessConfig) -> bool:
     """
     Determine whether the token at a given position is an abbreviation.
 
@@ -234,10 +220,10 @@ def check_for_abbrev(pos: int,
 def check_roman_numeral(word: str) -> bool:
     """
     Check if a word matches the format for lowercase Roman numerals.
-    
+
     Determines whether the input string ends with a period and contains only
     the lowercase Roman numeral characters 'i', 'v', or 'x' before the period.
-    
+
     :param word: The input string to check
     :type word: str
     :return: True if the word ends with a period and is preceded only by
@@ -311,7 +297,8 @@ def tokenize(content: list, preprocess_data: PreprocessConfig) -> list:
         rp = re.match(
             r"([{}]*)(.+?\.?)([{}]*)$".format(
                 preprocess_data.PUNC, preprocess_data.PUNC.replace("-", "")
-            ), word
+            ),
+            word,
         )
         lpunc = ""
         if len(rp.group(1)) > 0:
@@ -325,7 +312,9 @@ def tokenize(content: list, preprocess_data: PreprocessConfig) -> list:
         # if len(splits) > 1:
         #     pp.pprint(splits)
         #     word = " ".join([x for x in splits if len(x) > 0])
-        word = re.sub(r"([{}])".format(preprocess_data.IN_WORD_SPLITTERS), r" \1 ", word)
+        word = re.sub(
+            r"([{}])".format(preprocess_data.IN_WORD_SPLITTERS), r" \1 ", word
+        )
         word = re.sub(r"(\.)[{}]*".format(preprocess_data.PUNC), r"\1 ", word)
 
         word = word.rstrip()
@@ -343,7 +332,7 @@ def tokenize(content: list, preprocess_data: PreprocessConfig) -> list:
 
     for pos, (word, coord, rpunc, lpunc) in enumerate(temp_word_list):
         if lpunc:
-            output.append({"token": lpunc, "coord": ";".join(coord)+":lpunc"})
+            output.append({"token": lpunc, "coord": ";".join(coord) + ":lpunc"})
         # word is abbreviated
         if (
             check_for_abbrev(pos, temp_word_list, preprocess_data)
@@ -371,7 +360,7 @@ def tokenize(content: list, preprocess_data: PreprocessConfig) -> list:
             output.append(word_dict)
 
         if len(rpunc) > 0:
-            output.append({"token": rpunc, "coord": ";".join(coord)+":rpunc"})
+            output.append({"token": rpunc, "coord": ";".join(coord) + ":rpunc"})
 
     return output
 
@@ -397,8 +386,10 @@ def split_sentences(content: list, preprocess_data: PreprocessConfig) -> list:
     sentences = []
     sentence = []
     for token in content:
-        if token["coord"].endswith("rpunc") and \
-                token["token"][-1] in preprocess_data.SENTENCE_ENDING:
+        if (
+            token["coord"].endswith("rpunc")
+            and token["token"][-1] in preprocess_data.SENTENCE_ENDING
+        ):
             sentence.append(token)
             sentences.append(sentence)
             sentence = []
@@ -502,7 +493,7 @@ def prep_year_data_for_tagging(data: tuple) -> tuple:
     return od, year
 
 
-def start_preprocessing(year_directories: List[str]):
+def start_preprocessing(year_directories: list[str]):
     """
     Preprocess files from multiple year directories in chunks.
     TODO this is the third function that just "starts" the preprocessing.
@@ -525,7 +516,7 @@ def start_preprocessing(year_directories: List[str]):
         chunked_years.extend(get_year_chunk_paths(year))
 
     for i in range(0, len(chunked_years), settings.BATCH_SIZE):
-        year_chunk = chunked_years[i: i + settings.BATCH_SIZE]
+        year_chunk = chunked_years[i : i + settings.BATCH_SIZE]
         packaged = [(y[0], y[1]) for y in year_chunk]
         with Pool(settings.BATCH_SIZE) as p:
             # removing imap can improve ram requirements again
@@ -553,8 +544,7 @@ def execute_preprocessing() -> list:
         for year, files in start_preprocessing(year_directories):
             yield year, files
     else:
-        magazine_folder = sorted(
-            glob.glob(settings.PATH_TO_INPUT_FOLDERS + "/*"))
+        magazine_folder = sorted(glob.glob(settings.PATH_TO_INPUT_FOLDERS + "/*"))
         for magazine in magazine_folder:
             # If RAM is still not enough, consider cutting this further down,
             # e.g. processing chunks of 20 year at the same time
@@ -574,57 +564,7 @@ def timed_execute_preprocessing() -> dict:
 
 
 def main():
-    # NOTE this is for debugging purposes
-    preprocess_data = PreprocessConfig()
-    preprocess_data.load_abbrevs()
-    infolder = sorted(glob.glob("{}/*/*/*.txt".format(sys.argv[1])))
-
-    filelist = []
-    for infile in infolder:
-        pp.pprint(infile)
-        sentences = preprocess_file(infile, {})
-        if not sentences:
-            continue
-        text = " <EOS>\n".join(
-            [
-                " ".join(
-                    [
-                        x["normalized"] if "normalized" in x else x["token"]
-                        for x in sentence
-                    ]
-                )
-                for sentence in sentences
-            ]
-        )
-        filedict = {}
-        filedict["text"] = text
-        filedict["labels"] = []
-        path = Path(infile)
-        filedict["meta"] = {
-            "collection": str(path.parent).rsplit("\\", maxsplit=1)[-1],
-            "filename": os.path.basename(infile),
-        }
-        filelist.append(orjson.dumps(filedict))
-
-    with open(sys.argv[2], mode="wb") as outf:
-        for entry in filelist:
-            outf.write(entry)
-            outf.write(b"\n")
-
-    """
-    outfile = open("vertical.txt", mode="w", encoding="utf8")
-    for infile in infolder:
-        sentences = preprocess_file(infile)
-        for sentence in sentences:
-            for token in sentence:
-                if "normalized" in token.keys():
-                    outfile.write(token["normalized"]+"\n")
-                else:
-                    outfile.write(token["token"]+"\n")
-            outfile.write("\n")
-
-    outfile.close()
-    """
+    pass
 
 
 if __name__ == "__main__":

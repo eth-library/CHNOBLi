@@ -1,12 +1,13 @@
 """
 Utility functions for finding candidates via ElasticSearch
 """
-import unicodedata
-import requests
-import re
 import logging
-from utility.settings import settings
+import re
+import unicodedata
 from pathlib import Path
+
+import requests
+from utility.settings import settings
 
 # Lastname Prefix GND
 BASE_DIR = Path(__file__).resolve().parent
@@ -16,11 +17,11 @@ with open(BASE_DIR / "gnd_prefix_lastnames.txt", "r", encoding="utf-8") as f:
 # ES sessions
 sess = requests.Session()
 adapter = requests.adapters.HTTPAdapter(max_retries=20)
-sess.mount('http://', adapter)
+sess.mount("http://", adapter)
 
 
 def clean_namestring(name: str) -> str:
-    punct = '!"#$%&\'()*+,/:;<=>?@[\\]^_`{|}~'  # without period, dash
+    punct = "!\"#$%&'()*+,/:;<=>?@[\\]^_`{|}~"  # without period, dash
     name = unicodedata.normalize("NFC", name)
 
     # Replace everything except periods
@@ -140,9 +141,9 @@ def convert_wikidata_format_kibana(person_dict: dict) -> dict:
         res_dict.setdefault("prefSurname", set()).update(_safe_set(person_dict["familyName"]))
 
     # Handle dates
-    if "dateOfBirth" in person_dict and person_dict["dateOfBirth"]:
+    if person_dict.get("dateOfBirth", None):
         res_dict["birthdate"] = _safe_set([convert_dates_wikidata(person_dict["dateOfBirth"][0])])
-    if "dateOfDeath" in person_dict and person_dict["dateOfDeath"]:
+    if person_dict.get("dateOfDeath", None):
         res_dict["deathdate"] = _safe_set([convert_dates_wikidata(person_dict["dateOfDeath"][0])])
 
     # Handle GND IDs
@@ -156,9 +157,9 @@ def convert_wikidata_format_kibana(person_dict: dict) -> dict:
         res_dict["name"] = _safe_set([person_dict["labels"]])
         for fullname in res_dict["name"]:
             if "prefSurname" not in res_dict:
-                res_dict["prefSurname"] = set([fullname.split(" ")[-1]])
+                res_dict["prefSurname"] = {fullname.split(" ")[-1]}
             if "prefForename" not in res_dict:
-                res_dict["prefForename"] = set([" ".join(fullname.split(" ")[:-1])])
+                res_dict["prefForename"] = {" ".join(fullname.split(" ")[:-1])}
 
     return res_dict
 
@@ -199,7 +200,10 @@ def convert_gnd_format_kibana(person_dict: dict) -> dict:
         res_dict["birthplaceLiteral"] = _safe_set(person_dict["placeOfBirth"]["label"])
     if "placeOfDeath" in person_dict and "label" in person_dict["placeOfDeath"]:
         res_dict["deathplaceLiteral"] = _safe_set(person_dict["placeOfDeath"]["label"])
-    if "professionOrOccupation" in person_dict and "label" in person_dict["professionOrOccupation"]:
+    if (
+        "professionOrOccupation" in person_dict
+        and "label" in person_dict["professionOrOccupation"]
+    ):
         res_dict["jobliteral"] = _safe_set(person_dict["professionOrOccupation"]["label"])
     if "academicDegree" in person_dict:
         res_dict["academic"] = set(person_dict["academicDegree"])
@@ -233,7 +237,9 @@ def convert_gnd_format_kibana(person_dict: dict) -> dict:
     return res_dict
 
 
-def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str) -> dict:
+def _es_search(
+    index_name: str, headers: dict, json_data: dict, error_label: str
+) -> dict:
     """
     Executes an ElasticSearch query against the given index.
 
@@ -265,13 +271,25 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
     auth = (settings.es.username, settings.es.password)
 
     try:
-        data = requests.get(url, headers=headers, json=json_data,
-                            verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=0.5)
+        data = requests.get(
+            url,
+            headers=headers,
+            json=json_data,
+            verify=settings.PATH_TO_CA_CERT,
+            auth=auth,
+            timeout=0.5,
+        )
     except requests.exceptions.Timeout:
         logging.warning(f"{error_label} ES Query timed out.")
         try:
-            data = requests.get(url, headers=headers, json=json_data,
-                                verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+            data = requests.get(
+                url,
+                headers=headers,
+                json=json_data,
+                verify=settings.PATH_TO_CA_CERT,
+                auth=auth,
+                timeout=5,
+            )
         except requests.exceptions.Timeout:
             logging.error(f"{error_label} ES query timeout. No more retries.")
             logging.info(f"Query: {json_data}")
@@ -279,8 +297,14 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
     except requests.exceptions.SSLError:
         logging.warning(f"SSL error {error_label}")
         try:
-            data = sess.get(url, headers=headers, json=json_data,
-                            verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+            data = sess.get(
+                url,
+                headers=headers,
+                json=json_data,
+                verify=settings.PATH_TO_CA_CERT,
+                auth=auth,
+                timeout=5,
+            )
         except requests.exceptions.Timeout:
             logging.error(f"{error_label} ES SSL Error timeout. No more retries.")
             logging.info(f"Query: {json_data}")
@@ -310,26 +334,24 @@ def _alive_before_year_filter(year: str) -> dict:
                     "bool": {
                         "must_not": {
                             "bool": {
-                                "should": [
-                                    {"exists": {"field": "dateOfBirth"}}
-                                ],
+                                "should": [{"exists": {"field": "dateOfBirth"}}],
                             }
                         }
                     }
                 },
                 {
                     "bool": {
-                        "should": [
-                            {"range": {"dateOfBirth": {"lt": year + "||/y"}}}
-                        ]
+                        "should": [{"range": {"dateOfBirth": {"lt": year + "||/y"}}}]
                     }
-                }
+                },
             ],
         }
     }
 
 
-def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
+def search_person_gnd_variantName(
+    fullname: str, year: str, gnd_limit=15, fuzzy=True
+) -> dict:
     """
     We search for this fullname in our elasticsearch GND index.
     We return at most `gnd_limit` results.
@@ -355,7 +377,7 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
         return {}
 
     if fuzzy:
-        fullname_wildcard = "*"+fullname+"*"
+        fullname_wildcard = "*" + fullname + "*"
         fullname_fuzzy = prep_name_for_elasticsearch_query(fullname)
     else:
         fullname_wildcard = fullname
@@ -364,44 +386,41 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
     headers = {"Content-Type": "application/json"}
 
     json_data = {
-            "_source": ["gndIdentifier", "variantName"],
-            "from": 0,
-            "size": gnd_limit,
-            "sort": [
-                { "_score": "desc" },
-                { "gndIdentifier.keyword": "asc" }
-            ],
-            "query": {
-                "bool": {
-                    "must": [
-                        _alive_before_year_filter(year),
-                        {
-                            "bool": {
-                                "should": [
-                                    {
-                                        "wildcard": {
-                                            "variantName.keyword": {
-                                                "value": fullname_wildcard,
-                                                "case_insensitive": "true"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "query_string": {
-                                            "query": fullname_fuzzy,
-                                            "default_field": "variantName",
-                                            "default_operator": "and",
-                                            "analyze_wildcard": "true"
+        "_source": ["gndIdentifier", "variantName"],
+        "from": 0,
+        "size": gnd_limit,
+        "sort": [{"_score": "desc"}, {"gndIdentifier.keyword": "asc"}],
+        "query": {
+            "bool": {
+                "must": [
+                    _alive_before_year_filter(year),
+                    {
+                        "bool": {
+                            "should": [
+                                {
+                                    "wildcard": {
+                                        "variantName.keyword": {
+                                            "value": fullname_wildcard,
+                                            "case_insensitive": "true",
                                         }
                                     }
-                                ],
-                                "minimum_should_match": 1
-                            }
+                                },
+                                {
+                                    "query_string": {
+                                        "query": fullname_fuzzy,
+                                        "default_field": "variantName",
+                                        "default_operator": "and",
+                                        "analyze_wildcard": "true",
+                                    }
+                                },
+                            ],
+                            "minimum_should_match": 1,
                         }
-                    ],
-                },
-            }
-        }
+                    },
+                ],
+            },
+        },
+    }
     res_candidates = {}
     result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
     if len(result_json) == 0:
@@ -425,16 +444,18 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
                     max_score = person_info["score"]
                 res_candidates[gid] = person_info
     except Exception:
-        logging.error("This query caused an exception: "+str(result_json))
+        logging.error("This query caused an exception: " + str(result_json))
         return {}
     # to make scores across different indexes comparable
     # scale them to 1
     for per_dict in res_candidates.values():
-        per_dict["score"] = per_dict["score"]/max_score
+        per_dict["score"] = per_dict["score"] / max_score
     return res_candidates
 
 
-def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
+def search_person_gnd(
+    fnames: list, lastname: str, year: str, gnd_limit=15, fuzzy=True
+) -> dict:
     """
     We search for this firstnames lastname in our elasticsearch GND index.
     We return at most `gnd_limit` results.
@@ -477,11 +498,13 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
     # in its own field; otherwise just clean/prep the lastname as usual.
     prefix = None
     for p in PREFIX:
-        split_lname = re.split("(^"+p+")", lastname)
+        split_lname = re.split("(^" + p + ")", lastname)
         if len(split_lname) > 1:
             split_lname = [x.strip() for x in split_lname if x != ""]
             if len(split_lname) != 2:
-                logging.warning(f"lastname {lastname} split by {p} splits it into more than len two {split_lname}")
+                logging.warning(
+                    f"lastname {lastname} split by {p} splits it into more than len two {split_lname}"
+                )
                 break
             if fuzzy:
                 lastname = prep_name_for_elasticsearch_query(split_lname[1])
@@ -501,7 +524,7 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
                 "default_field": "preferredNameEntityForThePerson.forename",
                 "query": fnames,
                 "default_operator": "and",
-                "analyze_wildcard": "true"
+                "analyze_wildcard": "true",
             }
         },
         {
@@ -509,35 +532,33 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
                 "default_field": "preferredNameEntityForThePerson.surname",
                 "query": lastname,
                 "default_operator": "and",
-                "analyze_wildcard": "true"
+                "analyze_wildcard": "true",
             }
         },
     ]
 
     if prefix is not None:
-        must_clauses.append({
-            "query_string": {
-                "default_field": "preferredNameEntityForThePerson.prefix",
-                "query": prefix,
-                "default_operator": "and",
-                "analyze_wildcard": "true"
+        must_clauses.append(
+            {
+                "query_string": {
+                    "default_field": "preferredNameEntityForThePerson.prefix",
+                    "query": prefix,
+                    "default_operator": "and",
+                    "analyze_wildcard": "true",
+                }
             }
-        })
+        )
 
     json_data = {
-        "_source": ["gndIdentifier",
-                    "preferredNameEntityForThePerson"],
+        "_source": ["gndIdentifier", "preferredNameEntityForThePerson"],
         "from": 0,
         "size": gnd_limit,
-        "sort": [
-            { "_score": "desc" },
-            { "gndIdentifier.keyword": "asc" }
-        ],
+        "sort": [{"_score": "desc"}, {"gndIdentifier.keyword": "asc"}],
         "query": {
             "bool": {
                 "must": must_clauses,
             },
-        }
+        },
     }
 
     res_candidates = {}
@@ -563,17 +584,19 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
                     max_score = person_info["score"]
                 res_candidates[gid] = person_info
     except Exception:
-        logging.error("This query caused an exception: "+str(result_json))
+        logging.error("This query caused an exception: " + str(result_json))
         return {}
     # to make scores across different indexes comparable
     # scale them to 1
     for per_dict in res_candidates.values():
-        per_dict["score"] = per_dict["score"]/max_score
+        per_dict["score"] = per_dict["score"] / max_score
 
     return res_candidates
 
 
-def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=True) -> dict:
+def search_person_wikidata(
+    search_term: str, year: str, wikidata_limit=5, fuzzy=True
+) -> dict:
     """
     We search for this firstnames lastname in our elasticsearch
     Wikidata index. We return at most `wikidata_limit` results.
@@ -608,9 +631,9 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
         "from": 0,
         "size": wikidata_limit,
         "sort": [
-            { "_score": "desc" },
-            { "GND_ID.keyword": "asc" },
-            { "GND_ID_2.keyword": "asc" }
+            {"_score": "desc"},
+            {"GND_ID.keyword": "asc"},
+            {"GND_ID_2.keyword": "asc"},
         ],
         "query": {
             "bool": {
@@ -621,8 +644,8 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
                             "minimum_should_match": 1,
                             "should": [
                                 {"exists": {"field": "GND_ID"}},
-                                {"exists": {"field": "GND_ID_2"}}
-                            ]
+                                {"exists": {"field": "GND_ID_2"}},
+                            ],
                         }
                     },
                     {
@@ -630,15 +653,17 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
                             "default_field": "labels",
                             "query": search_term,
                             "default_operator": "and",
-                            "analyze_wildcard": "true"
+                            "analyze_wildcard": "true",
                         }
                     },
                 ],
             }
-        }
+        },
     }
     res_candidates = {}
-    result_json = _es_search(settings.es.index_name_wikidata, headers, json_data, "Wikidata")
+    result_json = _es_search(
+        settings.es.index_name_wikidata, headers, json_data, "Wikidata"
+    )
     if len(result_json) == 0:
         return {}
     max_score = 0

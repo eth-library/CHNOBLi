@@ -2,11 +2,13 @@
 Evaluation functions for linking output.
 """
 
-import os
-from utility.settings import settings
-import orjson
-from collections import Counter
 import logging
+import os
+from collections import Counter
+
+import orjson
+from utility.settings import settings
+
 MAX_ROUNDING = 3
 
 
@@ -15,18 +17,19 @@ class Paths:
     Defines a "Paths" class to build the various paths to ground-truth, linking output, evaluation output and
     input files.
     """
+
     def __init__(self):
-        if settings.PATH_TO_GROUND_TRUTH !="" and settings.PATH_TO_OUTFILE_FOLDER is not None:
+        if (
+            settings.PATH_TO_GROUND_TRUTH != ""
+            and settings.PATH_TO_OUTFILE_FOLDER is not None
+        ):
             self.paths = {
                 "gt": settings.PATH_TO_GROUND_TRUTH,
                 "link": os.path.join(settings.PATH_TO_OUTFILE_FOLDER, "link"),
                 "eval": os.path.join(settings.PATH_TO_OUTFILE_FOLDER, "eval"),
                 "input": settings.PATH_TO_INPUT_FOLDERS,
             }
-            self.state = {
-                "magazine": "",
-                "file": ""
-            }
+            self.state = {"magazine": "", "file": ""}
             self.success = True
         else:
             self.success = False
@@ -44,32 +47,32 @@ class Paths:
         assert ref_level_name in REF_LEVEL_TYPES, f"'{ref_level_name}' is not in {REF_LEVEL_TYPES}"
         assert EVAL_TOPK > 0, f"the top_k {EVAL_TOPK} chosen for evaluation is negative or zero"
 
-        if type_ == "input":
-            if ref_level_name != "":
-                logging.warning(
-                    "Careful! You selected the input folder but also a reference level.\
+        if type_ == "input" and ref_level_name != "":
+            logging.warning(
+                "Careful! You selected the input folder but also a reference level.\
                     There are no reference levels at input, this value is ignored."
-                )
-                ref_level_name = ""
+            )
+            ref_level_name = ""
 
         if ref_level_name != "":
-            ref_level_name = "_"+ref_level_name
+            ref_level_name = "_" + ref_level_name
         if type_ == "eval":
-            evaltopk_name = "_top"+str(EVAL_TOPK)
+            evaltopk_name = "_top" + str(EVAL_TOPK)
         else:
             evaltopk_name = ""
 
         if key == "magazine":
             return os.path.join(
                 self.paths[type_] + ref_level_name + evaltopk_name,
-                self.state["magazine"])
+                self.state["magazine"],
+            )
         if key == "file":
             return os.path.join(
                 self.paths[type_] + ref_level_name + evaltopk_name,
                 self.state["magazine"],
-                self.state["file"])
-        return os.path.join(
-            self.paths[type_] + ref_level_name + evaltopk_name)
+                self.state["file"],
+            )
+        return os.path.join(self.paths[type_] + ref_level_name + evaltopk_name)
 
     def get_jsonl(self, type_):
         path = self.get(type_=type_, key="file")
@@ -84,17 +87,13 @@ class Paths:
             raise Exception("Cannot create input files")
 
         if key == "file":
-            path = self.get(type_=type_,
-                            key="file",
-                            ref_level_name=ref_level_name)
+            path = self.get(type_=type_, key="file", ref_level_name=ref_level_name)
             if os.path.exists(os.path.dirname(path)):
                 return path
             else:
                 path = os.path.dirname(path)
         else:
-            path = self.get(type_=type_,
-                            key=key,
-                            ref_level_name=ref_level_name)
+            path = self.get(type_=type_, key=key, ref_level_name=ref_level_name)
             if os.path.exists(path):
                 return path
         split = path.split("/")
@@ -110,25 +109,26 @@ class Paths:
                     os.makedirs(curr_path, exist_ok=True)
 
         if key == "file":  # we created the dict before, now we add the file to the path
-            path = self.get(type_=type_,
-                            key="file",
-                            ref_level_name=ref_level_name)
+            path = self.get(type_=type_, key="file", ref_level_name=ref_level_name)
         return path
 
     def save_json(self, type_, key, doc, ref_level_name):
         if key == "file":
             with open(
                 self.check_and_create(
-                    type_=type_,
-                    key=key,
-                    ref_level_name=ref_level_name), "wb") as f:
+                    type_=type_, key=key, ref_level_name=ref_level_name
+                ),
+                "wb",
+            ) as f:
                 f.write(orjson.dumps(doc))
         else:
             with open(
                 self.check_and_create(
-                    type_=type_,
-                    key=key,
-                    ref_level_name=ref_level_name) + ".json", "wb") as f:
+                    type_=type_, key=key, ref_level_name=ref_level_name
+                )
+                + ".json",
+                "wb",
+            ) as f:
                 f.write(orjson.dumps(doc))
 
 
@@ -136,7 +136,10 @@ class Scores:
     """
     Scores class for the recall, precision, f1 scores.
     """
-    def __init__(self, counts_dict={"tp": 0, "fp": 0, "fn": 0, "tn": 0}):
+
+    def __init__(self, counts_dict=None):
+        if not counts_dict:
+            counts_dict = {"tp": 0, "fp": 0, "fn": 0, "tn": 0}
         self.counter = Counter(counts_dict)
         self.precision = 0
         self.recall = 0
@@ -144,18 +147,40 @@ class Scores:
         self.accuracy = 0
 
     def compute_scores(self):
-        self.precision = self.counter["tp"]/(
-            self.counter["tp"] + self.counter["fp"]
-        ) if self.counter["tp"] + self.counter["fp"] != 0 else 0
-        self.recall = self.counter["tp"]/(
-            self.counter["tp"] + self.counter["fn"]
-        ) if self.counter["tp"] + self.counter["fn"] != 0 else 0
-        self.f1 = 2 * self.counter["tp"]/(
-            2*self.counter["tp"] + self.counter["fp"] + self.counter["fn"]
-        ) if self.counter["tp"] + self.counter["fp"] + self.counter["fn"] != 0 else 0
-        self.accuracy = ((self.counter["tp"]+self.counter["tn"]) / (
-            self.counter["tp"]+self.counter["tn"] + self.counter["fp"]+self.counter["fn"]
-        ) if (self.counter["tp"]+self.counter["tn"] + self.counter["fp"]+self.counter["fn"]) != 0 else 0)
+        self.precision = (
+            self.counter["tp"] / (self.counter["tp"] + self.counter["fp"])
+            if self.counter["tp"] + self.counter["fp"] != 0
+            else 0
+        )
+        self.recall = (
+            self.counter["tp"] / (self.counter["tp"] + self.counter["fn"])
+            if self.counter["tp"] + self.counter["fn"] != 0
+            else 0
+        )
+        self.f1 = (
+            2
+            * self.counter["tp"]
+            / (2 * self.counter["tp"] + self.counter["fp"] + self.counter["fn"])
+            if self.counter["tp"] + self.counter["fp"] + self.counter["fn"] != 0
+            else 0
+        )
+        self.accuracy = (
+            (self.counter["tp"] + self.counter["tn"])
+            / (
+                self.counter["tp"]
+                + self.counter["tn"]
+                + self.counter["fp"]
+                + self.counter["fn"]
+            )
+            if (
+                self.counter["tp"]
+                + self.counter["tn"]
+                + self.counter["fp"]
+                + self.counter["fn"]
+            )
+            != 0
+            else 0
+        )
 
     def update_counter(self, counts_dict):
         self.counter.update(counts_dict)
@@ -170,7 +195,7 @@ class Scores:
             "Precision": round(self.precision, round_to),
             "Recall": round(self.recall, round_to),
             "F1": round(self.f1, round_to),
-            "Accuracy": round(self.accuracy, round_to)
+            "Accuracy": round(self.accuracy, round_to),
         }
         return result
 
@@ -197,61 +222,37 @@ def clean_raw(raw: list, top_k, is_gt=False) -> list:
         if "type" in ent and ent["type"] == "PER":
             ent_mentions = []
             dictionary = {}
-            if "lastname" in ent:
-                dictionary["lastname"] = ent["lastname"]
-            else:
-                dictionary["lastname"] = ""
-            if "firstname" in ent and ent["firstname"]:
-                dictionary["firstname"] = " ".join(ent["firstname"])
-            else:
-                dictionary["firstname"] = ""
-            if "abbr_firstname" in ent:
-                dictionary["abbr_firstname"] = ent["abbr_firstname"]
-            else:
-                dictionary["abbr_firstname"] = []
-            if "other" in ent:
-                dictionary["other"] = ent["other"]
-            else:
-                dictionary["other"] = []
+            dictionary["lastname"] = ent.get("lastname", "")
+            dictionary["firstname"] = " ".join(ent.get("firstname", ""))
+            dictionary["abbr_firstname"] = ent.get("abbr_firstname", [])
+            dictionary["other"] = ent.get("other", [])
             dictionary["name"] = get_main_name(per_dict=dictionary)
-            if "profession" in ent:
-                dictionary["profession"] = ent["profession"]
-            else:
-                dictionary["profession"] = []
-            places = []
-            if "places" in ent:
-                for place in ent["places"]:
-                    if "name" in place:
-                        places.append(place["name"])
-            else:
-                dictionary["places"] = []
-            dictionary["places"] = places
+            dictionary["profession"] = ent.get("profession", [])
+            dictionary["places"] = [
+                place["name"] for place in ent.get("places", []) if "name" in place
+            ]
 
             if is_gt:
-                dictionary["gt_gnd_id"] = []
-                if "gt_gnd_id" in ent:
-                    dictionary["gt_gnd_id"] = ent["gt_gnd_id"]
+                dictionary["gt_gnd_id"] = ent.get("gt_gnd_id", [])
             else:
-                dictionary["gnd_candidates"] = []
-                if "gnd_ids" in ent:
-                    dictionary["gnd_candidates"] = ent["gnd_ids"][:top_k]
+                dictionary["gnd_candidates"] = ent.get("gnd_ids", [])[:top_k]
 
             if "references" in ent:
                 for page, refs in ent["references"].items():
-                    dictionary.update({
-                        "page": page,
-                        "year": page.split("_")[1]
-                    })
-                    if "refs" in refs:
-                        # old linking files are set up slightly differently.
-                        curr_list = refs["refs"]
-                    else:
-                        curr_list = refs
+                    dictionary.update(
+                        {
+                            "page": page,
+                            "year": page.split("_")[1],
+                        }
+                    )
+
+                    # old linking files are set up slightly differently.
+                    curr_list = refs["refs"] if "refs" in refs else refs
+
                     for ref in curr_list:
                         if "coords" in ref:
                             normalized_coords = set()
                             for coord in ref["coords"]:
-
                                 coord_clean = str(coord).split(":", maxsplit=1)[0]
                                 coord_clean = str(coord_clean).split(";")
                                 for i in coord_clean:
@@ -279,23 +280,18 @@ def get_main_name(per_dict: dict) -> str:
         >>> {"lastname":"Müller", "abbr_firstname": "O."} => "O. Müller"
     """
 
-    if "lastname" in per_dict and per_dict["lastname"]:
-        if "firstname" in per_dict and per_dict["firstname"]:
+    if per_dict.get("lastname", None):
+        if per_dict.get("firstname", None):
             return per_dict["firstname"] + " " + per_dict["lastname"]
-        if "abbr_firstname" in per_dict and per_dict["abbr_firstname"]:
-            return " ".join(
-                per_dict["abbr_firstname"]
-            ) + " " + per_dict["lastname"]
-    elif "firstname" in per_dict and per_dict["firstname"]:
-        if "abbr_firstname" in per_dict and per_dict["abbr_firstname"]:
-            return per_dict["firstname"] + " " + " ".join(
-                per_dict["abbr_firstname"]
-            )
-    elif "abbr_firstname" in per_dict and per_dict["abbr_firstname"]:
+        if per_dict.get("abbr_firstname", None):
+            return " ".join(per_dict["abbr_firstname"]) + " " + per_dict["lastname"]
+    elif per_dict.get("firstname", None):
+        if per_dict.get("abbr_firstname", None):
+            return per_dict["firstname"] + " " + " ".join(per_dict["abbr_firstname"])
+    elif per_dict.get("abbr_firstname", None):
         return " ".join(per_dict["abbr_firstname"])
-    elif "other" in per_dict:
-        for other_elem in per_dict["other"]:
-            return " ".join(other_elem)
+    elif per_dict.get("other", None):
+        return " ".join([o for oth in per_dict["other"] for o in oth])
     return "--"
 
 
@@ -339,13 +335,13 @@ def eval_entity(entity: dict) -> dict:
         else:
             gnd_candidates += x
     if entity["label"] == "":
-        if all([x == "" for x in gnd_candidates]):
+        if all(x == "" for x in gnd_candidates):
             counts["tn"] += 1
         else:
             counts["fp"] += 1
     else:
         if entity["label"] not in gnd_candidates:
-            if all([x == "" for x in gnd_candidates]):
+            if all(x == "" for x in gnd_candidates):
                 counts["fn"] += 1
             else:
                 counts["fp"] += 1
@@ -377,7 +373,7 @@ def eval_entity_inkb(entity: dict) -> dict:
             gnd_candidates += x
     if entity["label"] != "":
         if entity["label"] not in gnd_candidates:
-            if all([x == "" for x in gnd_candidates]):
+            if all(x == "" for x in gnd_candidates):
                 counts["fn"] += 1
             else:
                 counts["fp"] += 1
@@ -409,7 +405,7 @@ def eval_references(entity: dict) -> dict:
             gnd_candidates.append(x)
     for i, label in enumerate(entity["labels"]):
         if label == "":
-            if all([x == "" for x in gnd_candidates[i]]):
+            if all(x == "" for x in gnd_candidates[i]):
                 counts["tn"] += 1
             else:
                 counts["fp"] += 1
@@ -417,7 +413,7 @@ def eval_references(entity: dict) -> dict:
             if label in gnd_candidates[i]:
                 counts["tp"] += 1
             else:
-                if all([x == "" for x in gnd_candidates[i]]):
+                if all(x == "" for x in gnd_candidates[i]):
                     counts["fn"] += 1
                 else:
                     counts["fp"] += 1
@@ -452,7 +448,7 @@ def eval_references_inkb(entity: dict) -> dict:
             if label in gnd_candidates[i]:
                 counts["tp"] += 1
             else:
-                if all([x == "" for x in gnd_candidates[i]]):
+                if all(x == "" for x in gnd_candidates[i]):
                     counts["fn"] += 1
                 else:
                     counts["fp"] += 1
@@ -460,8 +456,9 @@ def eval_references_inkb(entity: dict) -> dict:
     return counts
 
 
-def evaluate_person(gt: list, linked: list, ref_level=True,
-                    top_k=3, inkb_score=False) -> dict:
+def evaluate_person(
+    gt: list, linked: list, ref_level=True, top_k=3, inkb_score=False
+) -> dict:
     """
     This function returns the true and false positives, as well as the true
     and false negatives of the linked file based on the ground-truth file.
@@ -505,21 +502,17 @@ def evaluate_person(gt: list, linked: list, ref_level=True,
     input_linked = clean_raw(input_linked, top_k=top_k)
 
     # due to non-determinism in the flair NER:
-    all_refs_gt = [
-        ent["page"]+ent["coord"] for gt_elems in gt for ent in gt_elems
-    ]
+    all_refs_gt = [ent["page"] + ent["coord"] for gt_elems in gt for ent in gt_elems]
     all_refs_linked = [
-        ent["page"]+ent["coord"] for li_el in input_linked for ent in li_el
+        ent["page"] + ent["coord"] for li_el in input_linked for ent in li_el
     ]
     all_valid_refs = set(all_refs_gt).intersection(set(all_refs_linked))
 
     for ent_variations in input_linked:
         ent_instances = []
         for ent in ent_variations:
-            if ent["page"]+ent["coord"] in all_valid_refs:
-                ent_instances.append({
-                    "ent": ent, "label": label_entity(ent, gt)
-                })
+            if ent["page"] + ent["coord"] in all_valid_refs:
+                ent_instances.append({"ent": ent, "label": label_entity(ent, gt)})
         if ent_instances:
             linked_data.append(ent_instances)
 
@@ -533,18 +526,19 @@ def evaluate_person(gt: list, linked: list, ref_level=True,
         # to the gnd_ids
         for ent_dict in entity_list:
             ent = ent_dict["ent"]
-            coord_list.append({
-                "page": ent.pop("page", ""),
-                "coords": ent.pop("coord", "")
-            })
+            coord_list.append(
+                {"page": ent.pop("page", ""), "coords": ent.pop("coord", "")}
+            )
             label_list.append(ent_dict["label"])
             candidates_list.append(ent["gnd_candidates"])
-        ent_cand_label.append({
-            "entity": ent,
-            "candidates": candidates_list,
-            "occurences": coord_list,
-            "labels": label_list
-        })
+        ent_cand_label.append(
+            {
+                "entity": ent,
+                "candidates": candidates_list,
+                "occurences": coord_list,
+                "labels": label_list,
+            }
+        )
 
     list_of_good_entities = []
     list_of_problematic_entities = []
@@ -557,7 +551,7 @@ def evaluate_person(gt: list, linked: list, ref_level=True,
             ent_dict["label"] = set(ent_dict["labels"]).pop()
             list_of_good_entities.append(ent_dict)
 
-    list_of_all_entities = list_of_good_entities+list_of_problematic_entities
+    list_of_all_entities = list_of_good_entities + list_of_problematic_entities
 
     if ref_level:
         scores_mention = Scores()

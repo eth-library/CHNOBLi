@@ -1,29 +1,31 @@
 import pytest
-from .test_data import params
 from src.aggregation import (
-    create_new_aggregated_unit,
-    merge_to_existing_aggregated_unit,
-    decide_candidates,
-    full_firstname_match,
-    aggregate_with,
     abbrev_firstname_match,
-    only_lastname_match,
-    only_firstname_match,
-    only_abbrev_firstname_match,
-    others_match,
-    clean_up_aggregation,
-    map_genitive_versions,
-    map_genitive_places,
-    find_place_match,
-    aggregate_places,
-    aggregate_place,
-    create_new_aggregated_place,
-    clean_up_aggregation_places,
-    clean_lastname,
     aggregate_names,
-    execute_aggregation
+    aggregate_place,
+    aggregate_places,
+    aggregate_with,
+    clean_lastname,
+    clean_up_aggregation,
+    clean_up_aggregation_places,
+    create_new_aggregated_place,
+    create_new_aggregated_unit,
+    decide_candidates,
+    execute_aggregation,
+    find_place_match,
+    full_firstname_match,
+    map_genitive_places,
+    map_genitive_versions,
+    merge_to_existing_aggregated_unit,
+    only_abbrev_firstname_match,
+    only_firstname_match,
+    only_lastname_match,
+    others_match,
 )
 from utility.settings import settings
+
+from .test_data import params
+
 
 # -------------------------------------------------
 # Test create_new_aggregated_unit
@@ -37,14 +39,14 @@ def test_create_new_aggregated_unit_copilot():
             "address": ["123 Main St"],
             "titles": ["Dr."],
             "occupations": ["Engineer"],
-            "others": ["AdditionalInfo"]
+            "others": ["AdditionalInfo"],
         },
         "pageNo": 1,
         "pageNames": "Page1",
         "pid": "pid1",
         "sentenceNo": 5,
         "positions": "pos1",
-        "articles": "article1"
+        "articles": "article1",
     }
 
     result = create_new_aggregated_unit(reference)
@@ -56,9 +58,7 @@ def test_create_new_aggregated_unit_copilot():
     assert result["titles"] == {("Dr.",)}
     assert result["profession"] == {("Engineer",)}
     assert result["other"] == {("AdditionalInfo",)}
-    assert result["references"] == {
-        (1, "Page1", "pid1"): [(5, "pos1", "article1")]
-    }
+    assert result["references"] == {(1, "Page1", "pid1"): [(5, "pos1", "article1")]}
 
 
 # -------------------------------------------------
@@ -73,9 +73,7 @@ def test_merge_to_existing_aggregated_unit_copilot():
         "other": {("OtherInfo",)},
         "address": {("123 Street",)},
         "profession": {("Engineer",)},
-        "references": {
-            (1, "Page1", "pid1"): [(1, "pos1", "article1")]
-        }
+        "references": {(1, "Page1", "pid1"): [(1, "pos1", "article1")]},
     }
     reference = {
         "info": {
@@ -84,14 +82,14 @@ def test_merge_to_existing_aggregated_unit_copilot():
             "titles": ["Prof."],
             "others": ["AdditionalInfo"],
             "address": ["456 Avenue"],
-            "occupations": ["Scientist"]
+            "occupations": ["Scientist"],
         },
         "pageNo": 2,
         "pageNames": "Page2",
         "pid": "pid2",
         "sentenceNo": 5,
         "positions": "pos2",
-        "articles": "article2"
+        "articles": "article2",
     }
 
     merge_to_existing_aggregated_unit(match, reference)
@@ -103,9 +101,7 @@ def test_merge_to_existing_aggregated_unit_copilot():
     assert ("456 Avenue",) in match["address"]
     assert ("Scientist",) in match["profession"]
     assert (2, "Page2", "pid2") in match["references"]
-    assert match["references"][(2, "Page2", "pid2")] == [
-        (5, "pos2", "article2")
-    ]
+    assert match["references"][(2, "Page2", "pid2")] == [(5, "pos2", "article2")]
     assert len(match["references"]) == 2
 
 
@@ -113,13 +109,10 @@ def test_merge_to_existing_aggregated_unit_copilot():
 # Test aggregate_with
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "namepart_dict, aggregated_names, namepart, expected",
-  params.PARAMS_test_aggregate_with
+    "namepart_dict, aggregated_names, namepart, expected",
+    params.PARAMS_test_aggregate_with,
 )
-def test_aggregate_with(namepart_dict,
-                        aggregated_names,
-                        namepart,
-                        expected):
+def test_aggregate_with(namepart_dict, aggregated_names, namepart, expected):
     aggregate_with(namepart_dict, aggregated_names, namepart)
     assert aggregated_names == expected, aggregated_names
 
@@ -138,12 +131,12 @@ def test_decide_candidates_no_candidates_copilot():
             "address": [],
             "titles": [],
             "occupations": [],
-            "others": []
+            "others": [],
         },
         "pageNames": "Page1",
         "pid": "123",
         "positions": [10, 20],
-        "articles": ["Article1"]
+        "articles": ["Article1"],
     }
     candidates = []
     aggregated_names = []
@@ -166,12 +159,12 @@ def test_decide_candidates_single_best_candidate_copilot():
             "address": [],
             "titles": [],
             "occupations": [],
-            "others": []
+            "others": [],
         },
         "pageNames": "Page2",
         "pid": "456",
         "positions": [30, 40],
-        "articles": ["Article2"]
+        "articles": ["Article2"],
     }
     candidates = [
         {
@@ -182,9 +175,7 @@ def test_decide_candidates_single_best_candidate_copilot():
             "profession": {()},
             "other": {()},
             "abbr_firstname": {("A.",)},
-            "references": {
-                (1, "Page1", "123"): [(5, [10, 20], ["Article1"])]
-            }
+            "references": {(1, "Page1", "123"): [(5, [10, 20], ["Article1"])]},
         }
     ]
     aggregated_names = []
@@ -207,12 +198,12 @@ def test_decide_candidates_multiple_candidates_copilot():
             "address": [],
             "titles": [],
             "occupations": [],
-            "others": []
+            "others": [],
         },
         "pageNames": "Page3",
         "pid": "789",
         "positions": [50, 60],
-        "articles": ["Article3"]
+        "articles": ["Article3"],
     }
     candidates = [
         {
@@ -223,9 +214,7 @@ def test_decide_candidates_multiple_candidates_copilot():
             "address": {()},
             "profession": {()},
             "other": {()},
-            "references": {
-                (2, "Page2", "456"): [(10, [30, 40], ["Article2"])]
-            }
+            "references": {(2, "Page2", "456"): [(10, [30, 40], ["Article2"])]},
         },
         {
             "lastname": "Brown",
@@ -235,10 +224,8 @@ def test_decide_candidates_multiple_candidates_copilot():
             "address": {()},
             "profession": {()},
             "other": {()},
-            "references": {
-                (1, "Page1", "123"): [(5, [10, 20], ["Article1"])]
-            }
-        }
+            "references": {(1, "Page1", "123"): [(5, [10, 20], ["Article1"])]},
+        },
     ]
     aggregated_names = []
 
@@ -254,12 +241,9 @@ def test_decide_candidates_multiple_candidates_copilot():
 # Test full_firstname_match
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "reference, aggregated_names, expected",
-  params.PARAMS_test_full_firstname_match
+    "reference, aggregated_names, expected", params.PARAMS_test_full_firstname_match
 )
-def test_full_firstname_match(reference,
-                              aggregated_names,
-                              expected):
+def test_full_firstname_match(reference, aggregated_names, expected):
     assert full_firstname_match(reference, aggregated_names) == expected
 
 
@@ -267,12 +251,9 @@ def test_full_firstname_match(reference,
 # Test abbrev_firstname_match
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "reference, aggregated_names, expected",
-  params.PARAMS_abbrev_firstname_match
+    "reference, aggregated_names, expected", params.PARAMS_abbrev_firstname_match
 )
-def test_abbrev_firstname_match(reference,
-                                aggregated_names,
-                                expected):
+def test_abbrev_firstname_match(reference, aggregated_names, expected):
     assert abbrev_firstname_match(reference, aggregated_names) == expected
 
 
@@ -280,12 +261,9 @@ def test_abbrev_firstname_match(reference,
 # Test only_lastname_match
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "reference, aggregated_names, expected",
-  params.PARAMS_only_lastname_match
+    "reference, aggregated_names, expected", params.PARAMS_only_lastname_match
 )
-def test_only_lastname_match(reference,
-                             aggregated_names,
-                             expected):
+def test_only_lastname_match(reference, aggregated_names, expected):
     assert only_lastname_match(reference, aggregated_names) == expected
 
 
@@ -294,42 +272,58 @@ def test_only_lastname_match(reference,
 # TODO add one more test here where the matching worked
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "reference, aggregated_names, expected",
-  [({"info": {"lastnames": "z", "firstnames": "Anna",
-              "abbr_firstnames": "",
-              "titles": "", "address": "", "occupations": "",
-              "others": "e"},
-     "pageNo": 4, "sentenceNo": 5, "pageNames": "", "pid": "",
-     "positions": "", "articles": "", 'type': 'PER'
-     },
-    [{'firstname': {('Anna', 'Maria')},
-      "lastname": "Müller",
-      "abbr_firstname": {("A")},
-      "titles": {("Frau", "Dr.")},
-      "address": {("a", "b")},
-      "profession": {("c", "d")},
-      "other": {("e")},
-      "references": {
-               (4, "abc", 2): [(5, "123", "123"), (6, "456", "456")]
-           }
-      },
-    {"firstname": {("Kat", "Man")},
-     "lastname": "Bil",
-     "abbr_firstname": set(),
-     "titles": {("Herr", "Prof")},
-     "address": {("a", "b")},
-     "profession": {("c", "d")},
-     "other": {},
-     "references": {
-              (4, "abc", 2): [(5, "123", "123"), (6, "456", "456")]
-          }
-     }],
-      []
-    )]
+    "reference, aggregated_names, expected",
+    [
+        (
+            {
+                "info": {
+                    "lastnames": "z",
+                    "firstnames": "Anna",
+                    "abbr_firstnames": "",
+                    "titles": "",
+                    "address": "",
+                    "occupations": "",
+                    "others": "e",
+                },
+                "pageNo": 4,
+                "sentenceNo": 5,
+                "pageNames": "",
+                "pid": "",
+                "positions": "",
+                "articles": "",
+                "type": "PER",
+            },
+            [
+                {
+                    "firstname": {("Anna", "Maria")},
+                    "lastname": "Müller",
+                    "abbr_firstname": {("A")},
+                    "titles": {("Frau", "Dr.")},
+                    "address": {("a", "b")},
+                    "profession": {("c", "d")},
+                    "other": {("e")},
+                    "references": {
+                        (4, "abc", 2): [(5, "123", "123"), (6, "456", "456")]
+                    },
+                },
+                {
+                    "firstname": {("Kat", "Man")},
+                    "lastname": "Bil",
+                    "abbr_firstname": set(),
+                    "titles": {("Herr", "Prof")},
+                    "address": {("a", "b")},
+                    "profession": {("c", "d")},
+                    "other": {},
+                    "references": {
+                        (4, "abc", 2): [(5, "123", "123"), (6, "456", "456")]
+                    },
+                },
+            ],
+            [],
+        )
+    ],
 )
-def test_only_firstname_match(reference,
-                              aggregated_names,
-                              expected):
+def test_only_firstname_match(reference, aggregated_names, expected):
     assert only_firstname_match(reference, aggregated_names) == expected
 
 
@@ -337,12 +331,9 @@ def test_only_firstname_match(reference,
 # Test only_abbrev_firstname_match
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "reference, aggregated_names, expected",
-  params.PARAMS_only_abbrev_firstname_match
+    "reference, aggregated_names, expected", params.PARAMS_only_abbrev_firstname_match
 )
-def test_only_abbrev_firstname_match(reference,
-                                     aggregated_names,
-                                     expected):
+def test_only_abbrev_firstname_match(reference, aggregated_names, expected):
     assert only_abbrev_firstname_match(reference, aggregated_names) == expected
 
 
@@ -350,8 +341,7 @@ def test_only_abbrev_firstname_match(reference,
 # Test others_match
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "reference, aggregated_names, expected",
-  params.PARAMS_others_match
+    "reference, aggregated_names, expected", params.PARAMS_others_match
 )
 def test_others_match(reference, aggregated_names, expected):
     assert others_match(reference, aggregated_names) == expected
@@ -361,8 +351,7 @@ def test_others_match(reference, aggregated_names, expected):
 # Test clean_up_aggregation
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "aggregated_names, expected",
-  params.PARAMS_clean_up_aggregation
+    "aggregated_names, expected", params.PARAMS_clean_up_aggregation
 )
 def test_clean_up_aggregation(aggregated_names, expected):
     res = clean_up_aggregation(aggregated_names)
@@ -382,16 +371,23 @@ def test_clean_up_aggregation(aggregated_names, expected):
 # Test map_genitive_versions
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "all_names, lastname_dict, key, expected",
-  [(["wyss", "müller", "krasniqi"],
-    {"krasniqis": [{"info": {"lastnames": "krasniqis"}}],
-     "müllers": [{"info": {"lastnames": "müllers"}}],
-     "wyss": [{"info": {"lastnames": "wyss"}}]},
-    "lastnames",
-    {"krasniqis": [{"info": {"lastnames": "krasniqi"}}],
-     "müllers": [{"info": {"lastnames": "müller"}}],
-     "wyss": [{"info": {"lastnames": "wyss"}}]}
-    )]
+    "all_names, lastname_dict, key, expected",
+    [
+        (
+            ["wyss", "müller", "krasniqi"],
+            {
+                "krasniqis": [{"info": {"lastnames": "krasniqis"}}],
+                "müllers": [{"info": {"lastnames": "müllers"}}],
+                "wyss": [{"info": {"lastnames": "wyss"}}],
+            },
+            "lastnames",
+            {
+                "krasniqis": [{"info": {"lastnames": "krasniqi"}}],
+                "müllers": [{"info": {"lastnames": "müller"}}],
+                "wyss": [{"info": {"lastnames": "wyss"}}],
+            },
+        )
+    ],
 )
 def test_map_genitive_versions(all_names, lastname_dict, key, expected):
     map_genitive_versions(all_names, lastname_dict, key)
@@ -402,8 +398,7 @@ def test_map_genitive_versions(all_names, lastname_dict, key, expected):
 # Test map_genitive_places
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "all_names, place_list, expected",
-  params.PARAMS_map_genitive_places
+    "all_names, place_list, expected", params.PARAMS_map_genitive_places
 )
 def test_map_genitive_places(all_names, place_list, expected):
     map_genitive_places(all_names, place_list)
@@ -414,11 +409,9 @@ def test_map_genitive_places(all_names, place_list, expected):
 # Test find_place_match
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "place_name, place_type, aggregated_places, expc",
-  params.PARAMS_find_place_match
+    "place_name, place_type, aggregated_places, expc", params.PARAMS_find_place_match
 )
-def test_find_place_match(place_name, place_type, aggregated_places,
-                          expc):
+def test_find_place_match(place_name, place_type, aggregated_places, expc):
     assert find_place_match(place_name, place_type, aggregated_places) == expc
 
 
@@ -426,11 +419,10 @@ def test_find_place_match(place_name, place_type, aggregated_places,
 # Test aggregate_places
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "all_places, aggregated_places, expected_all, expected_agg",
-  params.PARAMS_aggregate_places
+    "all_places, aggregated_places, expected_all, expected_agg",
+    params.PARAMS_aggregate_places,
 )
-def test_aggregate_places(all_places, aggregated_places,
-                          expected_all, expected_agg):
+def test_aggregate_places(all_places, aggregated_places, expected_all, expected_agg):
     aggregate_places(all_places, aggregated_places)
     assert all_places == expected_all
     assert aggregated_places == expected_agg
@@ -439,10 +431,7 @@ def test_aggregate_places(all_places, aggregated_places,
 # -------------------------------------------------
 # Test aggregate_place
 # -------------------------------------------------
-@pytest.mark.parametrize(
-  "found, place, expected",
-  params.PARAMS_aggregate_place
-)
+@pytest.mark.parametrize("found, place, expected", params.PARAMS_aggregate_place)
 def test_aggregate_place(found, place, expected):
     aggregate_place(found, place)
     assert found == expected
@@ -452,27 +441,27 @@ def test_aggregate_place(found, place, expected):
 # Test create_new_aggregated_place
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "reference, expected",
-  [
-    (
-     {"tokens": ["ZÜRICH"],
-      "type": "LOC",
-      "pageNo": 4,
-      "pageNames": "abc",
-      "pid": 2,
-      "sentenceNo": 5,
-      "positions": "123",
-      "articles": "123"
-      },
-     {"name": "Zürich",
-      "tokens": ["ZÜRICH"],
-      "type": "LOC",
-      "references": {
-              (4, "abc", 2): [(5, "123", "123")]
-          }
-      }
-    )
-  ]
+    "reference, expected",
+    [
+        (
+            {
+                "tokens": ["ZÜRICH"],
+                "type": "LOC",
+                "pageNo": 4,
+                "pageNames": "abc",
+                "pid": 2,
+                "sentenceNo": 5,
+                "positions": "123",
+                "articles": "123",
+            },
+            {
+                "name": "Zürich",
+                "tokens": ["ZÜRICH"],
+                "type": "LOC",
+                "references": {(4, "abc", 2): [(5, "123", "123")]},
+            },
+        )
+    ],
 )
 def test_create_new_aggregated_place(reference, expected):
     assert create_new_aggregated_place(reference) == expected
@@ -482,8 +471,7 @@ def test_create_new_aggregated_place(reference, expected):
 # Test clean_up_aggregation_places
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "aggregated_places, last_index, expc",
-  params.PARAMS_clean_up_aggregation_places
+    "aggregated_places, last_index, expc", params.PARAMS_clean_up_aggregation_places
 )
 def test_clean_up_aggregation_places(aggregated_places, last_index, expc):
     assert clean_up_aggregation_places(aggregated_places, last_index) == expc
@@ -493,13 +481,13 @@ def test_clean_up_aggregation_places(aggregated_places, last_index, expc):
 # Test clean_lastname
 # -------------------------------------------------
 @pytest.mark.parametrize(
-  "word, expected",
-  [
-    ("müller<---", "müller"),
-    ("mülle<---r", "mülle<---r"),
-    ("-----müller<   ---", "müller"),
-    ("-----müller<   -r--", "müller<   -r"),
-  ]
+    "word, expected",
+    [
+        ("müller<---", "müller"),
+        ("mülle<---r", "mülle<---r"),
+        ("-----müller<   ---", "müller"),
+        ("-----müller<   -r--", "müller<   -r"),
+    ],
 )
 def test_clean_lastname(word, expected):
     assert clean_lastname(word) == expected
@@ -508,12 +496,9 @@ def test_clean_lastname(word, expected):
 # -------------------------------------------------
 # Test aggregate_names
 # -------------------------------------------------
-@pytest.mark.parametrize(
-    "data, expected",
-    params.PARAMS_aggregate_names
-)
+@pytest.mark.parametrize("data, expected", params.PARAMS_aggregate_names)
 def test_aggregate_names(data, expected):
-    res, year, paths = aggregate_names(data)
+    res, _, _ = aggregate_names(data)
 
     for entry in res:
         entry.pop("id")  # id depends on the order
@@ -528,45 +513,49 @@ def test_aggregate_names(data, expected):
 # -------------------------------------------------
 def test_aggregate_and_save_data():
     data = [
-        (("abc", "2025"), [
-            {
-                "info": {
-                    "lastnames": ["Doe"],
-                    "firstnames": ["John"],
-                    "abbr_firstnames": ["J."],
-                    "address": ["123 Main St"],
-                    "titles": ["Dr."],
-                    "occupations": ["Engineer"],
-                    "others": ["AdditionalInfo"]
+        (
+            ("abc", "2025"),
+            [
+                {
+                    "info": {
+                        "lastnames": ["Doe"],
+                        "firstnames": ["John"],
+                        "abbr_firstnames": ["J."],
+                        "address": ["123 Main St"],
+                        "titles": ["Dr."],
+                        "occupations": ["Engineer"],
+                        "others": ["AdditionalInfo"],
+                    },
+                    "pageNo": 1,
+                    "pageNames": "Page1",
+                    "pid": "pid1",
+                    "sentenceNo": 5,
+                    "positions": "pos1",
+                    "articles": [{"article1": {}}],
                 },
-                "pageNo": 1,
-                "pageNames": "Page1",
-                "pid": "pid1",
-                "sentenceNo": 5,
-                "positions": "pos1",
-                "articles": [{"article1": {}}]
-            },
-            {
-                "info": {
-                    "lastnames": ["Doe"],
-                    "firstnames": [""],
-                    "abbr_firstnames": ["J."],
-                    "address": [""],
-                    "titles": [""],
-                    "occupations": [""],
-                    "others": [""]
+                {
+                    "info": {
+                        "lastnames": ["Doe"],
+                        "firstnames": [""],
+                        "abbr_firstnames": ["J."],
+                        "address": [""],
+                        "titles": [""],
+                        "occupations": [""],
+                        "others": [""],
+                    },
+                    "pageNo": 3,
+                    "pageNames": "Page3",
+                    "pid": "pid3",
+                    "sentenceNo": 20,
+                    "positions": "pos5",
+                    "articles": [{"article4": {}}],
                 },
-                "pageNo": 3,
-                "pageNames": "Page3",
-                "pid": "pid3",
-                "sentenceNo": 20,
-                "positions": "pos5",
-                "articles": [{"article4": {}}]
-            }
-        ], ["page1", "page2"])
+            ],
+            ["page1", "page2"],
+        )
     ]
 
-    settings.BATCH_SIZE=1
+    settings.BATCH_SIZE = 1
     result = execute_aggregation(data, ["post", "agg", "link"])
 
     assert ("abc", "2025") in result
@@ -578,24 +567,27 @@ def test_aggregate_and_save_data():
     assert aggregated_unit["firstname"] == ["John"]
     assert aggregated_unit["abbr_firstname"] == ["J."]
     assert aggregated_unit["address"] == ["123 Main St"]
-    assert set(aggregated_unit["titles"]) == set(["Dr."])
+    assert set(aggregated_unit["titles"]) == {"Dr."}
     assert aggregated_unit["profession"] == ["Engineer"]
-    assert set(aggregated_unit["other"]) == set(["AdditionalInfo"])
+    assert set(aggregated_unit["other"]) == {"AdditionalInfo"}
     assert aggregated_unit["references"] == {
         "Page1": {
             "pid": "pid1",
             "refs": [{"sent": 5, "coords": "pos1"}],
-            "elements": [{"elementId": "pid1:article1"}]
+            "elements": [{"elementId": "pid1:article1"}],
         },
         "Page3": {
             "pid": "pid3",
             "refs": [{"sent": 20, "coords": "pos5"}],
-            "elements": [{"elementId": "pid3:article4"}]
-        }
+            "elements": [{"elementId": "pid3:article4"}],
+        },
     }
 
 
 def test_aggregate_and_save_data_input():
     with pytest.raises(Exception) as excinfo:
         execute_aggregation([], {}, "agg,link")
-    assert str(excinfo.value) == "'post,agg,link' must be called together. Alternatively, you can call 'finish'."
+    assert (
+        str(excinfo.value)
+        == "'post,agg,link' must be called together. Alternatively, you can call 'finish'."
+    )

@@ -1,19 +1,19 @@
 from unittest.mock import MagicMock, mock_open, patch
+
+import flair
 import orjson
+import pytest
+from flair.data import Label
 from flair.models import MultitaskModel
 from flair.nn import Classifier
-from flair.data import Label
-import flair
-import pytest
-
 from src.tag_flair import (
-    decide_tag_no_tag_lower_prio,
     add_sentences,
-    write_sentences_to_outfile,
-    tag_year_data_and_save,
-    setup_flair_tagger,
+    decide_tag_no_tag_lower_prio,
+    execute_tagging,
     package_generator_output_paths,
-    execute_tagging
+    setup_flair_tagger,
+    tag_year_data_and_save,
+    write_sentences_to_outfile,
 )
 from utility.settings import settings
 
@@ -24,7 +24,7 @@ from utility.settings import settings
 def test_decide_tag_no_tag_lower_prio_agreeing_labels_copilot():
     labels = [
         Label(data_point="", value="I-PER", score=0.9),
-        Label(data_point="", value="B-AN", score=0.8)
+        Label(data_point="", value="B-AN", score=0.8),
     ]
 
     result = decide_tag_no_tag_lower_prio(labels)
@@ -34,23 +34,36 @@ def test_decide_tag_no_tag_lower_prio_agreeing_labels_copilot():
 
 @pytest.mark.parametrize(
     "labels, expected",
-    [([Label(data_point="", value="B-PER", score=0.2),
-       Label(data_point="", value="O", score=1.0)],
-      "B-PER-OT"
-      ),  # "O" always loses
-     ([Label(data_point="", value="B-PER", score=1.0),
-       Label(data_point="", value="I-GEO", score=0.2)],
-      "B-PER-OT"
-      ),
-     ([Label(data_point="", value="B-PER", score=0.2),
-       Label(data_point="", value="I-GEO", score=0.2)],
-      "I-GEO"
-      ),  # snmaller or equal to, det wins
-     ([Label(data_point="", value="B-GEO", score=0.2),
-       Label(data_point="", value="B-AN", score=0.2)],
-      "B-PER-AN"
-      ),  # if det wins and is a per, will be mapped to b-per
-     ],
+    [
+        (
+            [
+                Label(data_point="", value="B-PER", score=0.2),
+                Label(data_point="", value="O", score=1.0),
+            ],
+            "B-PER-OT",
+        ),  # "O" always loses
+        (
+            [
+                Label(data_point="", value="B-PER", score=1.0),
+                Label(data_point="", value="I-GEO", score=0.2),
+            ],
+            "B-PER-OT",
+        ),
+        (
+            [
+                Label(data_point="", value="B-PER", score=0.2),
+                Label(data_point="", value="I-GEO", score=0.2),
+            ],
+            "I-GEO",
+        ),  # snmaller or equal to, det wins
+        (
+            [
+                Label(data_point="", value="B-GEO", score=0.2),
+                Label(data_point="", value="B-AN", score=0.2),
+            ],
+            "B-PER-AN",
+        ),  # if det wins and is a per, will be mapped to b-per
+    ],
 )
 def test_decide_tag_no_tag_lower_prio_disagreeing_labels(labels, expected):
     result = decide_tag_no_tag_lower_prio(labels)
@@ -58,9 +71,7 @@ def test_decide_tag_no_tag_lower_prio_disagreeing_labels(labels, expected):
 
 
 def test_decide_tag_no_tag_lower_prio_single_bio_label_copilot():
-    labels = [
-        Label(data_point="", value="I-PER", score=0.9)
-    ]
+    labels = [Label(data_point="", value="I-PER", score=0.9)]
 
     result = decide_tag_no_tag_lower_prio(labels)
 
@@ -68,9 +79,7 @@ def test_decide_tag_no_tag_lower_prio_single_bio_label_copilot():
 
 
 def test_decide_tag_no_tag_lower_prio_single_det_label_copilot():
-    labels = [
-        Label(data_point="", value="B-AN", score=0.8)
-    ]
+    labels = [Label(data_point="", value="B-AN", score=0.8)]
 
     result = decide_tag_no_tag_lower_prio(labels)
 
@@ -89,47 +98,42 @@ def test_decide_tag_no_tag_lower_prio_empty_labels_copilot():
 # -------------------------------------------------
 @pytest.mark.parametrize(
     "new_data",
-    [({}),
-     ({"file1.txt": []})
-     ],
+    [({}), ({"file1.txt": []})],
 )
 def test_add_sentences(new_data):
     collected_sentences = [
         MagicMock(
             filename="file1.txt",
-            __iter__=lambda self: iter([
-                MagicMock(
-                    labels=[Label(data_point="", value="B-PER", score=0.9)],
-                    orig="John",
-                    coords=(0, 4),
-                    text="John"
-                ),
-                MagicMock(
-                    labels=[],
-                    orig="is",
-                    coords=(5, 7),
-                    text="is"
-                ),
-                MagicMock(
-                    labels=[Label(data_point="", value="O", score=0.8)],
-                    orig="a",
-                    coords=(8, 9),
-                    text="a"
-                ),
-                MagicMock(
-                    labels=[Label(data_point="", value="B-LOC", score=0.85)],
-                    orig="teacher",
-                    coords=(10, 17),
-                    text="teacher"
-                )
-            ])
+            __iter__=lambda self: iter(
+                [
+                    MagicMock(
+                        labels=[Label(data_point="", value="B-PER", score=0.9)],
+                        orig="John",
+                        coords=(0, 4),
+                        text="John",
+                    ),
+                    MagicMock(labels=[], orig="is", coords=(5, 7), text="is"),
+                    MagicMock(
+                        labels=[Label(data_point="", value="O", score=0.8)],
+                        orig="a",
+                        coords=(8, 9),
+                        text="a",
+                    ),
+                    MagicMock(
+                        labels=[Label(data_point="", value="B-LOC", score=0.85)],
+                        orig="teacher",
+                        coords=(10, 17),
+                        text="teacher",
+                    ),
+                ]
+            ),
         )
     ]
 
     with pytest.MonkeyPatch.context() as monkeypatch:
         monkeypatch.setattr(
             "src.tag_flair.decide_tag_no_tag_lower_prio",
-            lambda labels: labels[0].value if labels else "O"
+            lambda labels: labels[0].value if labels else "O",
         )
 
         if new_data == {}:
@@ -148,25 +152,25 @@ def test_add_sentences(new_data):
                 "token": "John",
                 "coord": (0, 4),
                 "normalized": "John",
-                "tag": "B-PER"
+                "tag": "B-PER",
             }
             assert sentence[1] == {
                 "token": "is",
                 "coord": (5, 7),
                 "normalized": "is",
-                "tag": "O"
+                "tag": "O",
             }
             assert sentence[2] == {
                 "token": "a",
                 "coord": (8, 9),
                 "normalized": "a",
-                "tag": "O"
+                "tag": "O",
             }
             assert sentence[3] == {
                 "token": "teacher",
                 "coord": (10, 17),
                 "normalized": "teacher",
-                "tag": "B-LOC"
+                "tag": "B-LOC",
             }
 
 
@@ -177,31 +181,28 @@ def test_write_sentences_to_outfile_copilot():
     mock_data = {
         "file1.txt": [
             [
-                {"token": "John",
-                 "coord": (0, 4),
-                 "normalized": "John",
-                 "tag": "B-PER"},
-                {"token": "is",
-                 "coord": (5, 7),
-                 "normalized": "is",
-                 "tag": "O"},
-                {"token": "a",
-                 "coord": (8, 9),
-                 "normalized": "a",
-                 "tag": "O"},
-                {"token": "teacher",
-                 "coord": (10, 17),
-                 "normalized": "teacher",
-                 "tag": "B-LOC"}
+                {
+                    "token": "John",
+                    "coord": (0, 4),
+                    "normalized": "John",
+                    "tag": "B-PER",
+                },
+                {"token": "is", "coord": (5, 7), "normalized": "is", "tag": "O"},
+                {"token": "a", "coord": (8, 9), "normalized": "a", "tag": "O"},
+                {
+                    "token": "teacher",
+                    "coord": (10, 17),
+                    "normalized": "teacher",
+                    "tag": "B-LOC",
+                },
             ]
         ]
     }
 
     mock_outfile = mock_open()
 
-    with patch("builtins.open", mock_outfile):
-        with patch("builtins.open", mock_outfile):
-            write_sentences_to_outfile(mock_outfile(), mock_data)
+    with patch("builtins.open", mock_outfile), patch("builtins.open", mock_outfile):
+        write_sentences_to_outfile(mock_outfile(), mock_data)
 
     assert mock_outfile().write.call_count == 1
     written_data = orjson.loads(mock_outfile().write.call_args[0][0].strip())
@@ -223,18 +224,10 @@ def test_tag_year_data_and_save_copilot():
     collection = {
         "file1.txt": [
             [
-                {"token": "John",
-                 "coord": (0, 4),
-                 "normalized": "John"},
-                {"token": "is",
-                 "coord": (5, 7),
-                 "normalized": "is"},
-                {"token": "a",
-                 "coord": (8, 9),
-                 "normalized": "a"},
-                {"token": "teacher",
-                 "coord": (10, 17),
-                 "normalized": "teacher"}
+                {"token": "John", "coord": (0, 4), "normalized": "John"},
+                {"token": "is", "coord": (5, 7), "normalized": "is"},
+                {"token": "a", "coord": (8, 9), "normalized": "a"},
+                {"token": "teacher", "coord": (10, 17), "normalized": "teacher"},
             ]
         ]
     }
@@ -245,15 +238,13 @@ def test_tag_year_data_and_save_copilot():
     # Mock the file writing
     mock_outfile = mock_open()
     with patch("builtins.open", mock_outfile):
-        tag_year_data_and_save(collection,
-                               mock_tagger,
-                               outfile_path,
-                               sentence_batch_size)
+        tag_year_data_and_save(
+            collection, mock_tagger, outfile_path, sentence_batch_size
+        )
 
     # Check that the tagger's predict method was called
     assert mock_tagger.predict.called
-    assert len(
-        mock_tagger.predict.call_args[0][0]) == 1  # 1 batch of sentences
+    assert len(mock_tagger.predict.call_args[0][0]) == 1  # 1 batch of sentences
 
     # Check that the output file was written
     mock_outfile().write.assert_called()
@@ -275,8 +266,9 @@ def test_setup_flair_tagger_with_gpu():
     # Mock the Classifier.load method
     mock_classifier_1 = MagicMock(Classifier)
     mock_classifier_2 = MagicMock(Classifier)
-    with patch("flair.nn.Classifier.load",
-               side_effect=[mock_classifier_1, mock_classifier_2]):
+    with patch(
+        "flair.nn.Classifier.load", side_effect=[mock_classifier_1, mock_classifier_2]
+    ):
         with patch("src.tag_flair.cuda_is_available", return_value=True):
             tagger = setup_flair_tagger(gpu_num)
 
@@ -295,8 +287,9 @@ def test_setup_flair_tagger_with_cpu():
     mock_classifier_1 = MagicMock(Classifier)
     mock_classifier_2 = MagicMock(Classifier)
 
-    with patch("flair.nn.Classifier.load",
-               side_effect=[mock_classifier_1, mock_classifier_2]):
+    with patch(
+        "flair.nn.Classifier.load", side_effect=[mock_classifier_1, mock_classifier_2]
+    ):
         with patch("src.tag_flair.cuda_is_available", return_value=False):
             tagger = setup_flair_tagger(0)
 
@@ -311,83 +304,80 @@ def test_setup_flair_tagger_with_cpu():
 # Test package_generator_output_paths
 # -------------------------------------------------
 def test_package_generator_output_paths_copilot():
-    generator = iter([
-        (2020, ['file1', 'file2']),
-        (2021, ['file3', 'file4']),
-        (2022, ['file5']),
-        (2023, ['file6', 'file7', 'file8'])
-    ])
+    generator = iter(
+        [
+            (2020, ["file1", "file2"]),
+            (2021, ["file3", "file4"]),
+            (2022, ["file5"]),
+            (2023, ["file6", "file7", "file8"]),
+        ]
+    )
     batch_size = 2
 
     result = list(package_generator_output_paths(generator, batch_size))
 
     assert len(result) == 2  # Two batches expected
     assert result[0] == {
-        2020: ['file1', 'file2'],
-        2021: ['file3', 'file4']
+        2020: ["file1", "file2"],
+        2021: ["file3", "file4"],
     }  # First batch
     assert result[1] == {
-        2022: ['file5'],
-        2023: ['file6', 'file7', 'file8']
+        2022: ["file5"],
+        2023: ["file6", "file7", "file8"],
     }  # Second batch
 
 
 def test_package_generator_output_paths_with_exact_batch_size_copilot():
-    generator = iter([
-        (2020, ['file1']),
-        (2021, ['file2']),
-        (2022, ['file3'])
-    ])
+    generator = iter([(2020, ["file1"]), (2021, ["file2"]), (2022, ["file3"])])
     batch_size = 3
 
     result = list(package_generator_output_paths(generator, batch_size))
 
     assert len(result) == 1  # One batch expected
-    assert result[0] == {
-        2020: ['file1'],
-        2021: ['file2'],
-        2022: ['file3']
-    }
+    assert result[0] == {2020: ["file1"], 2021: ["file2"], 2022: ["file3"]}
 
 
 def test_package_generator_output_paths_with_leftover():
-    generator = iter([
-        (2020, ['file1']),
-        (2021, ['file2']),
-        (2022, ['file3']),
-        (2023, ['file4'])
-    ])
+    generator = iter(
+        [(2020, ["file1"]), (2021, ["file2"]), (2022, ["file3"]), (2023, ["file4"])]
+    )
     batch_size = 3
 
     result = list(package_generator_output_paths(generator, batch_size))
 
     assert len(result) == 2  # Two batches expected
     assert result[0] == {
-        2020: ['file1'],
-        2021: ['file2'],
-        2022: ['file3']
+        2020: ["file1"],
+        2021: ["file2"],
+        2022: ["file3"],
     }  # First batch
-    assert result[1] == {
-        2023: ['file4']
-    }  # Second batch
+    assert result[1] == {2023: ["file4"]}  # Second batch
 
 
 # -------------------------------------------------
 # Test execute_tagging
 # -------------------------------------------------
 def test_execute_tagging_copilot():
-    preprocessed_data = iter([
-        ("2020", {
-            "file1.txt": [[{
-                "token": "John", "coord": (0, 4), "normalized": "John"
-            }]]
-        }),
-        ("2021", {
-            "file1.txt": [[{
-                "token": "Doe", "coord": (5, 8), "normalized": "Doe"
-            }]]
-        })
-    ])
+    preprocessed_data = iter(
+        [
+            (
+                "2020",
+                {
+                    "file1.txt": [
+                        [{"token": "John", "coord": (0, 4), "normalized": "John"}]
+                    ]
+                },
+            ),
+            (
+                "2021",
+                {
+                    "file1.txt": [
+                        [{"token": "Doe", "coord": (5, 8), "normalized": "Doe"}]
+                    ]
+                },
+            ),
+        ]
+    )
     settings.PATH_TO_OUTFILE_FOLDER = "/path/to/output"
     settings.BATCH_SIZE = 1
     settings.SENTENCE_BATCH_SIZE = 2
@@ -398,16 +388,16 @@ def test_execute_tagging_copilot():
 
     # Mock the setup_flair_tagger function
     mock_tagger = MagicMock()
-    with patch("src.tag_flair.setup_flair_tagger", return_value=mock_tagger):
-        # Mock os.makedirs to avoid creating directories
-        with patch("os.makedirs") as mock_makedirs:
-            # Mock open to avoid writing to files
-            with patch("builtins.open", MagicMock()) as mock_open:
-                execute_tagging(preprocessed_data, tasks, gpu_num)
+    with (
+        patch("src.tag_flair.setup_flair_tagger", return_value=mock_tagger),
+        patch("os.makedirs") as mock_makedirs,  # Mock os.makedirs to avoid creating directories
+        patch("builtins.open", MagicMock()) as mock_open,  # Mock open to avoid writing to files
+    ):
+        execute_tagging(preprocessed_data, tasks, gpu_num)
 
-                # Ensure tagging was performed
-                mock_tagger.predict.assert_called()
-                # Ensure output files were opened
-                mock_open.assert_called()
-                # Ensure directories were created
-                mock_makedirs.assert_called()
+        # Ensure tagging was performed
+        mock_tagger.predict.assert_called()
+        # Ensure output files were opened
+        mock_open.assert_called()
+        # Ensure directories were created
+        mock_makedirs.assert_called()

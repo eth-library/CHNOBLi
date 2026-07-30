@@ -1,9 +1,9 @@
 """
 Comparison functions for Person entities
 """
-import argparse
-import orjson
 import logging
+
+import orjson
 
 
 def compare_gnd_info(entity_pre: dict, entity_post: dict) -> bool:
@@ -43,15 +43,17 @@ def compare_references(entity_pre: dict, entity_post: dict) -> bool:
         raise Exception("The page references do not match for at least one entity")
 
     for page in entity_pre["references"]:
-        if (len(entity_pre["references"][page]["refs"])
-           != len(entity_post["references"][page]["refs"])):
+        if len(entity_pre["references"][page]["refs"]) != len(
+            entity_post["references"][page]["refs"]
+        ):
             raise Exception("The number of references for this entity changed.")
         for idy, refs_pre in enumerate(entity_pre["references"][page]["refs"]):
-            if (refs_pre["sent"] !=
-               entity_post["references"][page]["refs"][idy]["sent"]):
-                raise Exception("The number of the sentence where at least one entity is mentioned changed.")
-            if (refs_pre["coords"] !=
-               entity_post["references"][page]["refs"][idy]["coords"]):
+            if refs_pre["sent"] != entity_post["references"][page]["refs"][idy]["sent"]:
+                raise Exception( "The number of the sentence where at least one entity is mentioned changed.")
+            if (
+                refs_pre["coords"]
+                != entity_post["references"][page]["refs"][idy]["coords"]
+            ):
                 raise Exception("The coordinates where at least one entity is mentioned changed.")
     return True
 
@@ -92,8 +94,9 @@ def compare_linking_person(list_pre: list, list_post: list) -> bool:
                 raise Exception("The titles of at least one entity changed.")
             if set(entity_pre["profession"]) != set(entity_post["profession"]):
                 raise Exception("The profession of at least one entity changed.")
-            if (set([x for y in entity_pre["other"] for x in y]) !=
-               set([x for y in entity_post["other"] for x in y])):
+            if {x for y in entity_pre["other"] for x in y} != {
+                x for y in entity_post["other"] for x in y
+            }:
                 raise Exception("The 'other' field of at least one entity changed.")
             if entity_pre["type"] != entity_post["type"]:
                 raise Exception("The type of at least one entity changed.")
@@ -122,8 +125,11 @@ def compare_linking_places(list_pre: list, list_post: list) -> bool:
     """
 
     for idx, entity_pre in enumerate(list_pre):
-        if (entity_pre["type"] == "CIT" or entity_pre["type"] == "CTR"
-           or entity_pre["type"] == "GEO"):
+        if (
+            entity_pre["type"] == "CIT"
+            or entity_pre["type"] == "CTR"
+            or entity_pre["type"] == "GEO"
+        ):
             entity_post = list_post[idx]
 
             # compare keys
@@ -171,8 +177,9 @@ def compare_linking(output_path_pre: str, output_path_post: str) -> bool:
         raise Exception("The number of entities found changed")
 
     # compare
-    if (compare_linking_person(linking_data_pre, linking_data_post) and
-       compare_linking_places(linking_data_pre, linking_data_post)):
+    if compare_linking_person(
+        linking_data_pre, linking_data_post
+    ) and compare_linking_places(linking_data_pre, linking_data_post):
         logging.info("Success! Nothing changed about the linking output.")
 
     return True
@@ -195,10 +202,10 @@ def compare_tagging(output_path_pre: str, output_path_post: str) -> bool:
     :rtype: bool
     """
 
-    with open(output_path_pre, 'r', encoding='utf-8') as json_file_pre:
+    with open(output_path_pre, "r", encoding="utf-8") as json_file_pre:
         json_list_pre = list(json_file_pre)
 
-    with open(output_path_post, 'r', encoding='utf-8') as json_file_post:
+    with open(output_path_post, "r", encoding="utf-8") as json_file_post:
         json_list_post = list(json_file_post)
 
     # sanity check
@@ -221,17 +228,16 @@ def compare_tagging(output_path_pre: str, output_path_post: str) -> bool:
                 raise Exception("The lists of processed tokens are not the same.")
             for idy, entry in enumerate(result_pre[page]):
                 for idz, token_dict in enumerate(entry):
-                    if (token_dict["token"] !=
-                       result_post[page][idy][idz]["token"]):
+                    if token_dict["token"] != result_post[page][idy][idz]["token"]:
                         raise Exception("At least one token changed.")
-                    if (token_dict["coord"] !=
-                       result_post[page][idy][idz]["coord"]):
+                    if token_dict["coord"] != result_post[page][idy][idz]["coord"]:
                         raise Exception("The coordinate of at least one token changed.")
-                    if (token_dict["normalized"] !=
-                       result_post[page][idy][idz]["normalized"]):
+                    if (
+                        token_dict["normalized"]
+                        != result_post[page][idy][idz]["normalized"]
+                    ):
                         raise Exception("At least one token changed.")
-                    if (token_dict["tag"] !=
-                       result_post[page][idy][idz]["tag"]):
+                    if token_dict["tag"] != result_post[page][idy][idz]["tag"]:
                         raise Exception("At least one token changed.")
 
     logging.info("Success! Nothing changed about the tagging output.")
@@ -239,38 +245,7 @@ def compare_tagging(output_path_pre: str, output_path_post: str) -> bool:
 
 
 def main():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--magazine", type=str, default="obl")
-    parser.add_argument("--year", type=str, default="2004_000")
-    parser.add_argument("--task", type=str, default="prep,tag,finish")
-
-    args = parser.parse_args()
-
-    mag_year_json = args.magazine + "/" + args.year + ".json"
-    task = args.task
-
-    output_path_pre = "./data/test_data/output_before/"+task+"/"+mag_year_json
-    output_path_post = "./data/test_data/output/"+task+"/"+mag_year_json
-
-    if task == "prep,tag,finish":
-        output_path_pre = "./data/test_data/output_before/tag/"+mag_year_json+"l"
-        output_path_post = "./data/test_data/output/tag/"+mag_year_json+"l"
-        compare_tagging(output_path_pre, output_path_post)
-
-        output_path_pre = "./data/test_data/output_before/link/"+mag_year_json
-        output_path_post = "./data/test_data/output/link/"+mag_year_json
-        compare_linking(output_path_pre, output_path_post)
-
-    elif task == "link":
-        compare_linking(output_path_pre, output_path_post)
-
-    elif task == "tag":
-        compare_tagging(output_path_pre.replace(".json", ".jsonl"),
-                        output_path_post.replace(".json", ".jsonl"))
-    else:
-        raise Exception("Please specify a valid task: 'prep,tag,finish', 'link' or 'tag'.")
-
+    pass
 
 if __name__ == "__main__":
     main()

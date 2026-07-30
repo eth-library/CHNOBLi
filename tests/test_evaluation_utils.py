@@ -1,19 +1,21 @@
 import os
-from .test_data import params
 from collections import Counter
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
+
 import pytest
 from utility.evaluation_utils import (
-   Paths,
-   Scores,
-   clean_raw,
-   get_main_name,
-   label_entity,
-   eval_entity,
-   eval_references,
-   evaluate_person
+    Paths,
+    Scores,
+    clean_raw,
+    eval_entity,
+    eval_references,
+    evaluate_person,
+    get_main_name,
+    label_entity,
 )
 from utility.settings import settings
+
+from .test_data import params
 
 
 # -------------------------------------------------
@@ -45,58 +47,65 @@ def test_paths_update():
         assert excinfo.value.args[0] == "'net' is not in ['ent', 'ref', '']"
 
     assert paths.get("input", "", "ent") == settings.PATH_TO_INPUT_FOLDERS
-    assert paths.get(
-        "input", "magazine", ""
-    ) == settings.PATH_TO_INPUT_FOLDERS + "test_mag"
-    assert paths.get(
-        "input", "file", ""
-    ) == settings.PATH_TO_INPUT_FOLDERS + "test_mag/test_file"
-    assert paths.get(
-        "input", "", ""
-    ) == settings.PATH_TO_INPUT_FOLDERS
+    assert (
+        paths.get("input", "magazine", "")
+        == settings.PATH_TO_INPUT_FOLDERS + "test_mag"
+    )
+    assert (
+        paths.get("input", "file", "")
+        == settings.PATH_TO_INPUT_FOLDERS + "test_mag/test_file"
+    )
+    assert paths.get("input", "", "") == settings.PATH_TO_INPUT_FOLDERS
     assert paths.get("input", "", "") == settings.PATH_TO_INPUT_FOLDERS
 
     for type_ in ["eval", "link"]:
         if type_ == "eval":
-            addtopk = "_top"+str(settings.EVAL_TOPK)
+            addtopk = "_top" + str(settings.EVAL_TOPK)
         else:
             addtopk = ""
         for ref_lvl in ["ent", "ref"]:
-            assert paths.get(
-                type_, "", ref_lvl
-            ) == settings.PATH_TO_OUTFILE_FOLDER+type_+"_"+ref_lvl+addtopk
+            assert (
+                paths.get(type_, "", ref_lvl)
+                == settings.PATH_TO_OUTFILE_FOLDER + type_ + "_" + ref_lvl + addtopk
+            )
             if type_ == "eval":
-                assert paths.get(
-                    type_, "magazine", ""
-                ) == settings.PATH_TO_OUTFILE_FOLDER+"eval_top"+str(settings.EVAL_TOPK)+"/test_mag"
+                assert (
+                    paths.get(type_, "magazine", "")
+                    == settings.PATH_TO_OUTFILE_FOLDER
+                    + "eval_top"
+                    + str(settings.EVAL_TOPK)
+                    + "/test_mag"
+                )
             else:
-                assert paths.get(
-                    type_, "magazine", ""
-                ) == settings.PATH_TO_OUTFILE_FOLDER+type_+"/test_mag"
+                assert (
+                    paths.get(type_, "magazine", "")
+                    == settings.PATH_TO_OUTFILE_FOLDER + type_ + "/test_mag"
+                )
             if type_ == "eval":
-                assert paths.get(
-                    type_, "file", ""
-                ) == settings.PATH_TO_OUTFILE_FOLDER+"eval_top"+str(settings.EVAL_TOPK)+"/test_mag/test_file"
+                assert (
+                    paths.get(type_, "file", "")
+                    == settings.PATH_TO_OUTFILE_FOLDER
+                    + "eval_top"
+                    + str(settings.EVAL_TOPK)
+                    + "/test_mag/test_file"
+                )
             else:
-                assert paths.get(
-                    type_, "file", ""
-                ) == settings.PATH_TO_OUTFILE_FOLDER+type_+"/test_mag/test_file"
-            assert paths.get(
-                type_, "", ""
-            ) == settings.PATH_TO_OUTFILE_FOLDER+type_+addtopk
+                assert (
+                    paths.get(type_, "file", "")
+                    == settings.PATH_TO_OUTFILE_FOLDER + type_ + "/test_mag/test_file"
+                )
+            assert (
+                paths.get(type_, "", "")
+                == settings.PATH_TO_OUTFILE_FOLDER + type_ + addtopk
+            )
 
-    assert paths.get(
-        "gt", "", "ent"
-    ) == settings.PATH_TO_GROUND_TRUTH+"_ent"
-    assert paths.get(
-        "gt", "magazine", ""
-    ) == settings.PATH_TO_GROUND_TRUTH+"test_mag"
-    assert paths.get(
-        "gt", "file", ""
-    ) == settings.PATH_TO_GROUND_TRUTH+"test_mag/test_file"
-    assert paths.get(
-        "gt", "", ""
-    ) == settings.PATH_TO_GROUND_TRUTH
+    assert paths.get("gt", "", "ent") == settings.PATH_TO_GROUND_TRUTH + "_ent"
+    assert paths.get("gt", "magazine", "") == settings.PATH_TO_GROUND_TRUTH + "test_mag"
+    assert (
+        paths.get("gt", "file", "")
+        == settings.PATH_TO_GROUND_TRUTH + "test_mag/test_file"
+    )
+    assert paths.get("gt", "", "") == settings.PATH_TO_GROUND_TRUTH
     assert paths.get("gt", "", "") == settings.PATH_TO_GROUND_TRUTH
 
 
@@ -112,9 +121,7 @@ def test_paths_get_jsonl(mock_get, mock_open_file):
     assert result == [{"key": "value"}]
     mock_get.assert_called_once_with(type_="input", key="file")
     mock_open_file.assert_called_once_with(
-        "./data/input/test_file.jsonl",
-        "r",
-        encoding="utf-8"
+        "./data/input/test_file.jsonl", "r", encoding="utf-8"
     )
 
 
@@ -123,22 +130,27 @@ def test_paths_check_and_create():
     paths.update("magazine", "test_mag")
     paths.update("file", "test_file")
 
-    already_existed = os.path.isdir(params.conf["PATH_TO_OUTFILE_FOLDER"]+"link")
+    already_existed = os.path.isdir(params.conf["PATH_TO_OUTFILE_FOLDER"] + "link")
     path_linked = paths.check_and_create("link", "", "")
-    assert path_linked == params.conf["PATH_TO_OUTFILE_FOLDER"]+"link"
+    assert path_linked == params.conf["PATH_TO_OUTFILE_FOLDER"] + "link"
     assert os.path.isdir(path_linked)
     if not already_existed:
         os.rmdir(path_linked)
 
     for type_ in ["eval", "link"]:
         if type_ == "eval":
-            path_with_type = params.conf["PATH_TO_OUTFILE_FOLDER"] + type_+"_top"+str(settings.EVAL_TOPK)
+            path_with_type = (
+                params.conf["PATH_TO_OUTFILE_FOLDER"]
+                + type_
+                + "_top"
+                + str(settings.EVAL_TOPK)
+            )
         else:
             path_with_type = params.conf["PATH_TO_OUTFILE_FOLDER"] + type_
 
         already_existed = os.path.isdir(path_with_type)
         path = paths.check_and_create(type_, "magazine", "")
-        assert path == path_with_type+"/test_mag"
+        assert path == path_with_type + "/test_mag"
         assert os.path.isdir(path)
         os.rmdir(path)
         if not already_existed:
@@ -146,22 +158,20 @@ def test_paths_check_and_create():
 
         already_existed = os.path.isdir(path_with_type)
         path = paths.check_and_create(type_, "file", "")
-        assert path == path_with_type+"/test_mag/test_file"
+        assert path == path_with_type + "/test_mag/test_file"
         assert os.path.exists("/".join(path.split("/")[:-1])), path
-        os.rmdir(path_with_type+"/test_mag")
+        os.rmdir(path_with_type + "/test_mag")
         if not already_existed:
             os.rmdir(path_with_type)
 
         path_with_type = params.conf["PATH_TO_OUTFILE_FOLDER"] + type_
         for ref_lvl in ["ent", "ref"]:
             if type_ == "eval":
-                path_gt = path_with_type+"_"+ref_lvl+"_top"+str(settings.EVAL_TOPK)
-                already_existed = os.path.isdir(path_gt)
-                path = paths.check_and_create(
-                    type_,
-                    "",
-                    ref_lvl
+                path_gt = (
+                    path_with_type + "_" + ref_lvl + "_top" + str(settings.EVAL_TOPK)
                 )
+                already_existed = os.path.isdir(path_gt)
+                path = paths.check_and_create(type_, "", ref_lvl)
                 assert path == path_gt
                 assert os.path.isdir(path)
                 if not already_existed:
@@ -177,43 +187,27 @@ def test_paths_save_json():
         path_with_type = params.conf["PATH_TO_OUTFILE_FOLDER"] + type_
         for ref_lvl in ["ent", "ref"]:
             if type_ == "eval":
-                path_gt = path_with_type+"_"+ref_lvl+"_top"+str(settings.EVAL_TOPK)
+                path_gt = (
+                    path_with_type + "_" + ref_lvl + "_top" + str(settings.EVAL_TOPK)
+                )
             else:
-                path_gt = path_with_type+"_"+ref_lvl
+                path_gt = path_with_type + "_" + ref_lvl
 
             already_existed = os.path.isdir(path_gt)
-            paths.save_json(
-                type_,
-                "magazine",
-                {"test1": "test2"},
-                ref_lvl
-            )
-            path_1 = paths.get(
-                type_,
-                "magazine",
-                ref_lvl
-            )
+            paths.save_json(type_, "magazine", {"test1": "test2"}, ref_lvl)
+            path_1 = paths.get(type_, "magazine", ref_lvl)
             assert os.path.exists(path_1)
             os.rmdir(path_1)
-            os.remove(path_gt+"/"+"test_mag.json")
+            os.remove(path_gt + "/" + "test_mag.json")
             if not already_existed:
                 os.rmdir(path_gt)
 
             already_existed = os.path.isdir(path_gt)
-            paths.save_json(
-                type_,
-                "file",
-                {"test1": "test2"},
-                ref_lvl
-            )
-            path_1 = paths.get(
-                type_,
-                "file",
-                ref_lvl
-            )
+            paths.save_json(type_, "file", {"test1": "test2"}, ref_lvl)
+            path_1 = paths.get(type_, "file", ref_lvl)
             assert os.path.exists(path_1)
             os.remove(path_1)
-            os.rmdir(path_gt+"/"+"test_mag")
+            os.rmdir(path_gt + "/" + "test_mag")
             if not already_existed:
                 os.rmdir(path_gt)
 
@@ -226,53 +220,67 @@ def test_scores_init():
     assert scores.precision == 0
     assert scores.recall == 0
     assert scores.f1 == 0
-    assert Counter(
-        {"tp": 161, "fp": 199, "fn": 74, "tn": 327}
-    ) == scores.counter
+    assert Counter({"tp": 161, "fp": 199, "fn": 74, "tn": 327}) == scores.counter
 
 
 def test_scores_compute_scores():
-    counters = [{"tp": 161, "fp": 199, "fn": 74, "tn": 327},
-                {"tp": 0, "fp": 3, "fn": 0, "tn": 93}]
+    counters = [
+        {"tp": 161, "fp": 199, "fn": 74, "tn": 327},
+        {"tp": 0, "fp": 3, "fn": 0, "tn": 93},
+    ]
     for i in counters:
         scores = Scores(i)
         scores.compute_scores()
         if scores.counter["tp"] + scores.counter["fp"] != 0:
             assert scores.precision == scores.counter["tp"] / (
-                scores.counter["tp"] + scores.counter["fp"])
+                scores.counter["tp"] + scores.counter["fp"]
+            )
         else:
             assert scores.precision == 0
         if scores.counter["tp"] + scores.counter["fn"] != 0:
             assert scores.recall == scores.counter["tp"] / (
-                scores.counter["tp"] + scores.counter["fn"])
+                scores.counter["tp"] + scores.counter["fn"]
+            )
         else:
             assert scores.recall == 0
-        if (scores.counter["tp"] +
-                scores.counter["tn"] +
-                scores.counter["fp"] +
-                scores.counter["fn"]) != 0:
-            assert scores.accuracy == ((
-                scores.counter["tn"] + scores.counter["tp"]) / (
-                    scores.counter["tn"] +
-                    scores.counter["tp"] +
-                    scores.counter["fn"] +
-                    scores.counter["fp"]))
+        if (
+            scores.counter["tp"]
+            + scores.counter["tn"]
+            + scores.counter["fp"]
+            + scores.counter["fn"]
+        ) != 0:
+            assert scores.accuracy == (
+                (scores.counter["tn"] + scores.counter["tp"])
+                / (
+                    scores.counter["tn"]
+                    + scores.counter["tp"]
+                    + scores.counter["fn"]
+                    + scores.counter["fp"]
+                )
+            )
         else:
             assert scores.accuracy == 0
 
-        if ((scores.counter["tp"] + scores.counter["fp"] != 0) and
-                (scores.counter["tp"] + scores.counter["fn"] != 0)):
+        if (scores.counter["tp"] + scores.counter["fp"] != 0) and (
+            scores.counter["tp"] + scores.counter["fn"] != 0
+        ):
             assert round(scores.f1, 10) == (
-                round(2 * (
-                    scores.counter["tp"] / (
-                        scores.counter["tp"] + scores.counter["fp"]) *
-                    scores.counter["tp"] / (
-                        scores.counter["tp"] + scores.counter["fn"])) / (
-                            scores.counter["tp"] / (
-                                scores.counter["tp"] + scores.counter["fp"]) +
-                            scores.counter["tp"] / (
-                                scores.counter["tp"] + scores.counter["fn"])),
-                      10)
+                round(
+                    2
+                    * (
+                        scores.counter["tp"]
+                        / (scores.counter["tp"] + scores.counter["fp"])
+                        * scores.counter["tp"]
+                        / (scores.counter["tp"] + scores.counter["fn"])
+                    )
+                    / (
+                        scores.counter["tp"]
+                        / (scores.counter["tp"] + scores.counter["fp"])
+                        + scores.counter["tp"]
+                        / (scores.counter["tp"] + scores.counter["fn"])
+                    ),
+                    10,
+                )
             )
         else:
             assert scores.f1 == 0
@@ -282,8 +290,10 @@ def test_scores_update_counter():
     """
     This is a bit absurd but let's do it
     """
-    counters = [{"tp": 161, "fp": 199, "fn": 74, "tn": 327},
-                {"tp": 0, "fp": 3, "fn": 0, "tn": 93}]
+    counters = [
+        {"tp": 161, "fp": 199, "fn": 74, "tn": 327},
+        {"tp": 0, "fp": 3, "fn": 0, "tn": 93},
+    ]
     init_counter = {"tp": 1, "fp": 1, "fn": 1, "tn": 1}
     for i in counters:
         scores = Scores(init_counter)
@@ -298,8 +308,10 @@ def test_scores_get_score():
     """
     This is a bit absurd but let's do it
     """
-    counters = [{"tp": 161, "fp": 199, "fn": 74, "tn": 327},
-                {"tp": 0, "fp": 3, "fn": 0, "tn": 93}]
+    counters = [
+        {"tp": 161, "fp": 199, "fn": 74, "tn": 327},
+        {"tp": 0, "fp": 3, "fn": 0, "tn": 93},
+    ]
     roundings = [2, 3, 5]
 
     for i in counters:
@@ -311,9 +323,7 @@ def test_scores_get_score():
             assert res["tn"] == i["tn"]
             assert res["fn"] == i["fn"]
             if i["tp"] + i["fp"] != 0:
-                assert res["Precision"] == round(
-                    i["tp"] / (i["tp"] + i["fp"]),
-                    r)
+                assert res["Precision"] == round(i["tp"] / (i["tp"] + i["fp"]), r)
             else:
                 assert res["Precision"] == 0
             if i["tp"] + i["fn"] != 0:
@@ -321,18 +331,27 @@ def test_scores_get_score():
             else:
                 assert res["Recall"] == 0
             if (i["tp"] + i["tn"] + i["fp"] + i["fn"]) != 0:
-                assert res["Accuracy"] == round(((
-                    i["tn"] + i["tp"]) / (
-                        i["tn"] + i["tp"] + i["fn"] + i["fp"])), r)
+                assert res["Accuracy"] == round(
+                    ((i["tn"] + i["tp"]) / (i["tn"] + i["tp"] + i["fn"] + i["fp"])), r
+                )
             else:
                 assert res["Accuracy"] == 0
             if i["tp"] + i["fp"] != 0 and i["tp"] + i["fn"] != 0:
                 assert round(res["F1"], r) == (
-                    round(2 * (
-                        i["tp"] / (i["tp"] + i["fp"]) *
-                        i["tp"] / (i["tp"] + i["fn"])) / (
-                            i["tp"] / (i["tp"] + i["fp"]) +
-                            i["tp"] / (i["tp"] + i["fn"])), r)
+                    round(
+                        2
+                        * (
+                            i["tp"]
+                            / (i["tp"] + i["fp"])
+                            * i["tp"]
+                            / (i["tp"] + i["fn"])
+                        )
+                        / (
+                            i["tp"] / (i["tp"] + i["fp"])
+                            + i["tp"] / (i["tp"] + i["fn"])
+                        ),
+                        r,
+                    )
                 )
             else:
                 assert res["F1"] == 0
@@ -365,23 +384,36 @@ def test_get_main_name(dictionary, expected):
 # -------------------------------------------------
 @pytest.mark.parametrize(
     "ent, gt, expected",
-    [({'page': 'aaa-001_2004_000_0012.txt',
-       'year': '2004',
-       'coord': 'b'},
-      [[{'page': 'aaa-001_2004_000_0012.txt',
-         'year': '2004',
-         'coord': 'b',
-         "gt_gnd_id": "a"}]],
-      "a"),
-     ({'page': 'aaa-001_2004_000_0012.txt',
-       'year': '2004',
-       'coord': 'b'},
-      [[{'page': 'aaa-001_2004_000_0012.txt',
-         'year': '2004',
-         'coord': 'c',
-         "gt_gnd_id": "a"}]],
-      "")
-     ],
+    [
+        (
+            {"page": "aaa-001_2004_000_0012.txt", "year": "2004", "coord": "b"},
+            [
+                [
+                    {
+                        "page": "aaa-001_2004_000_0012.txt",
+                        "year": "2004",
+                        "coord": "b",
+                        "gt_gnd_id": "a",
+                    }
+                ]
+            ],
+            "a",
+        ),
+        (
+            {"page": "aaa-001_2004_000_0012.txt", "year": "2004", "coord": "b"},
+            [
+                [
+                    {
+                        "page": "aaa-001_2004_000_0012.txt",
+                        "year": "2004",
+                        "coord": "c",
+                        "gt_gnd_id": "a",
+                    }
+                ]
+            ],
+            "",
+        ),
+    ],
 )
 def test_label_entity(ent, gt, expected):
     assert label_entity(ent, gt) == expected
@@ -392,19 +424,15 @@ def test_label_entity(ent, gt, expected):
 # -------------------------------------------------
 @pytest.mark.parametrize(
     "entity, expected",
-    [({"candidates": [[]],
-       "label": "a"},
-      {"tp": 0, "fp": 0, "tn": 0, "fn": 1}),
-     ({"candidates": ["a", "b"],
-       "label": "a"},
-      {"tp": 1, "fp": 0, "tn": 0, "fn": 0}),
-     ({"candidates": ["a"],
-       "label": ""},
-      {"tp": 0, "fp": 1, "tn": 0, "fn": 0}),
-     ({"candidates": [[]],
-       "label": ""},
-      {"tp": 0, "fp": 0, "tn": 1, "fn": 0})
-     ],
+    [
+        ({"candidates": [[]], "label": "a"}, {"tp": 0, "fp": 0, "tn": 0, "fn": 1}),
+        (
+            {"candidates": ["a", "b"], "label": "a"},
+            {"tp": 1, "fp": 0, "tn": 0, "fn": 0},
+        ),
+        ({"candidates": ["a"], "label": ""}, {"tp": 0, "fp": 1, "tn": 0, "fn": 0}),
+        ({"candidates": [[]], "label": ""}, {"tp": 0, "fp": 0, "tn": 1, "fn": 0}),
+    ],
 )
 def test_eval_entity(entity, expected):
     assert eval_entity(entity) == expected
@@ -415,19 +443,24 @@ def test_eval_entity(entity, expected):
 # -------------------------------------------------
 @pytest.mark.parametrize(
     "entity, expected",
-    [({"candidates": [[], []],
-       "labels": ["a", "b"]},
-      {"tp": 0, "fp": 0, "tn": 0, "fn": 2}),
-     ({"candidates": [["a"], ["b"]],
-       "labels": ["a", "b"]},
-      {"tp": 2, "fp": 0, "tn": 0, "fn": 0}),
-     ({"candidates": [["a"], ["b"]],
-       "labels": ["", ""]},
-      {"tp": 0, "fp": 2, "tn": 0, "fn": 0}),
-     ({"candidates": [[], []],
-       "labels": ["", ""]},
-      {"tp": 0, "fp": 0, "tn": 2, "fn": 0})
-     ],
+    [
+        (
+            {"candidates": [[], []], "labels": ["a", "b"]},
+            {"tp": 0, "fp": 0, "tn": 0, "fn": 2},
+        ),
+        (
+            {"candidates": [["a"], ["b"]], "labels": ["a", "b"]},
+            {"tp": 2, "fp": 0, "tn": 0, "fn": 0},
+        ),
+        (
+            {"candidates": [["a"], ["b"]], "labels": ["", ""]},
+            {"tp": 0, "fp": 2, "tn": 0, "fn": 0},
+        ),
+        (
+            {"candidates": [[], []], "labels": ["", ""]},
+            {"tp": 0, "fp": 0, "tn": 2, "fn": 0},
+        ),
+    ],
 )
 def test_eval_references(entity, expected):
     assert eval_references(entity) == expected
