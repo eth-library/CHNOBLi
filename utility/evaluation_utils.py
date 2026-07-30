@@ -270,14 +270,13 @@ def get_main_name(per_dict: dict) -> str:
     """
     Given a person dictionary returns the persons name as a string.
 
-
     :param per_dict: Person entity dictionary.
     :type per_dict: dict
     :return: Name of the person.
     :rtype: str
     :Example:
-    >>> {"lastname":"Müller", "firstname": "Otto"} => "Otto Müller"
-    >>> {"lastname":"Müller", "abbr_firstname": "O."} => "O. Müller"
+        >>> {"lastname":"Müller", "firstname": "Otto"} => "Otto Müller"
+        >>> {"lastname":"Müller", "abbr_firstname": "O."} => "O. Müller"
     """
 
     if "lastname" in per_dict and per_dict["lastname"]:

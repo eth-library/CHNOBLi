@@ -52,8 +52,8 @@ def prep_name_for_elasticsearch_query(name: str) -> str:
     :return: Name to be searched including allowed edit distances.
     :rtype: str
     :Example:
-    >>> "D. Birchall" => "D* Birchall~2"
-    >>> "J.P. Wittbach => J*P* Wittbach~2"
+        >>> "D. Birchall" => "D* Birchall~2"
+        >>> "J.P. Wittbach => J*P* Wittbach~2"
     """
 
     name_list = name.split(" ")
@@ -217,6 +217,8 @@ def convert_gnd_format_kibana(person_dict: dict) -> dict:
             res_dict["varSurname"] = _safe_set(var_name["nameAddition"])
         if "surname" in var_name:
             res_dict["varSurname"] = _safe_set(var_name["surname"])
+    if "variantName" in person_dict:
+        res_dict["varName"] = _safe_set(person_dict["variantName"])
 
     # Handle dates
     if "dateOfBirth" in person_dict:
@@ -362,7 +364,7 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
     headers = {"Content-Type": "application/json"}
 
     json_data = {
-            "_source": ["gndIdentifier"],
+            "_source": ["gndIdentifier", "variantName"],
             "from": 0,
             "size": gnd_limit,
             "sort": [
@@ -523,7 +525,8 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
         })
 
     json_data = {
-        "_source": ["gndIdentifier"],
+        "_source": ["gndIdentifier",
+                    "preferredNameEntityForThePerson"],
         "from": 0,
         "size": gnd_limit,
         "sort": [
@@ -601,7 +604,7 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
     headers = {"Content-Type": "application/json"}
 
     json_data = {
-        "_source": ["GND_ID", "GND_ID_2"],
+        "_source": ["GND_ID", "GND_ID_2", "labels"],
         "from": 0,
         "size": wikidata_limit,
         "sort": [
