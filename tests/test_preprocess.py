@@ -1,32 +1,33 @@
+import orjson
 import os
 import tempfile
-from unittest.mock import mock_open, patch
-
+from .test_data import params
+from unittest.mock import patch, mock_open
 import pytest
 
 # Import the functions from your script:
 # If your script is named "preprocessing.py", do:
 from src.preprocessing.preprocess import (
     PreprocessConfig,
+    fuse_hyphens,
     check_for_abbrev,
     check_roman_numeral,
-    execute_preprocessing,  # timed_execute_preprocessing
-    fuse_hyphens,
+    tokenize,
+    split_sentences,
+    preprocess_file,
     get_year_chunk_paths,
     prep_year_data_for_tagging,
-    preprocess_file,
-    split_sentences,
     start_preprocessing,
-    tokenize,
+    execute_preprocessing,  # timed_execute_preprocessing
 )
 from utility.settings import settings
-
-from .test_data import params
 
 
 @pytest.fixture(scope="session")
 def preprocess_data():
-    data = PreprocessConfig(ABBREVIATION_FILE=settings.PATH_TO_ABBREVIATION_FILE)
+    data = PreprocessConfig(
+        ABBREVIATION_FILE=settings.PATH_TO_ABBREVIATION_FILE
+        )
     data.load_abbrevs()
     return data
 
@@ -47,7 +48,9 @@ a. d. D.
 a. d. E.
 A. d. Hrsg.
 """
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as tmp:
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".txt"
+         ) as tmp:
         tmp.write(fake_data)
         temp_path = tmp.name
 
@@ -56,19 +59,21 @@ A. d. Hrsg.
         abbrev_set = preprocess_data.ABBREVIATION_LIST
 
         # Example checks
-        assert "vgl." in abbrev_set, (
-            "The abbreviation 'vgl' should be in the loaded set."
-        )
-        assert "dr." in abbrev_set, "The abbreviation 'dr' should be in the loaded set."
-        assert "z." in abbrev_set, (
-            "Should handle abbreviations split by punctuation (z.B.)."
-        )
+        assert (
+            "vgl." in abbrev_set
+        ), "The abbreviation 'vgl' should be in the loaded set."
+        assert (
+            "dr." in abbrev_set
+        ), "The abbreviation 'dr' should be in the loaded set."
+        assert (
+            "z." in abbrev_set
+        ), "Should handle abbreviations split by punctuation (z.B.)."
         assert "b." in abbrev_set, "Part of 'z.B.' as well."
         # We expect that "vgl" or "u" or "a" are keys.
         # The structure is defaultdict(list), so each key should map to a list.
-        assert isinstance(abbrev_set["vgl."], list), (
-            "Each key should map to a list of dicts."
-        )
+        assert isinstance(
+            abbrev_set["vgl."], list
+        ), "Each key should map to a list of dicts."
 
     finally:
         # Clean up temp file
@@ -155,18 +160,20 @@ sentence. 67891\nAnother 12345\nline 67891\nwith¬ 67891\nhyphen. 67891\n"
     mock_abbreviation_file_content = "Dr.\nProf."
 
     # Mock the abbreviation file and input file
-    with patch(
-        "builtins.open", mock_open(read_data=mock_abbreviation_file_content)
-    ) as mock_file:
+    with patch("builtins.open",
+               mock_open(read_data=mock_abbreviation_file_content))\
+            as mock_file:
         preprocess_data = PreprocessConfig(
             ABBREVIATION_FILE=settings.PATH_TO_ABBREVIATION_FILE
-        )
+            )
         preprocess_data.load_abbrevs()
         mock_file.assert_called_once_with(
-            settings.PATH_TO_ABBREVIATION_FILE, encoding="utf8"
-        )
+            settings.PATH_TO_ABBREVIATION_FILE,
+            encoding="utf8"
+            )
 
-    with patch("builtins.open", mock_open(read_data=mock_content)) as mock_file:
+    with patch("builtins.open",
+               mock_open(read_data=mock_content)) as mock_file:
         sentences = preprocess_file("/path/to/input/file")
 
         mock_file.assert_called_with("/path/to/input/file", encoding="utf8")
@@ -174,8 +181,9 @@ sentence. 67891\nAnother 12345\nline 67891\nwith¬ 67891\nhyphen. 67891\n"
         assert len(sentences) > 0
         assert all(isinstance(sentence, list) for sentence in sentences)
         assert all(
-            isinstance(token, dict) for sentence in sentences for token in sentence
-        )
+            isinstance(token, dict)
+            for sentence in sentences for token in sentence
+            )
         assert sentences[0][0]["token"] == "This"  # Check the first token
         assert sentences[0][-1]["token"] == "."  # Check the last token
         assert sentences[-1][-2]["token"] == "withhyphen"  # Check fuse hyphens
@@ -200,13 +208,11 @@ def test_get_year_chunk_paths_with_large_number_of_files_copilot():
     year = "/path/to/year"
     mock_files = [f"{year}/file{i}.txt" for i in range(1500)]  # 1500 files
     mock_chunks = [
-        (i, mock_files[i * 500 : (i + 1) * 500]) for i in range(3)
+        (i, mock_files[i * 500:(i + 1) * 500]) for i in range(3)
     ]  # Simulate splitting into 3 chunks
 
-    with (
-        patch("glob.glob", return_value=mock_files),
-        patch("utility.split_year.split_directory", return_value=mock_chunks),
-    ):
+    with patch("glob.glob", return_value=mock_files), \
+         patch("utility.split_year.split_directory", return_value=mock_chunks):
         result = get_year_chunk_paths(year)
 
         assert len(result) == 3  # Three chunks
@@ -218,29 +224,30 @@ def test_get_year_chunk_paths_with_large_number_of_files_copilot():
 # -------------------------------------------------
 # 9. Test prep_year_data_for_tagging
 # -------------------------------------------------
-@pytest.mark.parametrize("content, expected", params.PARAMS_prep_year_data_for_tagging)
+@pytest.mark.parametrize(
+    "content, expected",
+    params.PARAMS_prep_year_data_for_tagging
+)
 def test_prep_year_data_for_tagging(content, expected):
     # Mock the output of preprocess file
     mock_preprocess_file_output = [
         [
-            {"coord": "12345:main", "token": "This"},
-            {"coord": "67891:main", "token": "is"},
-            {"coord": "12345:main", "token": "a"},
-            {"coord": "67891:main", "token": "test"},
-            {"coord": "67891:main", "token": "sentence"},
-            {"coord": "67891:rpunc", "token": "."},
+            {'coord': '12345:main', 'token': 'This'},
+            {'coord': '67891:main', 'token': 'is'},
+            {'coord': '12345:main', 'token': 'a'},
+            {'coord': '67891:main', 'token': 'test'},
+            {'coord': '67891:main', 'token': 'sentence'},
+            {'coord': '67891:rpunc', 'token': '.'}
         ],
         [
-            {"coord": "12345:main", "token": "Another"},
-            {"coord": "67891:main", "token": "line"},
-            {"coord": "67891;67891:main", "token": "withhyphen"},
-            {"coord": "67891;67891:rpunc", "token": "."},
-        ],
-    ]
-    with patch(
-        "src.preprocessing.preprocess.preprocess_file",
-        return_value=mock_preprocess_file_output,
-    ):
+            {'coord': '12345:main', 'token': 'Another'},
+            {'coord': '67891:main', 'token': 'line'},
+            {'coord': '67891;67891:main', 'token': 'withhyphen'},
+            {'coord': '67891;67891:rpunc', 'token': '.'}
+        ]
+        ]
+    with patch("src.preprocessing.preprocess.preprocess_file",
+               return_value=mock_preprocess_file_output):
         assert expected == prep_year_data_for_tagging(content)
 
 
@@ -255,16 +262,10 @@ def test_prep_year_data_for_tagging(content, expected):
     [
         (
             ["1", "2", "3", "4", "5", "6"],
-            [
-                (("1",), {}),
-                (("2",), {}),
-                (("3",), {}),
-                (("4",), {}),
-                (("5",), {}),
-                (("6",), {}),
-            ],
+            [(('1',), {}), (('2',), {}), (('3',), {}),
+             (('4',), {}), (('5',), {}), (('6',), {})]
         )
-    ],
+    ]
 )
 def test_start_preprocessing(year_dirs, expected):
     settings.BATCH_SIZE = 3
@@ -279,8 +280,9 @@ def test_execute_preprocessing():
     settings.BATCH_SIZE = 3
     settings.PATH_TO_ABBREVIATION_FILE = "/path/to/abbreviation/file"
     settings.CUSTOM_PATHS = ["abc/1234"]
-    assert [(("abc", "1234"), {})] == [x for x in execute_preprocessing()]
+    assert [(('abc', '1234'), {})] == [x for x in execute_preprocessing()]
 
     settings.CUSTOM_PATHS = None
     settings.PATH_TO_INPUT_FOLDERS = "abc"
     assert [] == [x for x in execute_preprocessing()]
+

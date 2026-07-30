@@ -1,7 +1,8 @@
 import os
-
-from main import finish_data
 from utility.compare import compare_linking
+from main import (
+    finish_data
+)
 
 conf = {
     "PATH_TO_INPUT_FOLDERS": "./tests/test_data/input/",
@@ -12,7 +13,7 @@ conf = {
     "GND_LIMIT": 15,
     "WIKIDATA_LIMIT": 5,
     "LINKED_PERSONS_LIMIT": 10,
-    "PATH_TO_GROUND_TRUTH": "./data/ground_truth_linked/with_fuzzy_matching/",
+    "PATH_TO_GROUND_TRUTH": "./data/ground_truth_linked/with_fuzzy_matching/"
 }
 
 

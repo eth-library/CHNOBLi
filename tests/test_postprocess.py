@@ -1,24 +1,23 @@
 import re
-from unittest.mock import MagicMock, mock_open, patch
-
-import pytest
+from unittest.mock import patch, MagicMock, mock_open
 from lxml import etree
+import pytest
+
 from src.postprocess import (
-    add_info_to_entity,
-    add_info_to_place_entity,
-    adjust_information,
-    decide_articles,
-    execute_postprocessing,
-    get_data_paths_iterative,
-    get_found_names,
-    get_structure_info,
     initialize_found_entry,
     initialize_found_place_entry,
-    populate_year_dict,
+    add_info_to_entity,
+    add_info_to_place_entity,
+    decide_articles,
+    adjust_information,
+    get_structure_info,
     process_page,
+    get_found_names,
+    populate_year_dict,
+    get_data_paths_iterative,
+    execute_postprocessing
 )
 from utility.settings import settings
-
 
 # -------------------------------------------------
 # Test initialize_found_entry
@@ -32,14 +31,14 @@ def test_initialize_found_entry():
             "occupations": [],
             "titles": [],
             "address": [],
-            "others": [],
-        },
+            "others": []
+            },
         "pid": [],
         "pageNames": [],
         "pageNo": [],
         "sentenceNo": [],
-        "positions": [],
-    }
+        "positions": []
+        }
     assert empty_entry == initialize_found_entry()
 
 
@@ -54,8 +53,8 @@ def test_initialize_found_place_entry():
         "pageNames": [],
         "pageNo": [],
         "sentenceNo": [],
-        "positions": [],
-    }
+        "positions": []
+        }
     assert empty_place_entry == initialize_found_place_entry()
 
 
@@ -75,7 +74,14 @@ def test_add_info_to_entity_with_articles():
     # this will be ignored because structure info is only added once
     articles = ["article3"]
 
-    add_info_to_entity(entity, tag, token, pageNo, sentNo, pageName, articles, pid)
+    add_info_to_entity(entity,
+                       tag,
+                       token,
+                       pageNo,
+                       sentNo,
+                       pageName,
+                       articles,
+                       pid)
 
     assert entity["info"]["lastnames"] == ["Doe"]
     assert entity["pageNames"] == ["page1.txt"]
@@ -96,7 +102,14 @@ def test_add_info_to_entity_without_articles_copilot():
     pageName = "page1.txt"
     pid = "12345"
 
-    add_info_to_entity(entity, tag, token, pageNo, sentNo, pageName, [], pid)
+    add_info_to_entity(entity,
+                       tag,
+                       token,
+                       pageNo,
+                       sentNo,
+                       pageName,
+                       [],
+                       pid)
 
     assert entity["info"]["lastnames"] == ["Doe"]
     assert entity["pageNames"] == ["page1.txt"]
@@ -118,7 +131,14 @@ def test_add_info_to_entity_unknown_tag_copilot():
     articles = ["article3"]
     pid = "67890"
 
-    add_info_to_entity(entity, tag, token, pageNo, sentNo, pageName, articles, pid)
+    add_info_to_entity(entity,
+                       tag,
+                       token,
+                       pageNo,
+                       sentNo,
+                       pageName,
+                       articles,
+                       pid)
 
     assert entity["info"]["others"] == ["UnknownToken"]
     assert entity["pageNames"] == ["page2.txt"]
@@ -146,9 +166,14 @@ def test_add_info_to_place_entity_with_articles():
     # this will be ignored because structure info is only added once
     articles = ["article3"]
 
-    add_info_to_place_entity(
-        entity, tag, token, pageNo, sentNo, pageName, articles, pid
-    )
+    add_info_to_place_entity(entity,
+                             tag,
+                             token,
+                             pageNo,
+                             sentNo,
+                             pageName,
+                             articles,
+                             pid)
 
     assert entity["tokens"] == ["Berlin"]
     assert entity["type"] == "LOC"
@@ -169,7 +194,14 @@ def test_add_info_to_place_entity_without_articles_copilot():
     pageName = "page1.txt"
     pid = "12345"
 
-    add_info_to_place_entity(entity, tag, token, pageNo, sentNo, pageName, [], pid)
+    add_info_to_place_entity(entity,
+                             tag,
+                             token,
+                             pageNo,
+                             sentNo,
+                             pageName,
+                             [],
+                             pid)
 
     assert entity["tokens"] == ["Berlin"]
     assert entity["type"] == "LOC"
@@ -213,7 +245,12 @@ def test_decide_articles_empty_list_copilot():
 # -------------------------------------------------
 def test_adjust_information_single_value_copilot():
     entitylist = [
-        {"pageNames": ["page1.txt"], "pageNo": [1], "sentenceNo": [2], "pid": ["12345"]}
+        {
+            "pageNames": ["page1.txt"],
+            "pageNo": [1],
+            "sentenceNo": [2],
+            "pid": ["12345"]
+        }
     ]
 
     adjust_information(entitylist)
@@ -230,7 +267,7 @@ def test_adjust_information_multiple_values_copilot():
             "pageNames": ["page1.txt", "page1.txt"],
             "pageNo": [1, 1],
             "sentenceNo": [2, 2],
-            "pid": ["12345", "12345"],
+            "pid": ["12345", "12345"]
         }
     ]
 
@@ -244,7 +281,12 @@ def test_adjust_information_multiple_values_copilot():
 
 def test_adjust_information_empty_pid_copilot():
     entitylist = [
-        {"pageNames": ["page1.txt"], "pageNo": [1], "sentenceNo": [2], "pid": []}
+        {
+            "pageNames": ["page1.txt"],
+            "pageNo": [1],
+            "sentenceNo": [2],
+            "pid": []
+        }
     ]
 
     adjust_information(entitylist)
@@ -291,9 +333,8 @@ def test_get_structure_info_with_custom_path():
         mock_root = etree.fromstring(mock_xml_content)
         mock_parse.return_value = MagicMock(getroot=lambda: mock_root)
 
-        result = get_structure_info(
-            ("short", "2023"), custom_path="/path/to/custom.xml"
-        )
+        result = get_structure_info(("short", "2023"),
+                                    custom_path="/path/to/custom.xml")
 
     assert "page1.txt" in result
     assert result["page1.txt"] == ("doc123:page1", [{"article1": {}}], "1")
@@ -337,7 +378,8 @@ def test_get_structure_info_with_default_path_copilot():
     mock_root = etree.fromstring(mock_xml_content)
 
     # Mock etree.parse to return the mock XML content
-    with patch("lxml.etree.parse", return_value=MagicMock(getroot=lambda: mock_root)):
+    with patch("lxml.etree.parse",
+               return_value=MagicMock(getroot=lambda: mock_root)):
         result = get_structure_info(year)
 
     assert "page2.txt" in result
@@ -407,7 +449,12 @@ def test_process_page_no_structure_info_copilot():
     structure_info = {}  # No structure info for this page
     i = 3
 
-    process_page(page, sentences, entitylist, placeEntitylist, structure_info, i)
+    process_page(page,
+                 sentences,
+                 entitylist,
+                 placeEntitylist,
+                 structure_info,
+                 i)
 
     assert len(entitylist) == 1
     assert entitylist[0]["info"]["lastnames"] == ["Smith"]
@@ -423,14 +470,15 @@ def test_process_page_no_structure_info_copilot():
 # -------------------------------------------------
 def test_get_found_names_with_valid_structure_info_copilot():
     items = (("short", "2023"), "page1.jsonl", False)
-    structure_info = {"page1.txt": ("doc123:page1", [{"article1": {}}], "1")}
+    structure_info = {
+        "page1.txt": ("doc123:page1", [{"article1": {}}], "1")
+    }
     mock_file_content = """{"page1.txt": [[{"tag": "B-PER-LN", "token": "Doe",\
 "coord": [0, 3]},{"tag": "I-PER-FN", "token": "John", "coord": [4, 8]}]]}"""
-    with (
-        patch("builtins.open", mock_open(read_data=mock_file_content)),
-        patch("src.postprocess.get_structure_info", return_value=structure_info),
-    ):
-        entitylist, year, pages = get_found_names(items)
+    with patch("builtins.open", mock_open(read_data=mock_file_content)):
+        with patch("src.postprocess.get_structure_info",
+                   return_value=structure_info):
+            entitylist, year, pages = get_found_names(items)
 
     assert year == ("short", "2023")
     assert pages == ["page1.jsonl"]
@@ -448,11 +496,10 @@ def test_get_found_names_with_empty_structure_info_copilot():
     structure_info = {}
     mock_file_content = """{"page2.txt": [[{"tag": "B-LOC", "token": "Berlin",\
 "coord": [0, 6]},{"tag": "I-LOC", "token": "Germany", "coord": [7, 14]}]]}"""
-    with (
-        patch("builtins.open", mock_open(read_data=mock_file_content)),
-        patch("src.postprocess.get_structure_info", return_value=structure_info),
-    ):
-        entitylist, year, pages = get_found_names(items)
+    with patch("builtins.open", mock_open(read_data=mock_file_content)):
+        with patch("src.postprocess.get_structure_info",
+                   return_value=structure_info):
+            entitylist, year, pages = get_found_names(items)
 
     assert year == ("short", "2023")
     assert pages == ["page2.jsonl"]
@@ -469,7 +516,7 @@ def test_get_found_names_with_multiple_pages_copilot():
     items = (("short", "2023"), ["page1.jsonl", "page2.jsonl"], True)
     structure_info = {
         "page1.txt": ("doc123:page1", [{"article1": {}}], "1"),
-        "page2.txt": ("doc456:page2", [{"article2": {}}], "2"),
+        "page2.txt": ("doc456:page2", [{"article2": {}}], "2")
     }
     mock_file_content_page1 = """{"page1.txt": [[{"tag": "B-PER-LN",\
 "token": "Smith", "coord": [0, 5]}]]}"""
@@ -478,9 +525,10 @@ def test_get_found_names_with_multiple_pages_copilot():
     with patch("builtins.open", mock_open()) as mock_file:
         mock_file.side_effect = [
             mock_open(read_data=mock_file_content_page1).return_value,
-            mock_open(read_data=mock_file_content_page2).return_value,
+            mock_open(read_data=mock_file_content_page2).return_value
         ]
-        with patch("src.postprocess.get_structure_info", return_value=structure_info):
+        with patch("src.postprocess.get_structure_info",
+                   return_value=structure_info):
             entitylist, year, pages = get_found_names(items)
 
     assert year == ("short", "2023")
@@ -507,7 +555,7 @@ def test_populate_year_dict_with_json_files_copilot():
     year_dict = {}
     file_list = [
         "/path/to/magazine1/2023/file1.json",
-        "/path/to/magazine1/2023/file2.json",
+        "/path/to/magazine1/2023/file2.json"
     ]
 
     populate_year_dict(year_dict, file_list)
@@ -523,7 +571,7 @@ def test_populate_year_dict_with_jsonl_files_copilot():
     year_dict = {}
     file_list = [
         "/path/to/magazine2/2023/file1.jsonl",
-        "/path/to/magazine2/2023/file2.jsonl",
+        "/path/to/magazine2/2023/file2.jsonl"
     ]
 
     populate_year_dict(year_dict, file_list)
@@ -539,7 +587,7 @@ def test_populate_year_dict_with_unsupported_file_type_copilot():
     year_dict = {}
     file_list = [
         "/path/to/magazine3/2023/file1.txt",
-        "/path/to/magazine3/2023/file2.csv",
+        "/path/to/magazine3/2023/file2.csv"
     ]
 
     populate_year_dict(year_dict, file_list)
@@ -551,11 +599,9 @@ def test_populate_year_dict_with_unsupported_file_type_copilot():
 # Test get_data_paths_iterative
 # -------------------------------------------------
 def test_get_data_paths_iterative_with_custom_paths():
-    settings.CUSTOM_PATHS = [
-        "/path/to/custom1.json",
-        "/path/to/custom2.json",
-        "/path/to/custom3.json",
-    ]
+    settings.CUSTOM_PATHS= ["/path/to/custom1.json",
+                         "/path/to/custom2.json",
+                         "/path/to/custom3.json"]
     settings.BATCH_SIZE = 2
 
     with patch("os.path.isfile", return_value=True):
@@ -564,7 +610,7 @@ def test_get_data_paths_iterative_with_custom_paths():
     assert len(result) == 2
     assert result[0] == {
         ("to", "custom1"): "/path/to/custom1.json",
-        ("to", "custom2"): "/path/to/custom2.json",
+        ("to", "custom2"): "/path/to/custom2.json"
     }
     assert result[1] == {
         ("to", "custom3"): "/path/to/custom3.json",
@@ -581,7 +627,7 @@ def test_get_data_paths_iterative_with_magazine_directories(mock_glob):
         ["/path/to/mag/111"],
         ["/path/to/mag/222"],
         ["/path/to/mag/111/file1.json"],
-        ["/path/to/mag/222/file2.json"],
+        ["/path/to/mag/222/file2.json"]
     ]
     with patch("os.path.isdir", return_value=True):
         result = list(get_data_paths_iterative())
@@ -594,11 +640,9 @@ def test_get_data_paths_iterative_with_magazine_directories(mock_glob):
 
 
 def test_get_data_paths_iterative_with_tag_folder():
-    settings.CUSTOM_PATHS = [
-        "/path/to/output/tag/111/file1.json",
+    settings.CUSTOM_PATHS = ["/path/to/output/tag/111/file1.json",
         "/path/to/output/tag/222/file2.json",
-        "/path/to/output/tag/333/file3.json",
-    ]
+        "/path/to/output/tag/333/file3.json"]
     settings.BATCH_SIZE = 2
 
     with patch("os.path.isfile", return_value=True):
@@ -612,7 +656,7 @@ def test_get_data_paths_iterative_with_tag_folder():
 
 def test_get_data_paths_iterative_with_invalid_input_dir():
     settings.PATH_TO_INPUT_FOLDERS = "/invalid/path/"
-    settings.BATCH_SIZE = 1
+    settings.BATCH_SIZE =  1
 
     with pytest.raises(Exception) as pyexc:
         list(get_data_paths_iterative())
@@ -627,14 +671,10 @@ def test_get_data_paths_iterative_with_invalid_input_mag(mock_glob):
     settings.BATCH_SIZE = 1
     mock_glob.return_value = [
         "/invalid/path/111",
-    ]
-    with pytest.raises(
-        Exception,
-        match=re.escape(
-            f"The given input: {mock_glob.return_value}\
- is neither a valid directory, nor a valid file."
-        ),
-    ):
+     ]
+    with pytest.raises(Exception,
+                       match=re.escape(f'The given input: {mock_glob.return_value}\
+ is neither a valid directory, nor a valid file.')):
         list(get_data_paths_iterative())
 
 
@@ -646,17 +686,18 @@ def test_execute_postprocessing_basic_copilot():
     settings.BATCH_SIZE = 2
     settings.CUSTOM_PATHS = ["test_data/tag/test.json"]
     tasks = ["post"]
-    magazines = [{"year1": "data1", "year2": "data2"}, {"year3": "data3"}]
+    magazines = [
+        {"year1": "data1", "year2": "data2"},
+        {"year3": "data3"}
+    ]
 
-    # Patch Pool, get_data_paths_iterative, get_found_names
-    with (
-        patch("src.postprocess.Pool") as mock_pool,
-        patch("src.postprocess.get_found_names") as mock_found_names
-    ):
+    # Patch Pool, get_data_paths_iterative, get_found_names, save_data_intermediate
+    with patch("src.postprocess.Pool") as mock_pool, \
+         patch("src.postprocess.get_found_names") as mock_found_names, \
+         patch("src.postprocess.save_data_intermediate") as mock_save:
+
         # Setup mocks
-        mock_pool.return_value.__enter__.return_value.map.return_value = [
-            (["entity"], ("mag", "2025"), ["test.json"])
-        ]
+        mock_pool.return_value.__enter__.return_value.map.return_value = [(["entity"], ("mag", "2025"), ["test.json"])]
         mock_found_names.return_value = (["entity"], ("mag", "2025"), ["test.json"])
 
         result = execute_postprocessing(magazines, tasks, timed=False)
@@ -673,13 +714,13 @@ def test_execute_postprocessing_with_agg_batchsize1(mock_get_found_names, mock_p
     paths = ["test.json"]
     magazines = [
         {("abc", "year1"): "data1", ("abc", "year2"): "data2"},
-        {("def", "year3"): "data3"},
+        {("def", "year3"): "data3"}
     ]
     # Mock get_found_names to return processed data
     mock_get_found_names.side_effect = [
         ("processed_data1", "year1", paths),
         ("processed_data2", "year2", paths),
-        ("processed_data3", "year3", paths),
+        ("processed_data3", "year3", paths)
     ]
 
     with patch("src.postprocess.save_data_intermediate") as mock_save:
@@ -687,8 +728,7 @@ def test_execute_postprocessing_with_agg_batchsize1(mock_get_found_names, mock_p
         mock_pool_instance = MagicMock()
         mock_pool.return_value.__enter__.return_value = mock_pool_instance
         mock_pool_instance.map.side_effect = lambda func, items: [
-            func(item) for item in items
-        ]
+            func(item) for item in items]
 
         result = execute_postprocessing(magazines, tasks, timed=False)
         assert len(result) == 3
@@ -718,13 +758,13 @@ def test_execute_postprocessing_with_agg_batchsizek(mock_get_found_names, mock_p
     paths = ["test.jsonl"]
     magazines = [
         {("abc", "year1"): "data1", ("abc", "year2"): "data2"},
-        {("def", "year3"): "data3"},
+        {("def", "year3"): "data3"}
     ]
     # Mock get_found_names to return processed data
     mock_get_found_names.side_effect = [
         ("processed_data1", "year1", paths),
         ("processed_data2", "year2", paths),
-        ("processed_data3", "year3", paths),
+        ("processed_data3", "year3", paths)
     ]
 
     with patch("src.postprocess.save_data_intermediate") as mock_save:
@@ -732,8 +772,7 @@ def test_execute_postprocessing_with_agg_batchsizek(mock_get_found_names, mock_p
         mock_pool_instance = MagicMock()
         mock_pool.return_value.__enter__.return_value = mock_pool_instance
         mock_pool_instance.map.side_effect = lambda func, items: [
-            func(item) for item in items
-        ]
+            func(item) for item in items]
 
         result = execute_postprocessing(magazines, tasks, timed=False)
         assert len(result) == 3

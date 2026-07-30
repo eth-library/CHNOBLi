@@ -1,19 +1,23 @@
+#! /usr/bin/python3
+
 """
 Includes functions to tag files using flairNLP.
+Version 31.08.2020: Updated to use new tagging system which uses 2 models at
+once.
 """
-import logging
-import os
+
+import orjson
 from collections import defaultdict
 from datetime import datetime
-
+import logging
+import os
+from utility.settings import settings
 import flair
-import orjson
-from flair.data import Label, Sentence, Token
+from flair.data import Sentence, Token, Label
 from flair.models import MultitaskModel
 from flair.nn import Classifier
 from torch import device as torch_device
 from torch.cuda import is_available as cuda_is_available
-from utility.settings import settings
 
 
 class CustomToken(Token):
@@ -89,8 +93,12 @@ def decide_tag_no_tag_lower_prio(labels: list) -> Label:
     elif bio_label.value[2:] == det_label.value[2:]:
         new_label = bio_label.value
     else:  # if they don't agree, O always loses
-        if det_label.value == "O" or (
-            bio_label.score > det_label.score and bio_label.value != "O"
+        if (
+            det_label.value == "O"
+            or
+            (
+                bio_label.score > det_label.score and bio_label.value != "O"
+            )
         ):
             if bio_label.value[2:] == "PER":
                 new_label = bio_label.value + "-OT"
@@ -125,7 +133,7 @@ def add_sentences(new_data: dict, collected_sentences: list) -> None:
                     "token": token.orig,
                     "coord": token.coords,
                     "normalized": token.text,
-                    "tag": "O",
+                    "tag": "O"
                 }
             else:
                 tag = decide_tag_no_tag_lower_prio(token.labels)
@@ -157,16 +165,14 @@ def write_sentences_to_outfile(outfile, data: dict) -> None:
     for filename, sentences in data.items():
         out_dict = {filename: sentences}
         outfile.write(orjson.dumps(out_dict) + b"\n")
-
+    
     data.clear()
 
 
-def tag_year_data_and_save(
-    collection: dict,
-    tagger: MultitaskModel,
-    outfile_path: str,
-    sentence_batch_size: int,
-) -> None:
+def tag_year_data_and_save(collection: dict,
+                           tagger: MultitaskModel,
+                           outfile_path: str,
+                           sentence_batch_size: int) -> None:
     """
     Runs tagging on the collection and saves the result
     into the outfile_path.
@@ -185,54 +191,58 @@ def tag_year_data_and_save(
     :type sentence_batch_size: int
     """
 
-    with open(outfile_path, mode="wb") as outfile:
-        new_data = defaultdict(list)
-        collected_sentences = []
-        for filename, sentences in collection.items():
-            for sentence in sentences:
-                # Use slicing to handle chunking of large sentences
-                for i in range(0, len(sentence), 250):
-                    chunk = sentence[i : i + 250]
-                    if not chunk:
-                        continue
+    # open outfile
+    outfile = open(outfile_path, mode="wb")
 
-                    # Create Flair tokens for this chunk
-                    flair_tokens = [
-                        CustomToken(
-                            text=(t["normalized"] if "normalized" in t else t["token"]),
-                            coords=t["coord"],
-                            orig=t["token"],
-                        )
-                        for t in chunk
-                    ]
+    new_data = defaultdict(list)
+    collected_sentences = []
+    for filename, sentences in collection.items():
+        for sentence in sentences:
+            # Use slicing to handle chunking of large sentences
+            for i in range(0, len(sentence), 250):
+                chunk = sentence[i : i + 250]
+                if not chunk:
+                    continue
 
-                    # Create sentence with tokens and metadata immediately
-                    # to avoid empty sentence warnings
-                    new_sentence = CustomSentence(filename, flair_tokens)
-                    collected_sentences.append(new_sentence)
+                # Create Flair tokens for this chunk
+                flair_tokens = [
+                    CustomToken(
+                        text=(t["normalized"] if "normalized" in t else t["token"]),
+                        coords=t["coord"],
+                        orig=t["token"],
+                    )
+                    for t in chunk
+                ]
 
-                    if len(collected_sentences) >= sentence_batch_size:
-                        tagger.predict(
-                            collected_sentences,
-                            verbose=False,
-                            mini_batch_size=4,
-                            force_token_predictions=True,
-                        )
-                        add_sentences(new_data, collected_sentences)
-                        collected_sentences = []
+                # Create sentence with tokens and metadata immediately
+                # to avoid empty sentence warnings
+                new_sentence = CustomSentence(filename, flair_tokens)
+                collected_sentences.append(new_sentence)
 
-                        write_sentences_to_outfile(outfile, new_data)
+                if len(collected_sentences) >= sentence_batch_size:
+                    tagger.predict(
+                        collected_sentences,
+                        verbose=False,
+                        mini_batch_size=4,
+                        force_token_predictions=True,
+                    )
+                    add_sentences(new_data, collected_sentences)
+                    collected_sentences = []
 
-        if collected_sentences:
-            tagger.predict(
-                collected_sentences,
-                verbose=False,
-                mini_batch_size=4,
-                force_token_predictions=True,
-            )
-            add_sentences(new_data, collected_sentences)
+                    write_sentences_to_outfile(outfile, new_data)
 
-            write_sentences_to_outfile(outfile, new_data)
+    if collected_sentences:
+        tagger.predict(
+            collected_sentences,
+            verbose=False,
+            mini_batch_size=4,
+            force_token_predictions=True,
+        )
+        add_sentences(new_data, collected_sentences)
+
+        write_sentences_to_outfile(outfile, new_data)
+
+    outfile.close()
 
 
 def setup_flair_tagger(gpu_num: int) -> MultitaskModel:
@@ -295,7 +305,9 @@ def package_generator_output_paths(generator, batch_size):
         yield year_dict
 
 
-def execute_tagging(preprocessed_data, tasks: list, gpu_num: int) -> None:
+def execute_tagging(preprocessed_data,
+                    tasks: list,
+                    gpu_num: int) -> None:
     """
     Tags the preprocessed data using the provided flair tagger and
     configuration.
@@ -328,9 +340,13 @@ def execute_tagging(preprocessed_data, tasks: list, gpu_num: int) -> None:
             yearfolder = os.path.join(outfolder, "tag", year[0])
             if not os.path.exists(yearfolder):
                 os.makedirs(yearfolder)
-            outfile_path = os.path.join(yearfolder, "".join(year[1:]) + ".jsonl")
+            outfile_path = os.path.join(yearfolder,
+                                        "".join(year[1:]) + ".jsonl")
             tag_year_data_and_save(
-                data, flair_tagger, outfile_path, int(settings.SENTENCE_BATCH_SIZE)
+                data,
+                flair_tagger,
+                outfile_path,
+                int(settings.SENTENCE_BATCH_SIZE)
             )
             logging.info(f"Finished tagging {year}.")
     logging.info(f"Tagging took: {datetime.now() - start_time}")

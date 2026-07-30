@@ -1,19 +1,17 @@
-from unittest.mock import MagicMock, patch
-
 import pytest
+from unittest.mock import patch, MagicMock
+from .test_data import params
 from utility.linking_utils import (
-    _es_search,  # TODO?
     clean_namestring,
-    convert_dates_wikidata,
-    convert_gnd_format_kibana,
-    convert_wikidata_format_kibana,
     prep_name_for_elasticsearch_query,
     search_person_gnd,
-    search_person_gnd_variantName,  # TODO
+    convert_dates_wikidata,
+    convert_wikidata_format_kibana,
+    convert_gnd_format_kibana,
     search_person_wikidata,
+    search_person_gnd_variantName,  # TODO
+    _es_search  # TODO?
 )
-
-from .test_data import params
 
 
 # -------------------------------------------------
@@ -22,11 +20,11 @@ from .test_data import params
 @pytest.mark.parametrize(
     "name,expected",
     [
-        ("D. Birchall", "D* Birchall"),
-        ("J.F. Bitschnau", "J*F* Bitschnau"),
+        ("D. Birchall", 'D* Birchall'),
+        ("J.F. Bitschnau", 'J*F* Bitschnau'),
         ("Wyß", "Wyss"),
         ("]osef", "osef"),
-        ("hel.lo", "hello"),
+        ("hel.lo", "hello")
     ],
 )
 def test_clean_namestring(name, expected):
@@ -43,14 +41,14 @@ def test_clean_namestring(name, expected):
 @pytest.mark.parametrize(
     "name,expected",
     [
-        ("D* Birchall", "D* Birchall~2"),
-        ("J*F* Bitschnau", "J*F* Bitschnau~2"),
-        ("Viktor Amadeus", "Viktor~2 Amadeus~2"),
-        (" Hiilimann", "Hiilimann~2"),
-        ("Urs fosef Cavelti", "Urs~1 fosef~1 Cavelti~2"),
+        ("D* Birchall", 'D* Birchall~2'),
+        ("J*F* Bitschnau", 'J*F* Bitschnau~2'),
+        ("Viktor Amadeus", 'Viktor~2 Amadeus~2'),
+        (" Hiilimann", 'Hiilimann~2'),
+        ("Urs fosef Cavelti", 'Urs~1 fosef~1 Cavelti~2'),
         # his name is actually Urs Josef Cavelti
         ("David", "David~1"),
-        ("Wyss", "Wyss~1"),
+        ("Wyss", "Wyss~1")
     ],
 )
 def test_prep_name_for_elasticsearch_query(name, expected):
@@ -70,8 +68,8 @@ def test_prep_name_for_elasticsearch_query(name, expected):
 )
 @patch("utility.linking_utils.requests.get")
 def test_search_person_gnd(
-    mock_get, fnames, lastname, year, gnd_limit, fuzzy, expected, get_res
-):
+     mock_get, fnames, lastname, year, gnd_limit, fuzzy, expected, get_res
+     ):
     """
     We check
     (1) Do we get results even for misspelled or abbreviated entities.
@@ -97,7 +95,7 @@ def test_search_person_gnd(
         ("+2025-02-00T00:00:00Z", "2025-02-00"),  # month
         ("+2025-00-00T00:00:00Z", "2025-00-00"),  # year
         ("+2010-00-00T00:00:00Z", "2010-00-00"),  # decade
-        ("+2025-02-11T20:21:22Z", "2025-02-11"),  # second
+        ("+2025-02-11T20:21:22Z", "2025-02-11")  # second
     ],
 )
 def test_convert_dates(wikidata_date, expected):
@@ -117,7 +115,7 @@ def test_convert_dates(wikidata_date, expected):
 @patch("utility.linking_utils.requests.get")
 def test_search_person_wikidata(
     mock_get, search_term, year, wikidata_limit, fuzzy, expected, get_res
-):
+     ):
     """
     We check
     (1) Do we get results even for misspelled or abbreviated entities.
@@ -130,10 +128,9 @@ def test_search_person_wikidata(
 
     mock_get.return_value = mock_response
     assert search_person_wikidata(search_term, year, wikidata_limit, fuzzy) == expected
-    assert (
-        len(search_person_wikidata(search_term, year, wikidata_limit, fuzzy))
-        <= wikidata_limit
-    )
+    assert len(
+        search_person_wikidata(search_term, year, wikidata_limit, fuzzy)
+    ) <= wikidata_limit
 
 
 # -------------------------------------------------

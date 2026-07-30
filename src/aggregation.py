@@ -1,16 +1,16 @@
+#! /usr/bin/python3
 """
 Aggregation module
 """
-import logging
-import pprint as pp
-import re
 from collections import defaultdict
+import re
+import pprint as pp
 from datetime import datetime
+import logging
 from multiprocessing import Pool
-
 from germalemma import GermaLemma
-from utility.settings import settings
 from utility.utils import save_data
+from utility.settings import settings
 
 PREPATTERN = re.compile(r"^[\W_]+", flags=re.UNICODE)
 POSTPATTERN = re.compile(r"[\W_]+$", flags=re.UNICODE)
@@ -35,15 +35,15 @@ def create_new_aggregated_unit(ref: dict) -> dict:
     info = ref["info"]
     out_dict = {
         "lastname": info["lastnames"],
-        "firstname": {tuple(info["firstnames"].split())},
-        "abbr_firstname": {tuple(info["abbr_firstnames"].split())},
-        "address": {tuple(info["address"])},
-        "titles": {tuple(info["titles"])},
-        "profession": {tuple(info["occupations"])},
-        "other": {tuple(info["others"])},
+        "firstname": set([tuple(info["firstnames"].split())]),
+        "abbr_firstname": set([tuple(info["abbr_firstnames"].split())]),
+        "address": set([tuple(info["address"])]),
+        "titles": set([tuple(info["titles"])]),
+        "profession": set([tuple(info["occupations"])]),
+        "other": set([tuple(info["others"])]),
         "references": {},
-        "type": "PER",
-    }
+        "type": "PER"
+        }
 
     if "context" in ref:  # custom tag output
         out_dict["references"] = {
@@ -53,10 +53,10 @@ def create_new_aggregated_unit(ref: dict) -> dict:
         }
     else:
         out_dict["references"] = {
-            (ref["pageNo"], ref["pageNames"], ref["pid"]): [
-                (ref["sentenceNo"], ref["positions"], ref["articles"])
-            ]
-        }
+                (ref["pageNo"], ref["pageNames"], ref["pid"]): [
+                    (ref["sentenceNo"], ref["positions"], ref["articles"])
+                ]
+            }
     for k in out_dict:
         for t in k:
             if len(t) == 0:
@@ -84,24 +84,24 @@ def merge_to_existing_aggregated_unit(match_in: dict, ref: dict) -> None:
     #for fname in info["firstnames"].split():
     #    if tuple([fname]) not in match_in["firstname"]:
     #        match_in["firstname"].add(tuple([fname]))
-    if () in match_in["firstname"]:
-        match_in["firstname"].remove(())
+    if tuple() in match_in["firstname"]:
+        match_in["firstname"].remove(tuple())
 
     match_in["abbr_firstname"].add(tuple(info["abbr_firstnames"].split()))
-    if () in match_in["abbr_firstname"]:
-        match_in["abbr_firstname"].remove(())
+    if tuple() in match_in["abbr_firstname"]:
+        match_in["abbr_firstname"].remove(tuple())
     match_in["titles"].add(tuple(info["titles"]))
-    if () in match_in["titles"]:
-        match_in["titles"].remove(())
+    if tuple() in match_in["titles"]:
+        match_in["titles"].remove(tuple())
     match_in["other"].add(tuple(info["others"]))
-    if () in match_in["other"]:
-        match_in["other"].remove(())
+    if tuple() in match_in["other"]:
+        match_in["other"].remove(tuple())
     match_in["address"].add(tuple(info["address"]))
-    if () in match_in["address"]:
-        match_in["address"].remove(())
+    if tuple() in match_in["address"]:
+        match_in["address"].remove(tuple())
     match_in["profession"].add(tuple(info["occupations"]))
-    if () in match_in["profession"]:
-        match_in["profession"].remove(())
+    if tuple() in match_in["profession"]:
+        match_in["profession"].remove(tuple())
 
     if "context" in ref:
         page_tri = (ref["pageNo"], ref["pageNames"], ref["pid"])
@@ -121,9 +121,10 @@ def merge_to_existing_aggregated_unit(match_in: dict, ref: dict) -> None:
             match_in["references"][page_tri] = [sent_tri]
 
 
-def decide_candidates(
-    ref: dict, candidates: list, aggregated_names: list, verbose=False
-) -> None:
+def decide_candidates(ref: dict,
+                      candidates: list,
+                      aggregated_names: list,
+                      verbose=False) -> None:
     """
     Select the best matching candidate and merge, or create a new unit.
 
@@ -150,16 +151,18 @@ def decide_candidates(
     best_candidate = None
     for c in candidates:
         # get page and sentence number
-        c_pos_list = [
-            (page[0], entry[0])
-            for page, pagelist in c["references"].items()
-            for entry in pagelist
-        ]
+        c_pos_list = [(page[0], entry[0]) for page, pagelist in
+                      c["references"].items() for entry in pagelist]
         diff = [
-            (ref["pageNo"] - c_pos[0], ref["sentenceNo"] - c_pos[1])
-            for c_pos in c_pos_list
-            if ref["pageNo"] - c_pos[0] > 0
-            or ((ref["pageNo"] - c_pos[0] == 0) and (ref["sentenceNo"] - c_pos[1] >= 0))
+                (
+                    ref["pageNo"] - c_pos[0], ref["sentenceNo"] - c_pos[1]
+                ) for c_pos in c_pos_list if ref["pageNo"] - c_pos[0] > 0
+                or
+                (
+                    (ref["pageNo"] - c_pos[0] == 0)
+                    and
+                    (ref["sentenceNo"] - c_pos[1] >= 0)
+                )
         ]
         if diff:
             diff = min(diff)
@@ -168,10 +171,11 @@ def decide_candidates(
         if best_candidate is None:
             best_candidate = (c, diff[0], diff[1])
         else:
-            if best_candidate[1] > diff[0] or (
-                best_candidate[1] == diff[0] and best_candidate[2] > diff[1]
-            ):
+            if best_candidate[1] > diff[0]:
                 best_candidate = (c, diff[0], diff[1])
+            elif best_candidate[1] == diff[0]:
+                if best_candidate[2] > diff[1]:
+                    best_candidate = (c, diff[0], diff[1])
     if best_candidate is None:
         aggregated_names.append(create_new_aggregated_unit(ref))
     else:
@@ -197,9 +201,7 @@ def full_firstname_match(ref: dict, aggregated_names: list) -> dict:
     """
 
     for entry in aggregated_names:
-        if [x.lower() for x in ref["info"]["lastnames"]] == [
-            x.lower() for x in entry["lastname"]
-        ]:
+        if [x.lower() for x in ref["info"]["lastnames"]] == [x.lower() for x in entry["lastname"]]:
             if {
                 x.lower() for x in ref["info"]["firstnames"].split() if x != ""
             }.isdisjoint([y.lower() for x in entry["firstname"] for y in x]):
@@ -208,7 +210,9 @@ def full_firstname_match(ref: dict, aggregated_names: list) -> dict:
     return None
 
 
-def aggregate_with(namepart_dict: dict, aggregated_names: list, namepart: str) -> None:
+def aggregate_with(namepart_dict: dict,
+                   aggregated_names: list,
+                   namepart: str) -> None:
     """
     Aggregate person entity references by a specified name part.
 
@@ -255,7 +259,8 @@ def aggregate_with(namepart_dict: dict, aggregated_names: list, namepart: str) -
                 # Also check for matching gender (or no gender info)
                 # This time, we need to collect candidates, then take the one
                 # that appeared the closest last time.
-                candidates = abbrev_firstname_match(reference, aggregated_names)
+                candidates = abbrev_firstname_match(reference,
+                                                    aggregated_names)
             elif namepart == "onlylastnames":
                 # Aggregate with matching lastnames, if multiple candidates
                 # choose last seen.
@@ -263,7 +268,8 @@ def aggregate_with(namepart_dict: dict, aggregated_names: list, namepart: str) -
             elif namepart == "onlyfirstnames":
                 candidates = only_firstname_match(reference, aggregated_names)
             elif namepart == "onlyabbrevfirstnames":
-                candidates = only_abbrev_firstname_match(reference, aggregated_names)
+                candidates = only_abbrev_firstname_match(reference,
+                                                         aggregated_names)
             elif namepart == "others":
                 candidates = others_match(reference, aggregated_names)
             else:
@@ -296,18 +302,24 @@ def abbrev_firstname_match(reference: dict, aggregated_names: list) -> list:
 
     matches = []
     for entry in aggregated_names:
-        if [x.lower() for x in reference["info"]["lastnames"]] == [
-            x.lower() for x in entry["lastname"]
-        ]:
-            set_abbr_fnames = {
-                x[0].lower() + "."
-                for x in reference["info"]["abbr_firstnames"].split()
-                if x != ""
-            }
-            if set_abbr_fnames.isdisjoint(
-                [y[0].lower() + "." for x in entry["firstname"] for y in x]
-            ) and set_abbr_fnames.isdisjoint(
-                [y[0].lower() + "." for x in entry["abbr_firstname"] for y in x]
+        if [x.lower() for x in reference["info"]["lastnames"]] == [x.lower() for x in entry["lastname"]]:
+            set_abbr_fnames = set(
+                [
+                    x[0]+".".lower()
+                    for x in reference["info"]["abbr_firstnames"].split()
+                    if x != ""
+                ]
+            )
+            if (
+                set_abbr_fnames.isdisjoint(
+                    [
+                        y[0]+".".lower() for x in entry["firstname"] for y in x
+                    ]
+                ) and set_abbr_fnames.isdisjoint(
+                    [
+                        y[0]+".".lower() for x in entry["abbr_firstname"] for y in x
+                    ]
+                )
             ):
                 continue
             matches.append(entry)
@@ -355,14 +367,17 @@ def only_firstname_match(ref: dict, aggregated_names: list) -> list:
 
     matches = []
     for entry in aggregated_names:
-        if {x.lower() for x in ref["info"]["firstnames"].split(" ")} == {
-            y.lower() for x in entry["firstname"] for y in x
-        }:
+        if (
+            set([x.lower() for x in ref["info"]["firstnames"].split(" ")])
+            ==
+            set(y.lower() for x in entry["firstname"] for y in x)
+        ):
             matches.append(entry)
     return matches
 
 
-def only_abbrev_firstname_match(ref: dict, aggregated_names: list) -> list:
+def only_abbrev_firstname_match(ref: dict,
+                                aggregated_names: list) -> list:
     """
     Find matches by abbreviated first name only.
 
@@ -380,9 +395,11 @@ def only_abbrev_firstname_match(ref: dict, aggregated_names: list) -> list:
 
     matches = []
     for entry in aggregated_names:
-        if {x.lower() for x in [ref["info"]["abbr_firstnames"]]} == {
-            y.lower() for x in entry["abbr_firstname"] for y in x
-        }:
+        if (
+            set([x.lower() for x in [ref["info"]["abbr_firstnames"]]])
+            ==
+            set(y.lower() for x in entry["abbr_firstname"] for y in x)
+        ):
             matches.append(entry)
     return matches
 
@@ -438,43 +455,32 @@ def clean_up_aggregation(aggregated_names: list) -> list:
         entry["abbr_firstname"] = sorted(
             [" ".join(fname) for fname in entry["abbr_firstname"] if fname]
         )
-        entry["titles"] = [
-            " ".join(reversed(x)) for x in entry["titles"] if x and x != ("",)
-        ]
+        entry["titles"] = [" ".join(reversed(x)) for x in entry["titles"] if x and x != ('',)]
         entry["titles"] = list(set(entry["titles"]))
-        entry["address"] = [
-            y for x in entry["address"] if x for y in x if y and y != ("",)
-        ]
+        entry["address"] = [y for x in entry["address"] if x for y in x if y and y != ('',)]
         entry["address"] = list(set(entry["address"]))
-        entry["profession"] = [
-            y for x in entry["profession"] if x for y in x if y and y != ("",)
-        ]
+        entry["profession"] = [y for x in entry["profession"] if x for y in x if y and y!= ('',)]
         entry["profession"] = list(set(entry["profession"]))
         entry["other"] = sorted(
-            [" ".join(ot) for ot in entry["other"] if ot and " ".join(ot) != ""]
+            [" ".join(ot) for ot in entry["other"] if ot and " ".join(ot)!=""]
         )
         new_references = defaultdict(list)
 
         for k, v in sorted(entry["references"].items()):
             elements = set()
-            elements_info = {}
+            elements_info = dict()
             for x in v:
                 for y in x[2]:
                     for el, el_info in y.items():
                         elements.add(el)
                         elements_info.setdefault(el, el_info)
-                        elements_info[el].setdefault("elementId", k[2] + ":" + el)
+                        elements_info[el].setdefault("elementId", k[2]+":"+el)
             elements = list(elements)
             elements = sorted(elements)
             new_references[k[1]] = {
                 "pid": k[2],
-                "refs": [
-                    {"sent": x[0], "coords": x[1], "context": x[3]}
-                    if len(x) == 4
-                    else {"sent": x[0], "coords": x[1]}
-                    for x in v
-                ],
-                "elements": [elements_info[e] for e in elements],
+                "refs": [{"sent": x[0], "coords": x[1], "context": x[3]} if len(x)==4 else {"sent": x[0], "coords": x[1]} for x in v],
+                "elements": [elements_info[e] for e in elements]
             }
 
         for r_k, r_v in new_references.items():
@@ -483,7 +489,9 @@ def clean_up_aggregation(aggregated_names: list) -> list:
     return aggregated_names
 
 
-def map_genitive_versions(all_names: list, lastname_dict: dict, key: str) -> None:
+def map_genitive_versions(all_names: list,
+                          lastname_dict: dict,
+                          key: str) -> None:
     """
     Map genitive name forms to their base forms.
 
@@ -500,14 +508,14 @@ def map_genitive_versions(all_names: list, lastname_dict: dict, key: str) -> Non
     :type key: str
     """
 
-    for lastname, value in lastname_dict.items():
+    for lastname in lastname_dict:
         if (
             lastname.endswith("s")
             and len(lastname) > 1
-            and lastname[-2] != "s"
+            and lastname[-2] != 's'
             and lastname[:-1] in all_names
         ):
-            for entry in value:
+            for entry in lastname_dict[lastname]:
                 entry["info"][key] = entry["info"][key][:-1]
 
 
@@ -541,7 +549,9 @@ def map_genitive_places(all_names: list, place_list: list) -> None:
                 # pp.pprint(place["tokens"][i])
 
 
-def find_place_match(place_name: str, place_type: str, aggregated_places: list) -> dict:
+def find_place_match(place_name: str,
+                     place_type: str,
+                     aggregated_places: list) -> dict:
     """
     Find an exact match for a place name.
 
@@ -586,7 +596,9 @@ def aggregate_places(all_places: list, aggregated_places: list):
 
     for place in all_places:
         place_name = " ".join(place["tokens"]).lower()
-        found_place = find_place_match(place_name, place["type"], aggregated_places)
+        found_place = find_place_match(
+            place_name, place["type"], aggregated_places
+        )
         if found_place:
             aggregate_place(found_place, place)
         else:
@@ -597,7 +609,7 @@ def aggregate_place(found: dict, place: dict) -> None:
     """
     Merge place reference information into an existing aggregated unit.
 
-    Updates an existing `found` dictionary in place by adding
+    Updates an existing `found` dictionary in place by adding 
     the information from the `place` reference.
 
     :param found: The existing aggregated place unit to update
@@ -608,14 +620,28 @@ def aggregate_place(found: dict, place: dict) -> None:
     """
 
     # type needs no aggregation
-    if (place["pageNo"], place["pageNames"], place["pid"]) in found["references"]:
-        found["references"][(place["pageNo"], place["pageNames"], place["pid"])].append(
-            (place["sentenceNo"], place["positions"], place["articles"])
-        )
+    if (
+        place["pageNo"], place["pageNames"], place["pid"]
+       ) in found["references"]:
+        found["references"][(place["pageNo"],
+                             place["pageNames"],
+                             place["pid"])].append(
+                                 (
+                                     place["sentenceNo"],
+                                     place["positions"],
+                                     place["articles"]
+                                 )
+                            )
     else:
-        found["references"][(place["pageNo"], place["pageNames"], place["pid"])] = [
-            (place["sentenceNo"], place["positions"], place["articles"])
-        ]
+        found["references"][(place["pageNo"],
+                             place["pageNames"],
+                             place["pid"])] = [
+                                 (
+                                     place["sentenceNo"],
+                                     place["positions"],
+                                     place["articles"]
+                                 )
+                            ]
 
 
 def create_new_aggregated_place(reference: dict) -> dict:
@@ -635,18 +661,22 @@ def create_new_aggregated_place(reference: dict) -> dict:
     """
 
     return {
-        "name": " ".join([x.title() if x.isupper else x for x in reference["tokens"]]),
+        "name": " ".join([x.title() if x.isupper else x for x in
+                         reference["tokens"]]),
         "tokens": reference["tokens"],
         "type": reference["type"],
         "references": {
-            (reference["pageNo"], reference["pageNames"], reference["pid"]): [
-                (reference["sentenceNo"], reference["positions"], reference["articles"])
-            ]
-        },
-    }
+                (reference["pageNo"],
+                 reference["pageNames"],
+                 reference["pid"]): [(reference["sentenceNo"],
+                                      reference["positions"],
+                                      reference["articles"])]
+            }
+        }
 
 
-def clean_up_aggregation_places(aggregated_places: list, last_index: int) -> list:
+def clean_up_aggregation_places(aggregated_places: list,
+                                last_index: int) -> list:
     """
     Clean and restructure the aggregated places list.
 
@@ -678,7 +708,7 @@ def clean_up_aggregation_places(aggregated_places: list, last_index: int) -> lis
             new_references[k[1]] = {
                 "pid": k[2],
                 "refs": [{"sent": x[0], "coords": x[1]} for x in v],
-                "elements": elements,
+                "elements": elements
             }
         entry["references"] = new_references
     return aggregated_places
@@ -748,9 +778,13 @@ def aggregate_names(input_triplet) -> list:
             lemmatizer.find_lemma(x, "N") for x in info["occupations"]
         ]
         # We assume all titles are nouns
-        info["titles"] = [lemmatizer.find_lemma(x, "N") for x in info["titles"]]
+        info["titles"] = [
+            lemmatizer.find_lemma(x, "N") for x in info["titles"]
+        ]
         # We assume all address are nouns
-        info["address"] = [lemmatizer.find_lemma(x, "N") for x in info["address"]]
+        info["address"] = [
+            lemmatizer.find_lemma(x, "N") for x in info["address"]
+        ]
 
         if len(lastname) == 0:
             if len(info["firstnames"]) > 0:
@@ -787,7 +821,7 @@ def aggregate_names(input_triplet) -> list:
     aggregated_names = clean_up_aggregation(aggregated_names)
 
     # do places second
-    all_place_names = {y.lower() for x in place_data for y in x["tokens"]}
+    all_place_names = set([y.lower() for x in place_data for y in x["tokens"]])
     map_genitive_places(all_place_names, place_data)
     aggregated_places = []
     aggregate_places(place_data, aggregated_places)
@@ -800,7 +834,9 @@ def aggregate_names(input_triplet) -> list:
     return aggregated_names, year, paths
 
 
-def execute_aggregation(postprocessed_data, tasks: list, timed=True):
+def execute_aggregation(postprocessed_data,
+                        tasks: list,
+                        timed=True):
     """
     Aggregate postprocessed data and optionally log execution time.
 
@@ -828,7 +864,7 @@ def execute_aggregation(postprocessed_data, tasks: list, timed=True):
         raise Exception("'post,agg,link' must be called together. Alternatively, you can call 'finish'.")
 
     aggregated_data = {}
-    # for year, d, paths in postprocessed_data:
+    #for year, d, paths in postprocessed_data:
     #    logging.info("Aggregating: %s", year)
     #    aggregated = aggregate_names(d, year, paths)
     #    aggregated_data[year] = {"agg_data": aggregated, "paths": paths}
@@ -844,6 +880,6 @@ def execute_aggregation(postprocessed_data, tasks: list, timed=True):
         logging.info(f"Aggregation took: {datetime.now() - start_time}")
 
     if "link" not in tasks and "finish" not in tasks:
-        save_data([aggregated_data], "agg")
+        save_data([aggregated_data],  "agg")
 
     return aggregated_data
