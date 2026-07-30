@@ -375,33 +375,11 @@ def test_get_candidates_no_lastname():
 
 
 def test_get_candidates_no_firstname_or_abbr():
-    """
-    The result of this test depends on your ES index content and your
-    vector database.
-    """
+    """Do not search for only a lastname."""
     assert get_candidates(
         {"lastname": ["A", "B"], "firstname": [], "abbr_firstname": []},
         "0000", 15, 5
-        ) == {
-        '1032302453': {
-            'gid': {'1032302453'},
-            'score': 1.0},
-        '1157696392': {
-            'gid': {'1157696392'},
-            'score': 1.0},
-        '144005565': {
-            'gid': {'144005565'},
-            'score': 1.0},
-        '170307417': {
-            'gid': {'170307417'},
-            'score': 1.0},
-        '170001083': {
-            'gid': {'170001083'},
-            'score': 1.0},
-        '1193434378': {
-            'gid': {'1193434378'},
-            'score': 1.0}
-        }
+        ) == {}
 
 
 def test_get_candidates_short_lastname():

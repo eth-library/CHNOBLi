@@ -8,7 +8,9 @@ from utility.linking_utils import (
     convert_dates_wikidata,
     convert_wikidata_format_kibana,
     convert_gnd_format_kibana,
-    search_person_wikidata
+    search_person_wikidata,
+    search_person_gnd_variantName,  # TODO
+    _es_search  # TODO?
 )
 
 

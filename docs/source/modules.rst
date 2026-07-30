@@ -6,3 +6,4 @@ CHNOBLi
 
    main
    src
+   utility
