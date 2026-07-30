@@ -145,12 +145,11 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
     if person["abbr_firstname"] and not person["firstname"]:
         # If we have an abbr_fnames we usually don't have fnames
         # or they don't overlap in some way.
-        full_name_abbr = " ".join(person["abbr_firstname"]) + " " + lastname
         candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit, False), "max")
-        candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name_abbr, year, wikidata_limit, False), "max")
+        candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name, year, wikidata_limit, False), "max")
         if settings.ADD_FUZZY_SEARCH == "True":
             candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit), "max")
-            candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name_abbr, year, wikidata_limit), "max")
+            candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name, year, wikidata_limit), "max")
 
     res_dict_fullname = {}
     if person["firstname"]:

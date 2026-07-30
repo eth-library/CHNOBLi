@@ -25,6 +25,7 @@ from src.aggregation import (
 )
 from utility.settings import settings
 
+
 # -------------------------------------------------
 # Test create_new_aggregated_unit
 # -------------------------------------------------
