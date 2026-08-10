@@ -16,7 +16,7 @@ class Paths:
     input files.
     """
     def __init__(self):
-        if settings.PATH_TO_GROUND_TRUTH !="" and settings.PATH_TO_OUTFILE_FOLDER is not None:
+        if settings.PATH_TO_GROUND_TRUTH != "" and settings.PATH_TO_OUTFILE_FOLDER:
             self.paths = {
                 "gt": settings.PATH_TO_GROUND_TRUTH,
                 "link": os.path.join(settings.PATH_TO_OUTFILE_FOLDER, "link"),
@@ -270,14 +270,13 @@ def get_main_name(per_dict: dict) -> str:
     """
     Given a person dictionary returns the persons name as a string.
 
-
     :param per_dict: Person entity dictionary.
     :type per_dict: dict
     :return: Name of the person.
     :rtype: str
     :Example:
-    >>> {"lastname":"Müller", "firstname": "Otto"} => "Otto Müller"
-    >>> {"lastname":"Müller", "abbr_firstname": "O."} => "O. Müller"
+        >>> {"lastname":"Müller", "firstname": "Otto"} => "Otto Müller"
+        >>> {"lastname":"Müller", "abbr_firstname": "O."} => "O. Müller"
     """
 
     if "lastname" in per_dict and per_dict["lastname"]:

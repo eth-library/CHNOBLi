@@ -3,6 +3,7 @@
 **A named entity linking pipeline for retro-digitized documents**
 
 [![eth-library - CHNOBLi](https://img.shields.io/static/v1?label=eth-library&message=CHNOBLi&color=blue&logo=github)](https://github.com/eth-library/CHNOBLi "Go to GitHub repo")
+[![Documentation](https://img.shields.io/badge/docs-online-blue)](https://eth-library.github.io/CHNOBLi/)
 [![GitHub stars](https://img.shields.io/github/stars/eth-library/CHNOBLi?style=social)](https://github.com/eth-library/CHNOBLi)
 [![GitHub forks](https://img.shields.io/github/forks/eth-library/CHNOBLi?style=social)](https://github.com/eth-library/CHNOBLi)
 [![GitHub tag](https://img.shields.io/github/tag/eth-library/CHNOBLi?include_prereleases=&sort=semver&color=blue)](https://github.com/eth-library/CHNOBLi/releases/)
@@ -130,7 +131,7 @@ The project includes a `Makefile` to simplify common tasks and ensure consistent
 - **`make shell-root`**: Same as above, but with root privileges.
 
 ## Quick Start
-
+We highly recommend you run this on a GPU, as running this on a CPU is very slow due to the FlairNLP model and vector database components.
 ### Try It with Example Data
 
 **1. Tag example documents**
@@ -149,7 +150,7 @@ Output: `data/output/link/`
 ```bash
 sh scripts/eval_example.sh # Windows: python3 main.py --tasks eval --config_file ./configs/eval_config_example.json --eval_level ref
 ```
-Output: `data/output/eval_ref_with_fuzzy/tjb/1955_030.jsonl`
+Output: `data/output/eval_ref_top1/tjb/1955_030.jsonl`
 
 ## Using Your Data
 
@@ -257,6 +258,10 @@ Download training and evaluation datasets from [Hugging Face](https://huggingfac
 ## Citation
 
 **Citation format coming soon...**
+
+## Documentation
+
+Full documentation is available at: [eth-library.github.io/CHNOBLi](https://eth-library.github.io/CHNOBLi/)
 
 ## License
 

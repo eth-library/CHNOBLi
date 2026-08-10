@@ -1,10 +1,8 @@
 import json
 import os
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Tuple, Type
 
-from pydantic import Field
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -18,8 +16,9 @@ class JsonConfigSettingsSource(PydanticBaseSettingsSource):
     """
 
     def __call__(self) -> dict[str, Any]:
+        BASE_DIR = Path(__file__).resolve().parent.parent
         config_path = Path(
-            os.environ.get("NLA_CONFIG_FILE", "configs/configurations.json")
+            os.environ.get("NLA_CONFIG_FILE", BASE_DIR / "configs" / "configurations.json")
         )
         if config_path.exists():
             return json.loads(config_path.read_text())

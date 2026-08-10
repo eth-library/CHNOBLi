@@ -1,4 +1,4 @@
-#data
+data
 private/
 data/output
 src/secrets.py
@@ -19,3 +19,8 @@ services/CHNOBLi-vectordb
 
 # Models
 models/*pt
+
+# docs
+# Sphinx build output
+docs/build/
+docs/_build/

@@ -11,7 +11,11 @@ from utility.utils import (
     parse_arguments,
     check_gpu,
     save_data_intermediate,
-    save_data
+    save_data,
+    transkribus_xml_to_approx_word_coord,
+    erara_xml_to_word_coord,
+    txt_file_to_word_coord,
+    offset_len_to_linking_input
 )
 from utility.settings import settings
 
@@ -186,3 +190,87 @@ def test_save_data_copilot(tmp_path):
                 for i in f:
                     saved_data.append(orjson.loads(i))
                 assert saved_data == content  # Check if the content matches
+
+
+def test_transkribus_xml_to_approx_word_coord(tmp_path):
+    xml_path = tmp_path / "page.xml"
+    xml_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+        <PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+          <Page imageWidth="100" imageHeight="200">
+            <TextRegion>
+              <TextLine>
+                <Coords points="0,20 10,20 10,0 0,0" />
+                <TextEquiv>
+                  <Unicode>hello world</Unicode>
+                </TextEquiv>
+              </TextLine>
+            </TextRegion>
+          </Page>
+        </PcGts>""",
+        encoding="utf-8",
+    )
+
+    result = transkribus_xml_to_approx_word_coord(str(xml_path))
+
+    assert result == "100, 200\nhello 0,0,5,20\nworld 5,0,10,20\n<EOS>\n"
+
+
+def test_erara_xml_to_word_coord(tmp_path):
+    xml_path = tmp_path / "page.xml"
+    xml_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+        <alto xmlns="http://www.loc.gov/standards/alto/ns-v3#">
+          <Layout>
+            <Page WIDTH="100" HEIGHT="200">
+              <PrintSpace>
+                <TextBlock>
+                  <TextLine>
+                    <String CONTENT="Hello" HPOS="10" VPOS="20" WIDTH="30" HEIGHT="40" />
+                    <String CONTENT="world" HPOS="50" VPOS="20" WIDTH="20" HEIGHT="40" />
+                  </TextLine>
+                </TextBlock>
+              </PrintSpace>
+            </Page>
+          </Layout>
+        </alto>""",
+        encoding="utf-8",
+    )
+
+    result = erara_xml_to_word_coord(str(xml_path))
+
+    assert result == "100, 200\nHello 10,20,30,40\nworld 50,20,20,40\n<EOS>\n"
+
+
+def test_txt_file_to_word_coord(tmp_path):
+    txt_path = tmp_path / "ocr.txt"
+    txt_path.write_text("hello world", encoding="utf-8")
+
+    result = txt_file_to_word_coord(str(txt_path))
+
+    assert result == "hello 0,5,0,0\nworld 6,11,0,1\n<EOP>\n"
+
+
+def test_offset_len_to_linking_input(tmp_path, monkeypatch):
+    doc_path = tmp_path / "sample.txt"
+    doc_path.write_text("Alice Smith is here", encoding="utf-8")
+
+    monkeypatch.setattr(settings, "VD_CONTEXT_WINDOW_LEN", 1)
+
+    result = offset_len_to_linking_input(
+        [
+            {
+                "mention": "Alice Smith",
+                "docName": str(doc_path),
+                "offset": 0,
+                "length": 11,
+            }
+        ]
+    )
+
+    assert len(result) == 1
+    assert result[0]["info"]["lastnames"] == ["Smith"]
+    assert result[0]["info"]["firstnames"] == ["Alice"]
+    assert result[0]["info"]["type"] == "PER"
+    assert result[0]["positions"] == "0:11"
+    assert result[0]["context"] == "Alice Smith is"
