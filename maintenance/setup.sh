@@ -4,8 +4,8 @@ set -e
 # Repository URLs
 ES_REPO="https://github.com/eth-library/CHNOBLi-elasticsearch.git"
 MILVUS_REPO="https://github.com/eth-library/CHNOBLi-vectordb.git"
-EMBEDDING_ENGINE_REPO="https://gitlab.ethz.ch/library/adl/Machine_learning_platform/embedding-engine.git"
-EMBEDDING_BACKEND_REPO="https://gitlab.ethz.ch/library/adl/Machine_learning_platform/embeddings-backend.git"
+EMBEDDING_ENGINE_REPO="https://github.com/eth-library/CHNOBLi-embedding-engine.git"
+EMBEDDING_BACKEND_REPO="https://github.com/eth-library/CHNOBLi-embedding-backend.git"
 
 # Paths (Relative to the script location)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -64,40 +64,18 @@ case $SETUP_CHOICE in
         echo "[*] CHNOBLi-vectordb already exists in $SERVICES_DIR."
     fi
 
-    # Load GitLab tokens from root .env
-    ROOT_ENV_PATH="$ROOT_DIR/.env"
-    TOKEN_BACKEND=""
-    TOKEN_ENGINE=""
-    if [ -f "$ROOT_ENV_PATH" ]; then
-        TOKEN_BACKEND=$(grep "^GITLAB_TOKEN_BACKEND=" "$ROOT_ENV_PATH" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-        TOKEN_ENGINE=$(grep "^GITLAB_TOKEN_EMBEDDINGS=" "$ROOT_ENV_PATH" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-    fi
-
-    # Build cloning URLs with token authentication if available
-    ENGINE_CLONE_URL="$EMBEDDING_ENGINE_REPO"
-    BACKEND_CLONE_URL="$EMBEDDING_BACKEND_REPO"
-    if [ ! -z "$TOKEN_ENGINE" ]; then
-        ENGINE_CLONE_URL=$(echo "$EMBEDDING_ENGINE_REPO" | sed "s|https://gitlab.ethz.ch|https://oauth2:${TOKEN_ENGINE}@gitlab.ethz.ch|")
-    fi
-    if [ ! -z "$TOKEN_BACKEND" ]; then
-        BACKEND_CLONE_URL=$(echo "$EMBEDDING_BACKEND_REPO" | sed "s|https://gitlab.ethz.ch|https://oauth2:${TOKEN_BACKEND}@gitlab.ethz.ch|")
-    fi
-
     # Clone Embedding Engine
     if [ ! -d "$SERVICES_DIR/embedding-engine" ]; then
         echo "[*] Cloning embedding-engine..."
-        echo $ENGINE_CLONE_URL
-        git clone "$ENGINE_CLONE_URL" "$SERVICES_DIR/embedding-engine"
+        git clone "$EMBEDDING_ENGINE_REPO" "$SERVICES_DIR/embedding-engine"
     else
         echo "[*] embedding-engine already exists in $SERVICES_DIR."
     fi
 
     # Clone Embeddings Backend
     if [ ! -d "$SERVICES_DIR/embeddings-backend" ]; then
-        echo "[*] Copying embeddings-backend..."
-        echo $BACKEND_CLONE_URL
-        git clone -b "apelloni/chnobli" "$BACKEND_CLONE_URL" "$SERVICES_DIR/embeddings-backend"
-        git clone -b "apelloni/chnobli" "$BACKEND_CLONE_URL" "$SERVICES_DIR/embeddings-backend"
+        echo "[*] Cloning embeddings-backend..."
+        git clone -b "main" "$EMBEDDING_BACKEND_REPO" "$SERVICES_DIR/embeddings-backend"
     else
         echo "[*] embeddings-backend already exists in $SERVICES_DIR."
     fi
@@ -132,8 +110,8 @@ case $SETUP_CHOICE in
         # Sync credentials from root .env
         ROOT_ENV_PATH="$ROOT_DIR/.env"
         if [ -f "$ROOT_ENV_PATH" ]; then
-            USER_VAL=$(grep ELASTIC_USERNAME "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
-            PASS_VAL=$(grep ELASTIC_PASSWORD "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
+            USER_VAL=$(grep "^ELASTIC_USERNAME" "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
+            PASS_VAL=$(grep "^ELASTIC_PASSWORD" "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
             if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
             if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
         fi
@@ -141,30 +119,6 @@ case $SETUP_CHOICE in
         echo "[*] Generating certificates and keystore..."
         docker compose -f docker-compose.setup.yml run --rm certs
         docker compose -f docker-compose.setup.yml run --rm keystore
-        cd - >/dev/null
-    fi
-
-    # Automate embeddings-backend setup
-    echo ""
-    echo "[*] Configuring embeddings-backend environment..."
-    EMB_SUB_DIR="$SERVICES_DIR/embeddings-backend"
-    if [ -d "$EMB_SUB_DIR" ]; then
-        cd "$EMB_SUB_DIR"
-        ROOT_ENV_PATH="$ROOT_DIR/.env"
-        if [ -f "$ROOT_ENV_PATH" ]; then
-            # Extract token value from root .env
-            TOKEN_EMB=$(grep "^GITLAB_TOKEN_EMBEDDINGS=" "$ROOT_ENV_PATH" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-
-            if [ -f ".env.chnobli" ]; then
-                if [ ! -z "$TOKEN_EMB" ]; then
-                    if [[ "$OSTYPE" == "darwin"* ]]; then
-                        sed -i '' "s|^GITLAB_TOKEN_EMBEDDINGS=.*|GITLAB_TOKEN_EMBEDDINGS=\"$TOKEN_EMB\"|" .env.chnobli
-                    else
-                        sed -i "s|^GITLAB_TOKEN_EMBEDDINGS=.*|GITLAB_TOKEN_EMBEDDINGS=\"$TOKEN_EMB\"|" .env.chnobli
-                    fi
-                fi
-            fi
-        fi
         cd - >/dev/null
     fi
 
@@ -179,7 +133,7 @@ case $SETUP_CHOICE in
     echo "   cd $SERVICES_DIR/CHNOBLi-vectordb && docker compose up -d"
     echo ""
     echo "3. Start Embeddings Backend (Wait for Milvus to be ready):"
-    echo "   * IMPORTANT: Ensure your GITLAB_TOKEN_EMBEDDINGS is defined in the root .env before running setup.sh"
+    echo "   * All service repositories are public on GitHub - no access token is required."
     echo "   cd $SERVICES_DIR/embeddings-backend && docker compose -f docker-compose.chnobli.yml --env-file .env.chnobli up -d --build"
     echo ""
     echo "After they are running, you can proceed with the main project."

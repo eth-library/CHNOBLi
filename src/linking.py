@@ -930,4 +930,3 @@ def compare_vector_to_text_ids_multiplexed(  # type: ignore
 
     client.release_collection(collection_name)
     return results
-

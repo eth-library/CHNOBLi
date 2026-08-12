@@ -152,8 +152,8 @@ import_es_wikidata() {
     fi
     # Always try to sync credentials from root .env if possible
     if [ -f "$ROOT_ENV" ]; then
-        USER_VAL=$(grep ELASTIC_USERNAME "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
-        PASS_VAL=$(grep ELASTIC_PASSWORD "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
+        USER_VAL=$(grep "^ELASTIC_USERNAME" "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
+        PASS_VAL=$(grep "^ELASTIC_PASSWORD" "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
         if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
         if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
     fi
@@ -188,8 +188,8 @@ import_es_gnd() {
         cp .env_template .env
     fi
     if [ -f "$ROOT_ENV" ]; then
-        USER_VAL=$(grep ELASTIC_USERNAME "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
-        PASS_VAL=$(grep ELASTIC_PASSWORD "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
+        USER_VAL=$(grep "^ELASTIC_USERNAME" "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
+        PASS_VAL=$(grep "^ELASTIC_PASSWORD" "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
         if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
         if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
     fi
