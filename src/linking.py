@@ -1,6 +1,7 @@
 """
 Linking module
 """
+
 import re
 import unicodedata
 import logging
@@ -19,9 +20,14 @@ from copy import deepcopy
 import time
 import requests
 from utility.utils import save_data_intermediate
-from utility.linking_utils import search_person_wikidata, search_person_gnd, search_person_gnd_variantName
+from utility.linking_utils import (
+    search_person_wikidata,
+    search_person_gnd,
+    search_person_gnd_variantName,
+)
 from utility.settings import settings
 from itertools import batched, takewhile
+
 # Until we can set up the API
 import numpy as np
 from pymilvus import MilvusClient  # type: ignore
@@ -96,7 +102,9 @@ def remove_obsolete_abbrevs(fnames: list, abbr_firstnames: list) -> list:
     return cleaned_abbr_fnames
 
 
-def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int) -> dict:
+def get_candidates(
+    person: dict, year: str, gnd_limit: int, wikidata_limit: int
+) -> dict:
     """Searches the GND and Wikidata index for candidates of a given person.
 
     :param person: A dictionary with various information on the given\
@@ -128,7 +136,9 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
     else:
         lastname = lastname[0]
 
-    fname_abbr_fname = " ".join(person["firstname"]) + " " + " ".join(person["abbr_firstname"])
+    fname_abbr_fname = (
+        " ".join(person["firstname"]) + " " + " ".join(person["abbr_firstname"])
+    )
     fname_abbr_fname = fname_abbr_fname.replace("  ", " ").strip()
     full_name = fname_abbr_fname + " " + lastname
 
@@ -136,26 +146,76 @@ def get_candidates(person: dict, year: str, gnd_limit: int, wikidata_limit: int)
     if person["abbr_firstname"] and not person["firstname"]:
         # If we have an abbr_fnames we usually don't have fnames
         # or they don't overlap in some way.
-        candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit, False), "max")
-        candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name, year, wikidata_limit, False), "max")
+        candidate_dict = update_per_dict_score(
+            candidate_dict,
+            search_person_gnd(
+                person["abbr_firstname"], lastname, year, gnd_limit, False
+            ),
+            "max",
+        )
+        candidate_dict = update_per_dict_score(
+            candidate_dict,
+            search_person_wikidata(full_name, year, wikidata_limit, False),
+            "max",
+        )
         if settings.ADD_FUZZY_SEARCH == "True":
-            candidate_dict = update_per_dict_score(candidate_dict, search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit), "max")
-            candidate_dict = update_per_dict_score(candidate_dict, search_person_wikidata(full_name, year, wikidata_limit), "max")
+            candidate_dict = update_per_dict_score(
+                candidate_dict,
+                search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit),
+                "max",
+            )
+            candidate_dict = update_per_dict_score(
+                candidate_dict,
+                search_person_wikidata(full_name, year, wikidata_limit),
+                "max",
+            )
 
     res_dict_fullname = {}
     if person["firstname"]:
-        res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit, False), "max")
+        res_dict_fullname = update_per_dict_score(
+            res_dict_fullname,
+            search_person_gnd(person["firstname"], lastname, year, gnd_limit, False),
+            "max",
+        )
         if person["abbr_firstname"]:
-            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit, False), "max")
-            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd_variantName(full_name, year, gnd_limit, False), "max")
+            res_dict_fullname = update_per_dict_score(
+                res_dict_fullname,
+                search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit, False),
+                "max",
+            )
+            res_dict_fullname = update_per_dict_score(
+                res_dict_fullname,
+                search_person_gnd_variantName(full_name, year, gnd_limit, False),
+                "max",
+            )
 
-        res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit, False), "max")
+        res_dict_fullname = update_per_dict_score(
+            res_dict_fullname,
+            search_person_wikidata(full_name, year, wikidata_limit, False),
+            "max",
+        )
         if settings.ADD_FUZZY_SEARCH == "True":
-            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(person["firstname"], lastname, year, gnd_limit), "max")
+            res_dict_fullname = update_per_dict_score(
+                res_dict_fullname,
+                search_person_gnd(person["firstname"], lastname, year, gnd_limit),
+                "max",
+            )
             if person["abbr_firstname"]:
-                res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit), "max")
-                res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_gnd_variantName(full_name, year, gnd_limit), "max")
-            res_dict_fullname = update_per_dict_score(res_dict_fullname, search_person_wikidata(full_name, year, wikidata_limit), "max")
+                res_dict_fullname = update_per_dict_score(
+                    res_dict_fullname,
+                    search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit),
+                    "max",
+                )
+                res_dict_fullname = update_per_dict_score(
+                    res_dict_fullname,
+                    search_person_gnd_variantName(full_name, year, gnd_limit),
+                    "max",
+                )
+            res_dict_fullname = update_per_dict_score(
+                res_dict_fullname,
+                search_person_wikidata(full_name, year, wikidata_limit),
+                "max",
+            )
 
     candidate_dict = update_per_dict_score(candidate_dict, res_dict_fullname, "max")
     return candidate_dict
@@ -177,7 +237,9 @@ def prep_person_entry(person: dict, mag_year: str) -> None:
         [prep_word(y) for y in x.split()] for x in person["firstname"]
     ]
     fnames_flat = [x.lower() for y in person["firstname"] for x in y]
-    person["firstname"] = [x.title() for x in dict.fromkeys(fnames_flat)]  # slower than list(set(items)) but keeps the order
+    person["firstname"] = [
+        x.title() for x in dict.fromkeys(fnames_flat)
+    ]  # slower than list(set(items)) but keeps the order
 
     person["abbr_firstname"] = [
         [prep_word(y) for y in x.split()] for x in person["abbr_firstname"]
@@ -186,15 +248,21 @@ def prep_person_entry(person: dict, mag_year: str) -> None:
         person["firstname"], person["abbr_firstname"]
     )
     abbr_fnames_flat = [x for y in abbr_fnames_trunc for x in y]
-    person["abbr_firstname"] = list(dict.fromkeys(abbr_fnames_flat))  # slower than list(set(items)) but keeps the order
+    person["abbr_firstname"] = list(
+        dict.fromkeys(abbr_fnames_flat)
+    )  # slower than list(set(items)) but keeps the order
 
     person["lastname"] = [prep_word(x) for x in person["lastname"].split()]
-    person["lastname"] = [prep_word(y) for x in person["lastname"] for y in x.split("-")]
+    person["lastname"] = [
+        prep_word(y) for x in person["lastname"] for y in x.split("-")
+    ]
     person["profession"] = [prep_word(x) for x in person["profession"]]
     person["profession"].sort()
     person["other"] = [prep_word(x) for x in person["other"]]
     person["other"] = [x for x in person["other"] if x not in string.punctuation]
-    person["id"] = mag_year[0]+":"+mag_year[1].replace("_", ":")+":"+str(person["id"])
+    person["id"] = (
+        mag_year[0] + ":" + mag_year[1].replace("_", ":") + ":" + str(person["id"])
+    )
 
 
 def _name_matches(person: dict) -> bool:
@@ -309,7 +377,10 @@ def prep_person_out(person: dict) -> None:
     # For the frontend: delete pid if it's None
     if "references" in person:
         for ref in person["references"]:
-            if "pid" in person["references"][ref] and person["references"][ref]["pid"] is None:
+            if (
+                "pid" in person["references"][ref]
+                and person["references"][ref]["pid"] is None
+            ):
                 del person["references"][ref]["pid"]
 
 
@@ -350,7 +421,9 @@ def link_person(data_in) -> dict:
     """
     mag_year, year, person, tagging_paths = data_in
     prep_person_entry(person, mag_year)
-    candidates = get_candidates(person, year, settings.GND_LIMIT, settings.WIKIDATA_LIMIT)
+    candidates = get_candidates(
+        person, year, settings.GND_LIMIT, settings.WIKIDATA_LIMIT
+    )
     if len(candidates) == 0:
         person["gnd_ids"] = []
         prep_person_out(person)
@@ -359,24 +432,20 @@ def link_person(data_in) -> dict:
     most_imp_sc = candidates[next(iter(candidates))]["score"]
     # if several of the first gnds have the same score,
     # take all of them and re-rank with our vdb
-    same_score_cand = list(takewhile(
-        lambda c: candidates[c]["score"] == most_imp_sc,
-        candidates
-    ))
+    same_score_cand = list(
+        takewhile(lambda c: candidates[c]["score"] == most_imp_sc, candidates)
+    )
 
     if len(same_score_cand) > 1:
         person_context_dict = deepcopy(person)
-        context = get_person_context(
-            person_context_dict,
-            tagging_paths
-        )
+        context = get_person_context(person_context_dict, tagging_paths)
 
         person["context"] = context
         person["same_score_cand"] = same_score_cand
         person["candidates"] = {c_k: candidates[c_k] for c_k in same_score_cand}
         return person
 
-    person["gnd_ids"] = list(candidates.keys())[:settings.LINKED_PERSONS_LIMIT]
+    person["gnd_ids"] = list(candidates.keys())[: settings.LINKED_PERSONS_LIMIT]
     person["gnd_ids_scores_sim"] = [candidates[x]["score"] for x in person["gnd_ids"]]
     person["candidates"] = [candidates[c_k] for c_k in person["gnd_ids"]]
     prep_person_out(person)
@@ -410,12 +479,8 @@ def find_links(data_in) -> list:
         year = year.group(0)
 
     person_list = [
-        (
-            mag_year,
-            year,
-            x,
-            tagging_paths
-        ) for x in data if x["type"] == "PER"]
+        (mag_year, year, x, tagging_paths) for x in data if x["type"] == "PER"
+    ]
 
     if settings.BATCH_SIZE == 1:
         person_list = [link_person(x) for x in person_list]
@@ -458,12 +523,12 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
         start_time = datetime.now()
         logging.info(f"Starting Linking at {start_time} :")
 
-    if (
-        ("finish" not in tasks)
-        or
-        ("link" in tasks and ("agg" not in tasks or "post" not in tasks))
-       ):
-        raise Exception("'post,agg,link' must be called together, or call 'finish' instead.")
+    if ("finish" not in tasks) or (
+        "link" in tasks and ("agg" not in tasks or "post" not in tasks)
+    ):
+        raise Exception(
+            "'post,agg,link' must be called together, or call 'finish' instead."
+        )
 
     # NOTE this cannot be called seperately after the aggregation step,
     # "post,agg,link" need to be called together after "tag",
@@ -475,10 +540,11 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
         [
             k,  # tuple of (mag, year) like ("cmt", "1998_076")
             v["agg_data"],  # list of person dictionaries
-            v["paths"]  # list of paths to the tagging files for this year
-        ] for (k, v) in data.items()
+            v["paths"],  # list of paths to the tagging files for this year
+        ]
+        for (k, v) in data.items()
     ]
-    #for idx, i in enumerate(links):
+    # for idx, i in enumerate(links):
     #    links[idx][1] = find_links(i)  # I basically update v
     if settings.BATCH_SIZE == 1:
         links = [find_links(x) for x in links]
@@ -505,9 +571,23 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
     with open(config_path, "wb") as f:
         f.write(orjson.dumps(settings.model_dump(exclude={"es"})))
 
-    batched_queryids = list(batched([0 | (idx | idy << 32) for idx, idy, _ in context_entries], settings.VD_QUERY_CHUNK_LEN))
-    batched_text = list(batched([y["context"] for _, _, y in context_entries], settings.VD_QUERY_CHUNK_LEN))
-    batched_targettextids = list(batched([y["same_score_cand"] for _, _, y in context_entries], settings.VD_QUERY_CHUNK_LEN))
+    batched_queryids = list(
+        batched(
+            [0 | (idx | idy << 32) for idx, idy, _ in context_entries],
+            settings.VD_QUERY_CHUNK_LEN,
+        )
+    )
+    batched_text = list(
+        batched(
+            [y["context"] for _, _, y in context_entries], settings.VD_QUERY_CHUNK_LEN
+        )
+    )
+    batched_targettextids = list(
+        batched(
+            [y["same_score_cand"] for _, _, y in context_entries],
+            settings.VD_QUERY_CHUNK_LEN,
+        )
+    )
     assert len(batched_queryids) == len(batched_text)
     assert len(batched_queryids) == len(batched_targettextids)
     for i in range(len(batched_queryids)):
@@ -525,13 +605,17 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
             for resp_dict in response:
                 try:
                     response_i = [
-                        k["reference_text_id"] for k in
-                        sorted(resp_dict["distances"], key=lambda item: item["distance"])
+                        k["reference_text_id"]
+                        for k in sorted(
+                            resp_dict["distances"], key=lambda item: item["distance"]
+                        )
                         if k["distance"] < settings.VD_MAX_DIST
                     ]
                     response_d = [
-                        k["distance"] for k in
-                        sorted(resp_dict["distances"], key=lambda item: item["distance"])
+                        k["distance"]
+                        for k in sorted(
+                            resp_dict["distances"], key=lambda item: item["distance"]
+                        )
                         if k["distance"] < settings.VD_MAX_DIST
                     ]
                     idx_i = resp_dict["query_id"] & 0xFFFFFFFF
@@ -539,16 +623,23 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
                 except Exception:
                     logging.error(f"Could not order responses {response} by distance.")
                     raise
-                links[idx_i][1][idx_j]["gnd_ids"] = response_i[:settings.LINKED_PERSONS_LIMIT]
-                links[idx_i][1][idx_j]["gnd_ids_scores_dist"] = response_d[:settings.LINKED_PERSONS_LIMIT]
-                links[idx_i][1][idx_j]["candidates"] = [links[idx_i][1][idx_j]["candidates"][c_k] for c_k in links[idx_i][1][idx_j]["gnd_ids"]]
+                links[idx_i][1][idx_j]["gnd_ids"] = response_i[
+                    : settings.LINKED_PERSONS_LIMIT
+                ]
+                links[idx_i][1][idx_j]["gnd_ids_scores_dist"] = response_d[
+                    : settings.LINKED_PERSONS_LIMIT
+                ]
+                links[idx_i][1][idx_j]["candidates"] = [
+                    links[idx_i][1][idx_j]["candidates"][c_k]
+                    for c_k in links[idx_i][1][idx_j]["gnd_ids"]
+                ]
                 prep_person_out(links[idx_i][1][idx_j])
 
     for i in links:
         save_data_intermediate([i[0][0], i[0][1]], i[1], "link")
 
     if timed:
-        logging.info("Linking took: "+str(datetime.now() - start_time))
+        logging.info("Linking took: " + str(datetime.now() - start_time))
 
 
 def get_person_context(per: dict, tagging_output_paths: list) -> str:
@@ -593,7 +684,9 @@ def get_person_context(per: dict, tagging_output_paths: list) -> str:
         # Each line should be exactly one page
         if not all(len(x) == 1 for x in pages):
             # flatten it
-            pages = [{k: v} for subpages_dict in pages for (k, v) in subpages_dict.items()]
+            pages = [
+                {k: v} for subpages_dict in pages for (k, v) in subpages_dict.items()
+            ]
             assert all(len(x) == 1 for x in pages), list(pages[0].keys())
         # Only keep pages relevant to the person
         pages = [x for x in pages if next(iter(x.keys())) in all_relevant_pages]
@@ -632,22 +725,37 @@ def get_person_context(per: dict, tagging_output_paths: list) -> str:
             for ref in ref_list.get("refs", []):
                 if "coords" in ref and len(ref["coords"]) > 0:
                     coords = [
-                        x.split(":")[0]
-                        if isinstance(x, str) else x.get("c", "")
+                        x.split(":")[0] if isinstance(x, str) else x.get("c", "")
                         for x in ref["coords"]
                     ]
                     indices = [coord_to_indices.get(x, []) for x in coords]
                     if indices == [[]]:
                         continue
 
-                    start = max(0, token_offsets[min(indices)[0]][1]-(settings.VD_CONTEXT_WINDOW_LEN+(max(indices)[0]-min(indices)[0])))
-                    end = min(len(full_text), token_offsets[max(indices)[0]][2]+(settings.VD_CONTEXT_WINDOW_LEN+(max(indices)[0]-min(indices)[0])))
+                    start = max(
+                        0,
+                        token_offsets[min(indices)[0]][1]
+                        - (
+                            settings.VD_CONTEXT_WINDOW_LEN
+                            + (max(indices)[0] - min(indices)[0])
+                        ),
+                    )
+                    end = min(
+                        len(full_text),
+                        token_offsets[max(indices)[0]][2]
+                        + (
+                            settings.VD_CONTEXT_WINDOW_LEN
+                            + (max(indices)[0] - min(indices)[0])
+                        ),
+                    )
                     extract = full_text[start:end].strip()
                     all_context += ";" + extract + " "
                     # I'm fine with overlap, works better this way
     all_context = all_context[1:]
     # return " ".join(all_context.strip().split(" ")[:1024])
-    return all_context[:2048]  # https://huggingface.co/Snowflake/snowflake-arctic-embed-l-v2.0/discussions/3#6751e3b48409e4c1b2330c2d
+    return all_context[
+        :2048
+    ]  # https://huggingface.co/Snowflake/snowflake-arctic-embed-l-v2.0/discussions/3#6751e3b48409e4c1b2330c2d
 
 
 def get_person_context_reflevel(per: dict, tagging_output_path: str) -> list:
@@ -704,18 +812,33 @@ def get_person_context_reflevel(per: dict, tagging_output_path: str) -> list:
         for ref in ref_list.get("refs", []):
             if "coords" in ref and len(ref["coords"]) > 0:
                 coords = [
-                    x.split(":")[0]
-                    if isinstance(x, str) else x.get("c", "")
+                    x.split(":")[0] if isinstance(x, str) else x.get("c", "")
                     for x in ref["coords"]
                 ]
                 indices = [coord_to_indices.get(x, []) for x in coords]
                 if indices == [[]]:
                     continue
 
-                start = max(0, token_offsets[min(indices)[0]][1]-(settings.VD_CONTEXT_WINDOW_LEN+(max(indices)[0]-min(indices)[0])))
-                end = min(len(full_text), token_offsets[max(indices)[0]][2]+(settings.VD_CONTEXT_WINDOW_LEN+(max(indices)[0]-min(indices)[0])))
+                start = max(
+                    0,
+                    token_offsets[min(indices)[0]][1]
+                    - (
+                        settings.VD_CONTEXT_WINDOW_LEN
+                        + (max(indices)[0] - min(indices)[0])
+                    ),
+                )
+                end = min(
+                    len(full_text),
+                    token_offsets[max(indices)[0]][2]
+                    + (
+                        settings.VD_CONTEXT_WINDOW_LEN
+                        + (max(indices)[0] - min(indices)[0])
+                    ),
+                )
                 extract = full_text[start:end].strip()
-                all_context.append(extract[:8192])  # https://huggingface.co/Snowflake/snowflake-arctic-embed-l-v2.0/discussions/3#6751e3b48409e4c1b2330c2d
+                all_context.append(
+                    extract[:8192]
+                )  # https://huggingface.co/Snowflake/snowflake-arctic-embed-l-v2.0/discussions/3#6751e3b48409e4c1b2330c2d
     return all_context
 
 
@@ -761,7 +884,9 @@ def compare_to_target_ids_multiplexed(
         content.append(data)
 
     if settings.EMBEDDINGS_ENDPOINT:
-        response = backend_api_call(content, model, model_name, collection_name, backend_url)
+        response = backend_api_call(
+            content, model, model_name, collection_name, backend_url
+        )
         return orjson.loads(response)["results"]
     else:
         try:
@@ -772,7 +897,11 @@ def compare_to_target_ids_multiplexed(
                 'dependency. Install it with `pip install "CHNOBLi[local-embeddings]"`, '
                 "or set EMBEDDINGS_ENDPOINT to use a remote embeddings API instead."
             ) from exc
-        vectors = generate_embedding(texts=[x["query_text"] for x in content], backend="huggingface", model_name=model_name)
+        vectors = generate_embedding(
+            texts=[x["query_text"] for x in content],
+            backend="huggingface",
+            model_name=model_name,
+        )
         return compare_vector_to_text_ids_multiplexed(content, vectors, collection_name)
 
 
@@ -780,20 +909,26 @@ def get_paramanera_token() -> str | None:
     """Fetches an OAuth token for the Paramanera API if configured."""
     # Ensure OIDC_TOKEN_URL points to the actual token endpoint (e.g., https://qss.access.ethz.ch/spa1/token)
     # and NOT the openid-configuration discovery URL.
-    if not settings.OIDC_TOKEN_URL or not settings.CLIENT_ID or not settings.CLIENT_SECRET:
+    if (
+        not settings.OIDC_TOKEN_URL
+        or not settings.CLIENT_ID
+        or not settings.CLIENT_SECRET
+    ):
         return None
 
     payload = {
         "grant_type": "client_credentials",
         "client_id": settings.CLIENT_ID,
-        "client_secret": settings.CLIENT_SECRET
+        "client_secret": settings.CLIENT_SECRET,
     }
     try:
         response = requests.post(settings.OIDC_TOKEN_URL, data=payload, timeout=10)
         if response.status_code == 200:
             return response.json().get("access_token")
         else:
-            logging.error(f"Failed to fetch OIDC token. Status: {response.status_code}, Response: {response.text}")
+            logging.error(
+                f"Failed to fetch OIDC token. Status: {response.status_code}, Response: {response.text}"
+            )
     except Exception as e:
         logging.error(f"Exception while fetching OIDC token: {e}")
     return None
@@ -822,28 +957,46 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
     }
 
     try:
-        response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT)
+        response = requests.post(
+            backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT
+        )
     except Exception:
         logging.warning(f"Querying the VD timed out once with payload: {payload}")
-        response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT_RETRY)
+        response = requests.post(
+            backend_url,
+            json=payload,
+            headers=headers,
+            timeout=settings.VD_TIMEOUT_RETRY,
+        )
 
     # retry until it works.
     retries = 0
     while response.status_code != 200 and retries < settings.VD_MAX_RETRIES:
         retries += 1
         time.sleep(2)
-        logging.warning(f"Querying the VD failed or timed out {retries} times with payload: {payload}")
+        logging.warning(
+            f"Querying the VD failed or timed out {retries} times with payload: {payload}"
+        )
         try:
-            response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT)
+            response = requests.post(
+                backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT
+            )
         except requests.exceptions.ReadTimeout:
-            response = requests.post(backend_url, json=payload, headers=headers, timeout=settings.VD_TIMEOUT_RETRY)
+            response = requests.post(
+                backend_url,
+                json=payload,
+                headers=headers,
+                timeout=settings.VD_TIMEOUT_RETRY,
+            )
 
         if response.status_code == 200:
             return response.text
 
     if response.status_code == 200:
         return response.text
-    logging.error(f"Max retries exceeded. Failed to retrieve distances: {response.status_code} - {response.text}")
+    logging.error(
+        f"Max retries exceeded. Failed to retrieve distances: {response.status_code} - {response.text}"
+    )
     return '{"results": []}'
 
 
