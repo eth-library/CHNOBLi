@@ -10,4 +10,7 @@ rich>=15.0.0
 pydantic-settings>=2.14.0
 # No longer necessary once we have the API running
 pymilvus[bulk-writer]>=2.6.3,<3
-embedding-engine @ git+https://github.com/eth-library/CHNOBLi-embedding-engine.git@v1.0.1
+
+# Optional: only required to generate embeddings locally (EMBEDDINGS_ENDPOINT unset).
+# Install with `pip install "CHNOBLi[local-embeddings]"` or uncomment the line below.
+# embedding-engine @ git+https://github.com/eth-library/CHNOBLi-embedding-engine.git@v1.0.1

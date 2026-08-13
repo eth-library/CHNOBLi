@@ -764,7 +764,14 @@ def compare_to_target_ids_multiplexed(
         response = backend_api_call(content, model, model_name, collection_name, backend_url)
         return orjson.loads(response)["results"]
     else:
-        from embedding_engine.embeddings import generate_embedding
+        try:
+            from embedding_engine.embeddings import generate_embedding
+        except ImportError as exc:
+            raise ImportError(
+                "Generating embeddings locally requires the optional embedding-engine "
+                'dependency. Install it with `pip install "CHNOBLi[local-embeddings]"`, '
+                "or set EMBEDDINGS_ENDPOINT to use a remote embeddings API instead."
+            ) from exc
         vectors = generate_embedding(texts=[x["query_text"] for x in content], backend="huggingface", model_name=model_name)
         return compare_vector_to_text_ids_multiplexed(content, vectors, collection_name)
 

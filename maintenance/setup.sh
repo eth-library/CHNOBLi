@@ -4,7 +4,6 @@ set -e
 # Repository URLs
 ES_REPO="https://github.com/eth-library/CHNOBLi-elasticsearch.git"
 MILVUS_REPO="https://github.com/eth-library/CHNOBLi-vectordb.git"
-EMBEDDING_ENGINE_REPO="https://github.com/eth-library/CHNOBLi-embedding-engine.git"
 EMBEDDING_BACKEND_REPO="https://github.com/eth-library/CHNOBLi-embedding-backend.git"
 
 # Paths (Relative to the script location)
@@ -64,27 +63,12 @@ case $SETUP_CHOICE in
         echo "[*] CHNOBLi-vectordb already exists in $SERVICES_DIR."
     fi
 
-    # Clone Embedding Engine
-    if [ ! -d "$SERVICES_DIR/embedding-engine" ]; then
-        echo "[*] Cloning embedding-engine..."
-        git clone "$EMBEDDING_ENGINE_REPO" "$SERVICES_DIR/embedding-engine"
-    else
-        echo "[*] embedding-engine already exists in $SERVICES_DIR."
-    fi
-
     # Clone Embeddings Backend
     if [ ! -d "$SERVICES_DIR/embeddings-backend" ]; then
         echo "[*] Cloning embeddings-backend..."
         git clone -b "main" "$EMBEDDING_BACKEND_REPO" "$SERVICES_DIR/embeddings-backend"
     else
         echo "[*] embeddings-backend already exists in $SERVICES_DIR."
-    fi
-
-    # Dynamically inject the local requirement
-    REQ_FILE="$ROOT_DIR/requirements.txt"
-    if ! grep -q "embedding-engine" "$REQ_FILE"; then
-        echo "[*] Injecting local embedding-engine dependency into requirements.txt"
-        echo "embedding-engine @ file://./services/embedding-engine" >>"$REQ_FILE"
     fi
 
     # Update PATH_TO_CA_CERT in .env
