@@ -26,6 +26,7 @@ dependencies = [
     "rich>=15.0.0",
     "pydantic-settings>=2.14.0",
     "pymilvus[bulk-writer]>=2.6.3,<3",
+    "embedding-engine @ git+https://github.com/eth-library/CHNOBLi-embedding-engine.git@v1.0.1",
 ]
 
 [project.optional-dependencies]

@@ -1,11 +1,13 @@
-lxml
-germalemma
-requests
+# Kept in sync with the [project.dependencies] table in pyproject.toml.
+lxml>=6.1.0
+germalemma>=0.1.3
+requests>=2.33.1
 flair==0.15.1
-gensim
-pytest
-orjson
-pydantic-settings==2.14.1
-rich==15.0.0
+gensim>=4.4.0
+orjson>=3.10.18
+pytest>=9.0.3
+rich>=15.0.0
+pydantic-settings>=2.14.0
 # No longer necessary once we have the API running
-pymilvus[bulk-writer]==2.6.3
+pymilvus[bulk-writer]>=2.6.3,<3
+embedding-engine @ git+https://github.com/eth-library/CHNOBLi-embedding-engine.git@v1.0.1

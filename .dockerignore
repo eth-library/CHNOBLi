@@ -1,0 +1,24 @@
+# Keep the build context small. `setup.sh` clones the service repositories into
+# services/, and the local virtualenv lives in the project root -- none of which
+# the image build needs, apart from services/linking.
+#
+# Note: .env_template is COPYed by services/linking/Dockerfile, so it must stay.
+.git
+.gitignore
+.venv
+.env
+
+# Cloned service repositories; only services/linking is used by the Dockerfile.
+services/*
+!services/linking
+
+# Runtime and scratch directories.
+data_old
+logs
+private
+
+# Python artefacts.
+**/__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
