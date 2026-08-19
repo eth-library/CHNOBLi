@@ -1,8 +1,10 @@
 #!/bin/bash
+set -e
 
 # Repository URLs
 ES_REPO="https://github.com/eth-library/CHNOBLi-elasticsearch.git"
 MILVUS_REPO="https://github.com/eth-library/CHNOBLi-vectordb.git"
+EMBEDDING_BACKEND_REPO="https://github.com/eth-library/CHNOBLi-embedding-backend.git"
 
 # Paths (Relative to the script location)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -61,6 +63,14 @@ case $SETUP_CHOICE in
         echo "[*] CHNOBLi-vectordb already exists in $SERVICES_DIR."
     fi
 
+    # Clone Embeddings Backend
+    if [ ! -d "$SERVICES_DIR/embeddings-backend" ]; then
+        echo "[*] Cloning embeddings-backend..."
+        git clone -b "main" "$EMBEDDING_BACKEND_REPO" "$SERVICES_DIR/embeddings-backend"
+    else
+        echo "[*] embeddings-backend already exists in $SERVICES_DIR."
+    fi
+
     # Update PATH_TO_CA_CERT in .env
     NEW_CERT_PATH="services/CHNOBLi-elasticsearch/secrets/certs/ca/ca.crt"
     echo "[*] Updating PATH_TO_CA_CERT in .env..."
@@ -80,14 +90,14 @@ case $SETUP_CHOICE in
         cd "$ES_SUB_DIR"
         if [ ! -f ".env" ]; then
             cp .env_template .env
-            # Sync credentials from root .env
-            ROOT_ENV_PATH="$ROOT_DIR/.env"
-            if [ -f "$ROOT_ENV_PATH" ]; then
-                USER_VAL=$(grep ELASTIC_USERNAME "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
-                PASS_VAL=$(grep ELASTIC_PASSWORD "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
-                if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
-                if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
-            fi
+        fi
+        # Sync credentials from root .env
+        ROOT_ENV_PATH="$ROOT_DIR/.env"
+        if [ -f "$ROOT_ENV_PATH" ]; then
+            USER_VAL=$(grep "^ELASTIC_USERNAME" "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
+            PASS_VAL=$(grep "^ELASTIC_PASSWORD" "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
+            if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
+            if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
         fi
         # Run docker compose setup
         echo "[*] Generating certificates and keystore..."
@@ -106,9 +116,21 @@ case $SETUP_CHOICE in
     echo "2. Start Milvus:"
     echo "   cd $SERVICES_DIR/CHNOBLi-vectordb && docker compose up -d"
     echo ""
-    echo "After they are running, you can proceed with the main project"
-    echo "or import the required data using 'make import-data'."
+    echo "3. Start Embeddings Backend (Wait for Milvus to be ready):"
+    echo "   * All service repositories are public on GitHub - no access token is required."
+    echo "   cd $SERVICES_DIR/embeddings-backend && docker compose -f docker-compose.chnobli.yml --env-file .env.chnobli up -d --build"
+    echo ""
+    echo "After they are running, you can proceed with the main project."
     echo "=========================================="
+
+    echo ""
+    read -p "Would you like to run the data import/download script now? [y/N]: " IMPORT_CHOICE
+    if [[ "$IMPORT_CHOICE" =~ ^[Yy]$ ]]; then
+        echo ""
+        echo "[*] Launching data import script..."
+        chmod +x "$ROOT_DIR/maintenance/import_data.sh"
+        "$ROOT_DIR/maintenance/import_data.sh"
+    fi
     ;;
 *)
     echo "Invalid choice. Setup aborted."
