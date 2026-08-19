@@ -561,7 +561,8 @@ information</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="src.linking.backend_api_call">
 <span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">backend_api_call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend_url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.linking.backend_api_call" title="Link to this definition">¶</a></dt>
-<dd><p>We call our API backend.</p>
+<dd><p>We call our API backend. If OIDC_TOKEN_URL is set, it performs the Paramanera
+handshake and attaches the Bearer token.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -647,19 +648,6 @@ ditance_metric: “cosine” | “l2” | “ip”</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="src.linking.generate_huggingface_embedding">
-<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">generate_huggingface_embedding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">texts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#src.linking.generate_huggingface_embedding" title="Link to this definition">¶</a></dt>
-<dd><p>Generates an embedding using the huggingface framework.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>texts (List[str]): List of input texts to embed.
-model_name (str): Name of the embedding model to use (huggingface name).</p>
-</dd>
-<dt>Returns:</dt><dd><p>ans (List[List[float]]): resulting embeddings</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="src.linking.get_candidates">
 <span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">get_candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">person</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gnd_limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikidata_limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.linking.get_candidates" title="Link to this definition">¶</a></dt>
 <dd><p>Searches the GND and Wikidata index for candidates of a given person.</p>
@@ -679,6 +667,12 @@ model_name (str): Name of the embedding model to use (huggingface name).</p>
 <dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.get_paramanera_token">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">get_paramanera_token</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#src.linking.get_paramanera_token" title="Link to this definition">¶</a></dt>
+<dd><p>Fetches an OAuth token for the Paramanera API if configured.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1250,13 +1244,13 @@ configuration.</p>
 </dd>
 </dl>
 <p><strong>Example:</strong></p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">generator</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">2020</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;file1&#39;</span><span class="p">,</span> <span class="s1">&#39;file2&#39;</span><span class="p">]),</span> <span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;file3&#39;</span><span class="p">,</span> <span class="s1">&#39;file4&#39;</span><span class="p">])]</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">generator</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">2020</span><span class="p">,</span> <span class="p">[</span><span class="s1">'file1'</span><span class="p">,</span> <span class="s1">'file2'</span><span class="p">]),</span> <span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="p">[</span><span class="s1">'file3'</span><span class="p">,</span> <span class="s1">'file4'</span><span class="p">])]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">packageGeneratorOutput</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
 <span class="go">    # Output:</span>
-<span class="go">    # {2020: [&#39;file1&#39;, &#39;file2&#39;]}</span>
-<span class="go">    # {2021: [&#39;file3&#39;, &#39;file4&#39;]}</span>
+<span class="go">    # {2020: ['file1', 'file2']}</span>
+<span class="go">    # {2021: ['file3', 'file4']}</span>
 </pre></div>
 </div>
 </dd></dl>

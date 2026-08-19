@@ -96,21 +96,21 @@ of surrounding words.</p>
 </dl>
 <p><strong>Example:</strong></p>
 <p>If the input file contains:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;Dr. John Smith&quot;</span>
-<span class="s2">&quot;Prof. Jane Doe&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"Dr. John Smith"</span>
+<span class="s2">"Prof. Jane Doe"</span>
 </pre></div>
 </div>
 <p>The returned dictionary will be:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;dr.&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;john&quot;</span><span class="p">,</span> <span class="s2">&quot;smith&quot;</span><span class="p">]}],</span>
-<span class="s2">&quot;john&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dr.&quot;</span><span class="p">],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;smith&quot;</span><span class="p">]}],</span>
-<span class="s2">&quot;smith&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dr.&quot;</span><span class="p">,</span> <span class="s2">&quot;john&quot;</span><span class="p">],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[]}],</span>
-<span class="s2">&quot;prof.&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;jane&quot;</span><span class="p">,</span> <span class="s2">&quot;doe&quot;</span><span class="p">]}],</span>
-<span class="s2">&quot;jane&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;prof.&quot;</span><span class="p">],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;doe&quot;</span><span class="p">]}],</span>
-<span class="s2">&quot;doe&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;prof.&quot;</span><span class="p">,</span> <span class="s2">&quot;jane&quot;</span><span class="p">],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[]}]}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"dr."</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"before"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"after"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"john"</span><span class="p">,</span> <span class="s2">"smith"</span><span class="p">]}],</span>
+<span class="s2">"john"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"before"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"dr."</span><span class="p">],</span> <span class="s2">"after"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"smith"</span><span class="p">]}],</span>
+<span class="s2">"smith"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"before"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"dr."</span><span class="p">,</span> <span class="s2">"john"</span><span class="p">],</span> <span class="s2">"after"</span><span class="p">:</span> <span class="p">[]}],</span>
+<span class="s2">"prof."</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"before"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"after"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"jane"</span><span class="p">,</span> <span class="s2">"doe"</span><span class="p">]}],</span>
+<span class="s2">"jane"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"before"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"prof."</span><span class="p">],</span> <span class="s2">"after"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"doe"</span><span class="p">]}],</span>
+<span class="s2">"doe"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"before"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"prof."</span><span class="p">,</span> <span class="s2">"jane"</span><span class="p">],</span> <span class="s2">"after"</span><span class="p">:</span> <span class="p">[]}]}</span>
 </pre></div>
 </div>
 <p>Each entry follows this structure:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;word&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">]}]}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"word"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"before"</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="s2">"after"</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">]}]}</span>
 </pre></div>
 </div>
 <p>This structure also helps prevent duplicate entries.</p>
@@ -210,10 +210,10 @@ text) and a “coord” key (list of associated coordinates)</p>
 </dd>
 </dl>
 <p><strong>Example:</strong></p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sample_text</span> <span class="o">=</span> <span class="s2">&quot;Hel¬ 001122</span><span class="se">\n</span><span class="s2">lo 12345</span><span class="se">\n</span><span class="s2">World 67890&quot;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sample_text</span> <span class="o">=</span> <span class="s2">"Hel¬ 001122</span><span class="se">\n</span><span class="s2">lo 12345</span><span class="se">\n</span><span class="s2">World 67890"</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fuse_hyphens</span><span class="p">(</span><span class="n">sample_text</span><span class="p">)</span>
-<span class="go"># output: [{&#39;word&#39;: &#39;Hello&#39;, &#39;coord&#39;: [&#39;001122&#39;, &#39;12345&#39;]},</span>
-<span class="go">#          {&#39;word&#39;: &#39;World&#39;, &#39;coord&#39;: [&#39;67890&#39;]}]</span>
+<span class="go"># output: [{'word': 'Hello', 'coord': ['001122', '12345']},</span>
+<span class="go">#          {'word': 'World', 'coord': ['67890']}]</span>
 </pre></div>
 </div>
 <p><strong>Processing logic:</strong></p>
@@ -310,7 +310,7 @@ dictionaries</p>
 </dd>
 </dl>
 <p><strong>Example:</strong></p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sentences</span> <span class="o">=</span> <span class="n">preprocess_file</span><span class="p">(</span><span class="s2">&quot;/path/to/input/file&quot;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sentences</span> <span class="o">=</span> <span class="n">preprocess_file</span><span class="p">(</span><span class="s2">"/path/to/input/file"</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -381,7 +381,7 @@ separating punctuation and normalizing text while preserving coordinate
 metadata.</p>
 <p><strong>Input format:</strong></p>
 <p>Each dictionary must contain:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;word&quot;</span><span class="p">:</span> <span class="s2">&quot;ExampleWord&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;ExampleCoordinate&quot;</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"word"</span><span class="p">:</span> <span class="s2">"ExampleWord"</span><span class="p">,</span> <span class="s2">"coord"</span><span class="p">:</span> <span class="s2">"ExampleCoordinate"</span><span class="p">}</span>
 </pre></div>
 </div>
 <p><strong>Tokenization process:</strong></p>
@@ -398,15 +398,15 @@ tokens</p></li>
 </div></blockquote>
 <p><strong>Example:</strong></p>
 <p>Input:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s2">&quot;word&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;1209745&quot;</span><span class="p">},</span>
- <span class="p">{</span><span class="s2">&quot;word&quot;</span><span class="p">:</span> <span class="s2">&quot;v.a.&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;1908234&quot;</span><span class="p">}]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s2">"word"</span><span class="p">:</span> <span class="s2">"Hello"</span><span class="p">,</span> <span class="s2">"coord"</span><span class="p">:</span> <span class="s2">"1209745"</span><span class="p">},</span>
+ <span class="p">{</span><span class="s2">"word"</span><span class="p">:</span> <span class="s2">"v.a."</span><span class="p">,</span> <span class="s2">"coord"</span><span class="p">:</span> <span class="s2">"1908234"</span><span class="p">}]</span>
 </pre></div>
 </div>
 <p>Output:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;1;2;0;9;7;4;5:main&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;normalized&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello&quot;</span><span class="p">},</span>
- <span class="p">{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="s2">&quot;v.&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;1;9;0;8;2;3;4:main&quot;</span><span class="p">},</span>
- <span class="p">{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="s2">&quot;a.&quot;</span><span class="p">,</span> <span class="s2">&quot;coord&quot;</span><span class="p">:</span> <span class="s2">&quot;1;9;0;8;2;3;4:main&quot;</span><span class="p">}]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s2">"token"</span><span class="p">:</span> <span class="s2">"Hello"</span><span class="p">,</span> <span class="s2">"coord"</span><span class="p">:</span> <span class="s2">"1;2;0;9;7;4;5:main"</span><span class="p">,</span>
+  <span class="s2">"normalized"</span><span class="p">:</span> <span class="s2">"Hello"</span><span class="p">},</span>
+ <span class="p">{</span><span class="s2">"token"</span><span class="p">:</span> <span class="s2">"v."</span><span class="p">,</span> <span class="s2">"coord"</span><span class="p">:</span> <span class="s2">"1;9;0;8;2;3;4:main"</span><span class="p">},</span>
+ <span class="p">{</span><span class="s2">"token"</span><span class="p">:</span> <span class="s2">"a."</span><span class="p">,</span> <span class="s2">"coord"</span><span class="p">:</span> <span class="s2">"1;9;0;8;2;3;4:main"</span><span class="p">}]</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
