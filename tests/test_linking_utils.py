@@ -66,9 +66,9 @@ def test_prep_name_for_elasticsearch_query(name, expected):
     "fnames, lastname, year, gnd_limit, fuzzy, expected, get_res",
     params.PARAMS_search_person_gnd,
 )
-@patch("utility.linking_utils.requests.get")
+@patch("utility.linking_utils._session")
 def test_search_person_gnd(
-     mock_get, fnames, lastname, year, gnd_limit, fuzzy, expected, get_res
+     mock_session, fnames, lastname, year, gnd_limit, fuzzy, expected, get_res
      ):
     """
     We check
@@ -78,7 +78,7 @@ def test_search_person_gnd(
     mock_response = MagicMock()
     mock_response.json.return_value = get_res
 
-    mock_get.return_value = mock_response
+    mock_session.return_value.get.return_value = mock_response
 
     res = search_person_gnd(fnames, lastname, year, gnd_limit, fuzzy)
     assert res == expected
@@ -112,9 +112,9 @@ def test_convert_dates(wikidata_date, expected):
     "search_term, year, wikidata_limit, fuzzy, expected, get_res",
     params.PARAMS_search_person_wikidata,
 )
-@patch("utility.linking_utils.requests.get")
+@patch("utility.linking_utils._session")
 def test_search_person_wikidata(
-    mock_get, search_term, year, wikidata_limit, fuzzy, expected, get_res
+    mock_session, search_term, year, wikidata_limit, fuzzy, expected, get_res
      ):
     """
     We check
@@ -126,7 +126,7 @@ def test_search_person_wikidata(
     mock_response = MagicMock()
     mock_response.json.return_value = get_res
 
-    mock_get.return_value = mock_response
+    mock_session.return_value.get.return_value = mock_response
     assert search_person_wikidata(search_term, year, wikidata_limit, fuzzy) == expected
     assert len(
         search_person_wikidata(search_term, year, wikidata_limit, fuzzy)
