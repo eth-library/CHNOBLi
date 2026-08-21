@@ -1,6 +1,8 @@
 """
 Utility functions for finding candidates via ElasticSearch
 """
+import os
+import threading
 import unicodedata
 import requests
 import re
@@ -13,10 +15,39 @@ BASE_DIR = Path(__file__).resolve().parent
 with open(BASE_DIR / "gnd_prefix_lastnames.txt", "r", encoding="utf-8") as f:
     PREFIX = set(f.read().splitlines())
 
-# ES sessions
-sess = requests.Session()
-adapter = requests.adapters.HTTPAdapter(max_retries=20)
-sess.mount('http://', adapter)
+# Compiled once, at import. There are ~1178 prefixes and Python's regex cache
+# holds 512, so building these patterns inside the per-lastname loop evicted
+# every one of them before it could be reused: each lastname recompiled the
+# whole list. Iteration order follows PREFIX, so which prefix wins is unchanged.
+PREFIX_PATTERNS = [(prefix, re.compile("(^" + prefix + ")")) for prefix in PREFIX]
+
+# One session per thread and per process, rather than one shared module-level
+# session: linking runs under a process Pool over magazine-years and a thread
+# pool over persons, and a socket inherited across fork would be used by parent
+# and child at once.
+_sessions = threading.local()
+
+
+def _session() -> requests.Session:
+    """
+    Returns this thread's Elasticsearch session, creating it if needed.
+
+    :return: A session whose connections are safe to reuse here.
+    :rtype: requests.Session
+    """
+
+    pid = os.getpid()
+    session = getattr(_sessions, "session", None)
+    if session is None or getattr(_sessions, "pid", None) != pid:
+        session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(max_retries=20)
+        session.mount("http://", adapter)
+        # The cluster is reached over https; mounting only http left the
+        # retrying adapter unused.
+        session.mount("https://", adapter)
+        _sessions.session = session
+        _sessions.pid = pid
+    return session
 
 
 def clean_namestring(name: str) -> str:
@@ -264,14 +295,15 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
     url = settings.es.base_url + "/" + index_name + "/_search?pretty"
     auth = (settings.es.username, settings.es.password)
 
+    session = _session()
     try:
-        data = requests.get(url, headers=headers, json=json_data,
-                            verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=0.5)
+        data = session.get(url, headers=headers, json=json_data,
+                           verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=0.5)
     except requests.exceptions.Timeout:
         logging.warning(f"{error_label} ES Query timed out.")
         try:
-            data = requests.get(url, headers=headers, json=json_data,
-                                verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+            data = session.get(url, headers=headers, json=json_data,
+                               verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
         except requests.exceptions.Timeout:
             logging.error(f"{error_label} ES query timeout. No more retries.")
             logging.info(f"Query: {json_data}")
@@ -279,8 +311,8 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
     except requests.exceptions.SSLError:
         logging.warning(f"SSL error {error_label}")
         try:
-            data = sess.get(url, headers=headers, json=json_data,
-                            verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+            data = session.get(url, headers=headers, json=json_data,
+                               verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
         except requests.exceptions.Timeout:
             logging.error(f"{error_label} ES SSL Error timeout. No more retries.")
             logging.info(f"Query: {json_data}")
@@ -476,8 +508,8 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
     # If the lastname contains a prefix, split it off and search for it
     # in its own field; otherwise just clean/prep the lastname as usual.
     prefix = None
-    for p in PREFIX:
-        split_lname = re.split("(^"+p+")", lastname)
+    for p, prefix_pattern in PREFIX_PATTERNS:
+        split_lname = prefix_pattern.split(lastname)
         if len(split_lname) > 1:
             split_lname = [x.strip() for x in split_lname if x != ""]
             if len(split_lname) != 2:
