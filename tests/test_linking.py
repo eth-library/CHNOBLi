@@ -14,6 +14,7 @@ from src.linking import (
     compare_to_target_ids_multiplexed
 )
 from utility.settings import settings
+from utility.scoring import Candidate
 from .test_data.params import PARAMS_prep_person_out, PARAMS_get_candidates
 
 # -------------------------------------------------
@@ -49,6 +50,11 @@ def test_remove_obsolete_abbrevs(fnames, abbr_firstnames, expected):
     assert remove_obsolete_abbrevs(fnames, abbr_firstnames) == expected
 
 
+def _candidate(gid: str, payload: dict, label: str = "gnd_pref_exact") -> Candidate:
+    """One retrieved candidate, as get_candidates now hands them to the scorer."""
+    return Candidate(gid=gid, fields=payload, retrieval={label: payload["score"]})
+
+
 # -------------------------------------------------
 # Test get_candidates
 # -------------------------------------------------
@@ -71,7 +77,8 @@ def test_get_candidates(mock_search_person_gnd,
     mock_search_person_gnd.return_value = gnd_return
     mock_search_person_wikidata.return_value = wikidata_return
 
-    assert get_candidates(person, year, gnd_limit, wikidata_limit) == expected
+    candidates = get_candidates(person, year, gnd_limit, wikidata_limit)
+    assert {c.gid: c.fields for c in candidates} == expected
 
 
 def test_get_candidates_no_lastname():
@@ -83,7 +90,7 @@ def test_get_candidates_no_firstname_or_abbr():
     assert get_candidates(
         {"lastname": ["A", "B"], "firstname": [], "abbr_firstname": []},
         "0000", 15, 5
-        ) == {}
+        ) == []
 
 
 def test_get_candidates_short_lastname():
@@ -150,11 +157,11 @@ def test_link_person_with_valid_data(mock_get_candidates):
         "id": 1,
     }
 
-    mock_get_candidates.return_value = {
-        "1111": {"prefForename": {"John"}, "score": 15},
-        "2222": {"prefForename": {"John"}, "score": 25},
-        "3333": {"prefForename": {"J."}, "score": 30},
-    }
+    mock_get_candidates.return_value = [
+        _candidate("1111", {"prefForename": {"John"}, "score": 15}),
+        _candidate("2222", {"prefForename": {"John"}, "score": 25}),
+        _candidate("3333", {"prefForename": {"J."}, "score": 30}),
+    ]
     settings.GND_LIMIT =  15
     settings.WIKIDATA_LIMIT = 5
     settings.LINKED_PERSONS_LIMIT = 10
@@ -232,10 +239,10 @@ def test_link_person_with_abbr_firstname_filtering():
 
     # Mock candidates returned by get_candidates
     mock_get_candidates = patch("src.linking.get_candidates").start()
-    mock_get_candidates.return_value = {
-        "12345": {"prefForename": {"John"}, "score": 20},
-        "67890": {"prefForename": {"Kane"}, "score": 15},
-    }
+    mock_get_candidates.return_value = [
+        _candidate("12345", {"prefForename": {"John"}, "score": 20}),
+        _candidate("67890", {"prefForename": {"Kane"}, "score": 15}),
+    ]
     settings.GND_LIMIT =  15
     settings.WIKIDATA_LIMIT = 5
     settings.LINKED_PERSONS_LIMIT = 1

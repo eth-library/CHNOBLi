@@ -163,13 +163,23 @@ def test_transform_none_leaves_the_tier_to_decide():
     assert result.needs_disambiguation is True
 
 
-def test_tie_epsilon_absorbs_float_noise():
-    """Scores that differ only by rounding must count as tied."""
+def test_default_tie_is_exact():
+    """By default only bit-for-bit equal scores tie, as the linking stage does."""
     cands = [
         gnd("a", {"gnd_pref_exact": 1.0}),
         gnd("b", {"gnd_pref_exact": 1.0 - 1e-12}),
     ]
-    assert len(CandidateScorer().score(HANS, cands).top_tier) == 2
+    assert CandidateScorer().score(HANS, cands).top_tier == ["a"]
+
+
+def test_tie_epsilon_absorbs_float_noise():
+    """A tolerance widens the tie to scores that differ only by rounding."""
+    cands = [
+        gnd("a", {"gnd_pref_exact": 1.0}),
+        gnd("b", {"gnd_pref_exact": 1.0 - 1e-12}),
+    ]
+    policy = ScoringPolicy(tie_epsilon=1e-6)
+    assert len(CandidateScorer(policy).score(HANS, cands).top_tier) == 2
 
 
 # -------------------------------------------------

@@ -350,11 +350,13 @@ class ScoringPolicy(BaseModel):
     #: leader's tier, so a lower-tier candidate can never join the tie.
     tie_scope: Literal["prefix", "top_tier"] = "prefix"
 
-    #: Tolerance for calling two scores equal. The scores being compared are
-    #: floats that come out equal only because each query normalizes its own top
-    #: hit to exactly 1.0, so they are compared within a tolerance rather than
-    #: with ``==``.
-    tie_epsilon: float = 1e-6
+    #: Tolerance for calling two scores equal. Zero compares them exactly, as
+    #: the linking stage does: the scores that meet at the top are equal only
+    #: because each query normalizes its own top hit to exactly 1.0, so they
+    #: coincide bit for bit rather than approximately. A small tolerance such as
+    #: 1e-6 admits scores that merely came close, which widens ties and sends
+    #: more mentions to the vector database.
+    tie_epsilon: float = 0.0
 
 
 class CandidateScorer:

@@ -25,13 +25,14 @@ from utility.utils import (
     start_magazine_output,
     finish_magazine_output,
 )
+from utility.scoring import Candidate, CandidateScorer, Mention
 from utility.linking_utils import (
     search_person_wikidata,
     search_person_gnd,
     search_person_gnd_variantName,
 )
 from utility.settings import settings
-from itertools import batched, takewhile
+from itertools import batched
 
 # Until we can set up the API
 import numpy as np
@@ -40,6 +41,10 @@ from collections import OrderedDict
 from typing import List
 
 MAX_YEAR_STR = "3000"
+
+# Ranks the candidates of a mention. Stateless, so one instance serves every
+# worker; its defaults are the ranking this stage has always produced.
+_SCORER = CandidateScorer()
 
 
 def prep_word(word: str) -> str:
@@ -58,23 +63,66 @@ def prep_word(word: str) -> str:
     return word
 
 
-def update_per_dict_score(dict_in: dict, dict_to_add: dict, strategy="max") -> dict:
-    for k, v in dict_to_add.items():
-        if k in dict_in:
-            if strategy == "max":
-                dict_in[k]["score"] = max(v["score"], dict_in[k]["score"])
-            elif strategy == "min":
-                dict_in[k]["score"] = min(v["score"], dict_in[k]["score"])
-            elif strategy == "avg":
-                dict_in[k]["score"] = (v["score"] + dict_in[k]["score"]) / 2
-            else:
-                raise ValueError("Not a valid strategy. Choose: max, min, avg.")
-            for k_j, v_j in v.items():
-                if k_j not in dict_in[k]:
-                    dict_in[k][k_j] = v_j
+def _collect_hits(collected: dict, hits: dict) -> dict:
+    """
+    Adds one query's hits to the candidates gathered for a person so far.
+
+    A candidate keeps the position it was first retrieved at and the payload of
+    the query that found it, gaining from later queries only the fields that
+    payload does not already carry. Every query that returned it is recorded
+    under its label with the score it gave, so what each one contributed stays
+    readable instead of collapsing into a single number.
+
+    :param collected: Candidates gathered so far, gid to a (payload, retrieval)
+        pair. Mutated in place.
+    :type collected: dict
+    :param hits: One query's results, gid to payload.
+    :type hits: dict
+    :return: The same mapping, for chaining.
+    :rtype: dict
+    """
+
+    for gid, hit in hits.items():
+        if gid in collected:
+            payload, retrieval = collected[gid]
+            for key, value in hit.items():
+                if key not in payload:
+                    payload[key] = value
         else:
-            dict_in[k] = v
-    return dict_in
+            payload, retrieval = dict(hit), {}
+            collected[gid] = (payload, retrieval)
+        label = hit.get("query_label")
+        if label:
+            retrieval[label] = max(retrieval.get(label, 0.0), hit.get("score", 0.0))
+    return collected
+
+
+def _as_candidates(collected: dict) -> list:
+    """
+    Turns the gathered payloads into candidates the scorer can rank.
+
+    The payload's score becomes the best any query gave the candidate, which is
+    the number the rest of the pipeline reads off it.
+
+    :param collected: Output of :func:`_collect_hits`.
+    :type collected: dict
+    :return: Candidates, in the order they were retrieved.
+    :rtype: list
+    """
+
+    candidates = []
+    for gid, (payload, retrieval) in collected.items():
+        if retrieval:
+            payload["score"] = max(retrieval.values())
+        source = (
+            "wikidata"
+            if retrieval and all(lab.startswith("wikidata") for lab in retrieval)
+            else "gnd"
+        )
+        candidates.append(
+            Candidate(gid=gid, source=source, fields=payload, retrieval=retrieval)
+        )
+    return candidates
 
 
 def remove_obsolete_abbrevs(fnames: list, abbr_firstnames: list) -> list:
@@ -109,7 +157,7 @@ def remove_obsolete_abbrevs(fnames: list, abbr_firstnames: list) -> list:
 
 def get_candidates(
     person: dict, year: str, gnd_limit: int, wikidata_limit: int
-) -> dict:
+) -> list:
     """Searches the GND and Wikidata index for candidates of a given person.
 
     :param person: A dictionary with various information on the given\
@@ -123,9 +171,10 @@ def get_candidates(
     :param wikidata_limit: The number of candidates to truncate out wikidata\
         candidate list to.
     :type wikidata_limit: int
-    :return: Dictionary of candidates for the given person, containing\
-        information on the candidates themselves.
-    :rtype: dict
+    :return: Candidates for the given person, in the order the queries\
+        retrieved them, each carrying its payload and the score every query\
+        that returned it gave it.
+    :rtype: list
     """
 
     if (
@@ -133,7 +182,7 @@ def get_candidates(
         or (len(" ".join(person["lastname"])) < 3)
         or (not person["firstname"] and not person["abbr_firstname"])
     ):
-        return {}
+        return []
 
     lastname = person["lastname"]
     if len(lastname) > 1:
@@ -147,12 +196,12 @@ def get_candidates(
     fname_abbr_fname = fname_abbr_fname.replace("  ", " ").strip()
     full_name = fname_abbr_fname + " " + lastname
 
-    candidate_dict = {}
+    collected = {}
     if person["abbr_firstname"] and not person["firstname"]:
         # If we have an abbr_fnames we usually don't have fnames
         # or they don't overlap in some way.
-        candidate_dict = update_per_dict_score(
-            candidate_dict,
+        _collect_hits(
+            collected,
             search_person_gnd(
                 person["abbr_firstname"],
                 lastname,
@@ -161,18 +210,16 @@ def get_candidates(
                 False,
                 label="gnd_pref_exact",
             ),
-            "max",
         )
-        candidate_dict = update_per_dict_score(
-            candidate_dict,
+        _collect_hits(
+            collected,
             search_person_wikidata(
                 full_name, year, wikidata_limit, False, label="wikidata_label_exact"
             ),
-            "max",
         )
         if settings.ADD_FUZZY_SEARCH == "True":
-            candidate_dict = update_per_dict_score(
-                candidate_dict,
+            _collect_hits(
+                collected,
                 search_person_gnd(
                     person["abbr_firstname"],
                     lastname,
@@ -180,20 +227,19 @@ def get_candidates(
                     gnd_limit,
                     label="gnd_pref_fuzzy",
                 ),
-                "max",
             )
-            candidate_dict = update_per_dict_score(
-                candidate_dict,
+            _collect_hits(
+                collected,
                 search_person_wikidata(
                     full_name, year, wikidata_limit, label="wikidata_label_fuzzy"
                 ),
-                "max",
             )
 
-    res_dict_fullname = {}
+    # The two branches are mutually exclusive: this one needs firstnames and
+    # the one above needs their absence, so a mention only ever takes one.
     if person["firstname"]:
-        res_dict_fullname = update_per_dict_score(
-            res_dict_fullname,
+        _collect_hits(
+            collected,
             search_person_gnd(
                 person["firstname"],
                 lastname,
@@ -202,11 +248,10 @@ def get_candidates(
                 False,
                 label="gnd_pref_exact",
             ),
-            "max",
         )
         if person["abbr_firstname"]:
-            res_dict_fullname = update_per_dict_score(
-                res_dict_fullname,
+            _collect_hits(
+                collected,
                 search_person_gnd(
                     fname_abbr_fname,
                     lastname,
@@ -215,26 +260,23 @@ def get_candidates(
                     False,
                     label="gnd_pref_abbr_exact",
                 ),
-                "max",
             )
-            res_dict_fullname = update_per_dict_score(
-                res_dict_fullname,
+            _collect_hits(
+                collected,
                 search_person_gnd_variantName(
                     full_name, year, gnd_limit, False, label="gnd_variant_exact"
                 ),
-                "max",
             )
 
-        res_dict_fullname = update_per_dict_score(
-            res_dict_fullname,
+        _collect_hits(
+            collected,
             search_person_wikidata(
                 full_name, year, wikidata_limit, False, label="wikidata_label_exact"
             ),
-            "max",
         )
         if settings.ADD_FUZZY_SEARCH == "True":
-            res_dict_fullname = update_per_dict_score(
-                res_dict_fullname,
+            _collect_hits(
+                collected,
                 search_person_gnd(
                     person["firstname"],
                     lastname,
@@ -242,11 +284,10 @@ def get_candidates(
                     gnd_limit,
                     label="gnd_pref_fuzzy",
                 ),
-                "max",
             )
             if person["abbr_firstname"]:
-                res_dict_fullname = update_per_dict_score(
-                    res_dict_fullname,
+                _collect_hits(
+                    collected,
                     search_person_gnd(
                         fname_abbr_fname,
                         lastname,
@@ -254,25 +295,21 @@ def get_candidates(
                         gnd_limit,
                         label="gnd_pref_abbr_fuzzy",
                     ),
-                    "max",
                 )
-                res_dict_fullname = update_per_dict_score(
-                    res_dict_fullname,
+                _collect_hits(
+                    collected,
                     search_person_gnd_variantName(
                         full_name, year, gnd_limit, label="gnd_variant_fuzzy"
                     ),
-                    "max",
                 )
-            res_dict_fullname = update_per_dict_score(
-                res_dict_fullname,
+            _collect_hits(
+                collected,
                 search_person_wikidata(
                     full_name, year, wikidata_limit, label="wikidata_label_fuzzy"
                 ),
-                "max",
             )
 
-    candidate_dict = update_per_dict_score(candidate_dict, res_dict_fullname, "max")
-    return candidate_dict
+    return _as_candidates(collected)
 
 
 def prep_person_entry(person: dict, mag_year: str) -> None:
@@ -486,25 +523,29 @@ def link_person(data_in) -> dict:
         prep_person_out(person)
         return person
 
-    most_imp_sc = candidates[next(iter(candidates))]["score"]
+    mention = Mention(
+        lastname=tuple(person["lastname"]),
+        firstnames=tuple(person["firstname"]),
+        abbr_firstnames=tuple(person["abbr_firstname"]),
+        year=year,
+    )
     # if several of the first gnds have the same score,
     # take all of them and re-rank with our vdb
-    same_score_cand = list(
-        takewhile(lambda c: candidates[c]["score"] == most_imp_sc, candidates)
-    )
+    ranking = _SCORER.score(mention, candidates)
+    payloads = {c.gid: c.fields for c in candidates}
 
-    if len(same_score_cand) > 1:
+    if ranking.needs_disambiguation:
         person_context_dict = deepcopy(person)
         context = get_person_context(person_context_dict, tagging_paths, pages_cache)
 
         person["context"] = context
-        person["same_score_cand"] = same_score_cand
-        person["candidates"] = {c_k: candidates[c_k] for c_k in same_score_cand}
+        person["same_score_cand"] = ranking.top_tier
+        person["candidates"] = {gid: payloads[gid] for gid in ranking.top_tier}
         return person
 
-    person["gnd_ids"] = list(candidates.keys())[: settings.LINKED_PERSONS_LIMIT]
-    person["gnd_ids_scores_sim"] = [candidates[x]["score"] for x in person["gnd_ids"]]
-    person["candidates"] = [candidates[c_k] for c_k in person["gnd_ids"]]
+    person["gnd_ids"] = ranking.gids(settings.LINKED_PERSONS_LIMIT)
+    person["gnd_ids_scores_sim"] = [payloads[g]["score"] for g in person["gnd_ids"]]
+    person["candidates"] = [payloads[g] for g in person["gnd_ids"]]
     prep_person_out(person)
     return person
 
