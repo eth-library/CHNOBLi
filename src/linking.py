@@ -154,24 +154,39 @@ def get_candidates(
         candidate_dict = update_per_dict_score(
             candidate_dict,
             search_person_gnd(
-                person["abbr_firstname"], lastname, year, gnd_limit, False
+                person["abbr_firstname"],
+                lastname,
+                year,
+                gnd_limit,
+                False,
+                label="gnd_pref_exact",
             ),
             "max",
         )
         candidate_dict = update_per_dict_score(
             candidate_dict,
-            search_person_wikidata(full_name, year, wikidata_limit, False),
+            search_person_wikidata(
+                full_name, year, wikidata_limit, False, label="wikidata_label_exact"
+            ),
             "max",
         )
         if settings.ADD_FUZZY_SEARCH == "True":
             candidate_dict = update_per_dict_score(
                 candidate_dict,
-                search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit),
+                search_person_gnd(
+                    person["abbr_firstname"],
+                    lastname,
+                    year,
+                    gnd_limit,
+                    label="gnd_pref_fuzzy",
+                ),
                 "max",
             )
             candidate_dict = update_per_dict_score(
                 candidate_dict,
-                search_person_wikidata(full_name, year, wikidata_limit),
+                search_person_wikidata(
+                    full_name, year, wikidata_limit, label="wikidata_label_fuzzy"
+                ),
                 "max",
             )
 
@@ -179,46 +194,80 @@ def get_candidates(
     if person["firstname"]:
         res_dict_fullname = update_per_dict_score(
             res_dict_fullname,
-            search_person_gnd(person["firstname"], lastname, year, gnd_limit, False),
+            search_person_gnd(
+                person["firstname"],
+                lastname,
+                year,
+                gnd_limit,
+                False,
+                label="gnd_pref_exact",
+            ),
             "max",
         )
         if person["abbr_firstname"]:
             res_dict_fullname = update_per_dict_score(
                 res_dict_fullname,
-                search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit, False),
+                search_person_gnd(
+                    fname_abbr_fname,
+                    lastname,
+                    year,
+                    gnd_limit,
+                    False,
+                    label="gnd_pref_abbr_exact",
+                ),
                 "max",
             )
             res_dict_fullname = update_per_dict_score(
                 res_dict_fullname,
-                search_person_gnd_variantName(full_name, year, gnd_limit, False),
+                search_person_gnd_variantName(
+                    full_name, year, gnd_limit, False, label="gnd_variant_exact"
+                ),
                 "max",
             )
 
         res_dict_fullname = update_per_dict_score(
             res_dict_fullname,
-            search_person_wikidata(full_name, year, wikidata_limit, False),
+            search_person_wikidata(
+                full_name, year, wikidata_limit, False, label="wikidata_label_exact"
+            ),
             "max",
         )
         if settings.ADD_FUZZY_SEARCH == "True":
             res_dict_fullname = update_per_dict_score(
                 res_dict_fullname,
-                search_person_gnd(person["firstname"], lastname, year, gnd_limit),
+                search_person_gnd(
+                    person["firstname"],
+                    lastname,
+                    year,
+                    gnd_limit,
+                    label="gnd_pref_fuzzy",
+                ),
                 "max",
             )
             if person["abbr_firstname"]:
                 res_dict_fullname = update_per_dict_score(
                     res_dict_fullname,
-                    search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit),
+                    search_person_gnd(
+                        fname_abbr_fname,
+                        lastname,
+                        year,
+                        gnd_limit,
+                        label="gnd_pref_abbr_fuzzy",
+                    ),
                     "max",
                 )
                 res_dict_fullname = update_per_dict_score(
                     res_dict_fullname,
-                    search_person_gnd_variantName(full_name, year, gnd_limit),
+                    search_person_gnd_variantName(
+                        full_name, year, gnd_limit, label="gnd_variant_fuzzy"
+                    ),
                     "max",
                 )
             res_dict_fullname = update_per_dict_score(
                 res_dict_fullname,
-                search_person_wikidata(full_name, year, wikidata_limit),
+                search_person_wikidata(
+                    full_name, year, wikidata_limit, label="wikidata_label_fuzzy"
+                ),
                 "max",
             )
 

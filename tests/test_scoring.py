@@ -82,24 +82,43 @@ def test_ties_spanning_queries_are_collected():
     assert result.needs_disambiguation is True
 
 
-def test_score_from_the_tier_defining_query_only():
-    """A high score borrowed from a weaker query must not reorder a tier."""
+def test_retrieval_order_is_kept_within_a_tier():
+    """
+    The pipeline ranks by the order candidates came back in, not by score, so
+    the scorer must not reorder a tier. Elasticsearch already returns hits
+    best-first, which is what makes retrieval order meaningful.
+    """
+    cands = [
+        gnd("first", {"gnd_pref_exact": 18.4}),
+        gnd("second", {"gnd_pref_exact": 4.2}),
+    ]
+    assert CandidateScorer().score(HANS, cands).gids() == ["first", "second"]
+    flipped = list(reversed(cands))
+    assert CandidateScorer().score(HANS, flipped).gids() == ["second", "first"]
+
+
+def test_a_later_query_does_not_move_a_candidate():
+    """
+    A candidate whose score a weaker query raised keeps its place. Sorting on
+    the merged score would promote it; the pipeline does not.
+    """
     cands = [
         gnd("aaa", {"gnd_pref_exact": 4.2, "wikidata_label_exact": 100.0}),
         gnd("bbb", {"gnd_pref_exact": 18.4}),
     ]
-    assert CandidateScorer().score(HANS, cands).gids() == ["bbb", "aaa"]
+    assert CandidateScorer().score(HANS, cands).gids() == ["aaa", "bbb"]
 
 
-def test_order_is_total_and_deterministic():
-    """Identical tier and score fall back to the id, so runs are reproducible."""
+def test_placing_query_score_is_available_as_a_policy():
+    """The coherent alternative: score from the query that set the tier."""
     cands = [
-        gnd("999", {"gnd_pref_exact": 5.0}),
-        gnd("111", {"gnd_pref_exact": 5.0}),
+        gnd("aaa", {"gnd_pref_exact": 4.2, "wikidata_label_exact": 100.0}),
+        gnd("bbb", {"gnd_pref_exact": 18.4}),
     ]
-    first = CandidateScorer().score(HANS, cands).gids()
-    second = CandidateScorer().score(HANS, list(reversed(cands))).gids()
-    assert first == second == ["111", "999"]
+    policy = ScoringPolicy(es_combine="placing_query")
+    result = CandidateScorer(policy).score(HANS, cands)
+    assert result.top_tier == ["aaa"]
+    assert CandidateScorer().score(HANS, cands).top_tier == ["aaa", "bbb"]
 
 
 def test_score_priority_can_be_reordered():
@@ -118,13 +137,19 @@ def test_score_priority_can_be_reordered():
 # -------------------------------------------------
 # es_transform
 # -------------------------------------------------
-def test_max_norm_orders_within_a_tier_by_score():
+def test_max_norm_scales_each_query_to_its_own_top_hit():
+    """
+    The transform decides the tie, not the order: only the leader's equals stay
+    in the tie set, and the rest keep their retrieval positions.
+    """
     cands = [
-        gnd("low", {"gnd_pref_exact": 4.2}),
         gnd("high", {"gnd_pref_exact": 18.4}),
         gnd("mid", {"gnd_pref_exact": 17.9}),
+        gnd("low", {"gnd_pref_exact": 4.2}),
     ]
-    assert CandidateScorer().score(HANS, cands).gids() == ["high", "mid", "low"]
+    result = CandidateScorer().score(HANS, cands)
+    assert result.gids() == ["high", "mid", "low"]
+    assert result.top_tier == ["high"]
 
 
 def test_transform_none_leaves_the_tier_to_decide():
@@ -156,8 +181,9 @@ def test_variant_name_match_uses_the_surname_first_form():
 
 
 def test_abbreviation_matches_a_longer_forename():
-    cand = gnd("x", {"gnd_pref_exact": 1.0}, forename=("Hans", "Jakob"),
-               surname=("Ebert",))
+    cand = gnd(
+        "x", {"gnd_pref_exact": 1.0}, forename=("Hans", "Jakob"), surname=("Ebert",)
+    )
     assert CandidateScorer().name_matches(HANS, cand) is True
 
 
@@ -169,8 +195,9 @@ def test_wrong_forename_does_not_match():
 def test_forename_order_does_not_affect_matching():
     """Payload names arrive in sets, so comparison must not depend on order."""
     mention = Mention(lastname=("Ebert",), firstnames=("Hans", "Jakob"))
-    cand = gnd("x", {"gnd_pref_exact": 1.0}, forename=("Jakob", "Hans"),
-               surname=("Ebert",))
+    cand = gnd(
+        "x", {"gnd_pref_exact": 1.0}, forename=("Jakob", "Hans"), surname=("Ebert",)
+    )
     assert CandidateScorer().name_matches(mention, cand) is True
 
 
@@ -181,21 +208,33 @@ def test_forename_order_does_not_affect_matching():
 # edit to confidence_level shows up here rather than on the public site.
 CONFIDENCE_CASES = [
     # n_ids, has_full_name, name_match, vd_used, expected
-    (0, False, False, False, 5), (0, False, False, True, 4),
-    (0, True, False, False, 5),  (0, True, False, True, 4),
-    (1, True, True, False, 5),   (1, True, True, True, 5),
-    (1, True, False, False, 4),  (1, True, False, True, 4),
-    (1, False, True, False, 4),  (1, False, True, True, 4),
-    (1, False, False, False, 3), (1, False, False, True, 3),
-    (2, True, True, True, 4),    (2, True, False, True, 3),
-    (2, True, True, False, 3),   (2, True, False, False, 3),
-    (2, False, True, False, 2),  (2, False, True, True, 2),
-    (2, False, False, True, 2),  (2, False, False, False, 1),
+    (0, False, False, False, 5),
+    (0, False, False, True, 4),
+    (0, True, False, False, 5),
+    (0, True, False, True, 4),
+    (1, True, True, False, 5),
+    (1, True, True, True, 5),
+    (1, True, False, False, 4),
+    (1, True, False, True, 4),
+    (1, False, True, False, 4),
+    (1, False, True, True, 4),
+    (1, False, False, False, 3),
+    (1, False, False, True, 3),
+    (2, True, True, True, 4),
+    (2, True, False, True, 3),
+    (2, True, True, False, 3),
+    (2, True, False, False, 3),
+    (2, False, True, False, 2),
+    (2, False, True, True, 2),
+    (2, False, False, True, 2),
+    (2, False, False, False, 1),
 ]
 
 
 @pytest.mark.parametrize("n_ids,full,match,vd,expected", CONFIDENCE_CASES)
-def test_confidence_matches_the_previous_decision_tree(n_ids, full, match, vd, expected):
+def test_confidence_matches_the_previous_decision_tree(
+    n_ids, full, match, vd, expected
+):
     assert confidence_level(n_ids, full, match, vd) == expected
 
 
@@ -220,3 +259,53 @@ def test_candidate_hashes_without_its_payload_but_compares_with_it():
     b = gnd("111", {"gnd_pref_exact": 1.0}, forename=("Heinrich",))
     assert hash(a) == hash(b)
     assert a != b
+
+
+# -------------------------------------------------
+# tie_scope — the rule the pipeline's takewhile encodes
+# -------------------------------------------------
+def test_a_clear_winner_ends_the_tie():
+    """A lower score behind the leader settles it; later queries are not read."""
+    cands = [
+        gnd("A", {"gnd_pref_exact": 1.0}),
+        gnd("B", {"gnd_pref_exact": 0.7}),
+        gnd("C", {"wikidata_label_exact": 1.0}),
+    ]
+    result = CandidateScorer().score(HANS, cands)
+    assert result.top_tier == ["A"]
+    assert result.needs_disambiguation is False
+
+
+def test_no_clear_winner_lets_the_tie_cross_into_the_next_query():
+    """Nothing contradicts the leader, so the next query joins the tie."""
+    cands = [
+        gnd("A", {"gnd_pref_exact": 1.0}),
+        gnd("B", {"gnd_pref_exact": 1.0}),
+        gnd("C", {"wikidata_label_exact": 1.0}),
+    ]
+    assert CandidateScorer().score(HANS, cands).top_tier == ["A", "B", "C"]
+
+
+def test_a_single_hit_does_not_settle_the_question():
+    """
+    One hit in the best query leaves nothing to stop the run, so the tie
+    crosses. This is the common case, not a corner one: every query normalizes
+    its own top hit to 1.0.
+    """
+    cands = [
+        gnd("A", {"gnd_pref_exact": 1.0}),
+        gnd("C", {"wikidata_label_exact": 1.0}),
+        gnd("D", {"wikidata_label_exact": 0.6}),
+    ]
+    assert CandidateScorer().score(HANS, cands).top_tier == ["A", "C"]
+
+
+def test_top_tier_scope_keeps_the_tie_inside_one_tier():
+    """The alternative: a lower tier can never join the tie."""
+    cands = [
+        gnd("A", {"gnd_pref_exact": 1.0}),
+        gnd("C", {"wikidata_label_exact": 1.0}),
+    ]
+    policy = ScoringPolicy(tie_scope="top_tier")
+    assert CandidateScorer(policy).score(HANS, cands).top_tier == ["A"]
+    assert CandidateScorer().score(HANS, cands).top_tier == ["A", "C"]

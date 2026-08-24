@@ -390,7 +390,9 @@ def _alive_before_year_filter(year: str) -> dict:
     }
 
 
-def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
+def search_person_gnd_variantName(
+    fullname: str, year: str, gnd_limit=15, fuzzy=True, label: str = ""
+) -> dict:
     """
     We search for this fullname in our elasticsearch GND index.
     We return at most `gnd_limit` results.
@@ -483,6 +485,11 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
                 person_info["score"] = hit["_score"]
                 if person_info["score"] > max_score:
                     max_score = person_info["score"]
+                # Which query found this candidate. Carried with the hit and not
+                # read here; the scorer uses it to place the candidate. Absent when
+                # the caller named no query, so an unlabelled call is unchanged.
+                if label:
+                    person_info["query_label"] = label
                 res_candidates[gid] = person_info
     except Exception:
         logging.error("This query caused an exception: "+str(result_json))
@@ -494,7 +501,9 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
     return res_candidates
 
 
-def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
+def search_person_gnd(
+    fnames: list, lastname: str, year: str, gnd_limit=15, fuzzy=True, label: str = ""
+) -> dict:
     """
     We search for this firstnames lastname in our elasticsearch GND index.
     We return at most `gnd_limit` results.
@@ -620,6 +629,11 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
                 person_info["score"] = hit["_score"]
                 if person_info["score"] > max_score:
                     max_score = person_info["score"]
+                # Which query found this candidate. Carried with the hit and not
+                # read here; the scorer uses it to place the candidate. Absent when
+                # the caller named no query, so an unlabelled call is unchanged.
+                if label:
+                    person_info["query_label"] = label
                 res_candidates[gid] = person_info
     except Exception:
         logging.error("This query caused an exception: "+str(result_json))
@@ -632,7 +646,8 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
     return res_candidates
 
 
-def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=True) -> dict:
+def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=True,
+                           label: str = "") -> dict:
     """
     We search for this firstnames lastname in our elasticsearch
     Wikidata index. We return at most `wikidata_limit` results.
@@ -713,6 +728,11 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
                     # sometimes one entity is assigned several gids.
                     # this unfortunately breaks a lot of what we did logically
                     # but this cannot be fixed on our end.
+                    # Which query found this candidate. Carried with the hit and not
+                    # read here; the scorer uses it to place the candidate. Absent when
+                    # the caller named no query, so an unlabelled call is unchanged.
+                    if label:
+                        person_info["query_label"] = label
                     res_candidates.setdefault(gid, person_info)
                     if person_info["score"] > max_score:
                         max_score = person_info["score"]

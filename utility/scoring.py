@@ -1,22 +1,16 @@
 """
 Ranking of knowledge-base candidates for a person mention.
 
-Candidate ranking used to be an emergent property of the order in which the
-Elasticsearch queries happened to be issued: results were merged into a plain
-dictionary and never sorted, so a candidate's position was decided by whichever
-query found it first, and equal scores were compared with ``==`` on floats that
-only ever came out equal because each query normalized its own top hit to 1.0.
-
-This module makes that ordering explicit. A candidate is placed in a *tier*
-according to what kind of match it is — an exact hit on a GND preferred name
-outranks a hit on a variant name, which outranks a Wikidata label, and every
-exact match outranks every fuzzy one. The Elasticsearch score only orders
-candidates that already share a tier.
+A candidate is placed in a *tier* according to what kind of match it is. An
+exact hit on a GND preferred name outranks a hit on a variant name, which
+outranks a Wikidata label, and every exact match outranks every fuzzy one. A
+candidate lands in the best tier any query that returned it justifies, and the
+Elasticsearch score only orders candidates that already share a tier.
 
 The tier table is data, in :class:`ScoringPolicy`, because trying different
-orderings is the point. Everything else stays logic: the aim here is to
-reproduce the current ranking through a structure that can be reasoned about,
-not to add behaviour that does not exist yet.
+orderings is the point. Everything else stays logic. Every default reproduces
+the ranking the linking stage produces, so an alternative scheme is a change of
+policy rather than a rewrite.
 
 Nothing here talks to Elasticsearch or reads the global settings.
 """
@@ -26,6 +20,7 @@ from __future__ import annotations
 import unicodedata
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
+from itertools import takewhile
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -34,6 +29,12 @@ MatchKind = str
 
 #: Tier order matching the sequence the candidate queries are issued in:
 #: exactness first, then field, then source.
+#:
+#: A mention with abbreviated forenames usually has no full forenames, or the
+#: two do not overlap, so the abbreviation branch and the full-name branch are
+#: mutually exclusive and never contribute to the same mention. The
+#: abbreviation-only branch therefore reuses the preferred-name tiers (1 and 5)
+#: with the abbreviations as query text, and needs no tiers of its own.
 DEFAULT_SCORE_PRIORITY: dict[MatchKind, int] = {
     "gnd_pref_exact": 1,
     "gnd_pref_abbr_exact": 2,
@@ -52,11 +53,10 @@ def confidence_level(
     """
     Grades how much a linking decision can be trusted, from 1 to 5.
 
-    This is the decision tree that used to sit inside ``prep_person_out``,
-    unchanged and in the same shape. Keeping it nested is deliberate: where a
-    branch does not consult a fact there is no test for it, so the cases that
-    ignore a dimension cannot drift apart from each other. Flattening it into a
-    lookup table would turn that guarantee into a convention.
+    The tree stays nested rather than flattened into a lookup table: where a
+    branch does not consult a fact there is no test for it, so every case that
+    ignores a dimension is bound to agree with the others instead of agreeing
+    by convention.
 
     :param n_ids: How many ids survived.
     :type n_ids: int
@@ -66,13 +66,15 @@ def confidence_level(
     :type name_match: bool
     :param vd_used: Whether the vector database decided the ranking.
     :type vd_used: bool
-    :return: Confidence from 1 (minimal) to 5 (excellent).
+    :return: Confidence for the frontend, on the pipeline's scale: 5 excellent,
+        4 very good, 3 good, 2 medium, 1 minimal, 0 experimental.
     :rtype: int
     """
 
     if n_ids == 0:
-        # Nothing was linked; the only question is whether the vector database
-        # tested that conclusion or never saw it.
+        # Confidence that this person *cannot* be linked: the grade applies to
+        # the negative conclusion, and the only question is whether the vector
+        # database tested it or never saw it.
         return 4 if vd_used else 5
 
     if has_full_name:
@@ -149,13 +151,18 @@ class Candidate:
     """
     One knowledge-base entry returned for a mention.
 
+    One entry, one GND id. A Wikidata entry sometimes carries several GND ids
+    and is registered under each of them, which breaks a good deal of the
+    surrounding logic and cannot be fixed on our end: the duplicates sit in the
+    knowledge base itself.
+
     ``fields`` holds the converted payload and ``retrieval`` maps every query
     label that returned this candidate to that query's raw Elasticsearch score.
-    Both are excluded from hashing: freezing is shallow, a dict field would make
-    the generated ``__hash__`` raise, and equality should still compare payloads
-    in full. Build each candidate with its own copy of the payload — sharing one
-    dictionary between candidates reintroduces the aliasing this type exists to
-    prevent.
+    Both are excluded from hashing: freezing is shallow, so a dict field would
+    make the generated ``__hash__`` raise, while equality should still compare
+    payloads in full. Build each candidate with its own copy of the payload;
+    sharing one dictionary between candidates reintroduces the aliasing this
+    type exists to prevent.
     """
 
     gid: str
@@ -199,6 +206,10 @@ class ScoredResult:
     """
 
     ranked: list[ScoredCandidate] = field(default_factory=list)
+
+    #: The candidates the retrieval scores could not separate. When several of
+    #: the leading ids share the same score, all of them are taken and re-ranked
+    #: by the vector database rather than one being picked arbitrarily.
     top_tier: list[str] = field(default_factory=list)
     needs_disambiguation: bool = False
     confidence: int = 5
@@ -218,8 +229,8 @@ class ScoredResult:
 
 
 # --------------------------------------------------------------------------
-# Whether a candidate's own name confirms the mention. This is the check that
-# used to be ``_name_matches``, split into the cases it was testing.
+# Whether a candidate's own name confirms the mention, one predicate per case
+# the check accepts.
 # --------------------------------------------------------------------------
 
 
@@ -308,9 +319,8 @@ class ScoringPolicy(BaseModel):
     """
     The ranking, as data.
 
-    Deliberately small. The defaults reproduce the ranking the pipeline produced
-    before scoring was made explicit, so that adopting the scorer is not also a
-    silent change in results.
+    Deliberately small. Every default reproduces the ranking the linking stage
+    produces, so adopting the scorer does not also change results.
     """
 
     #: Which kind of match outranks which. The one thing meant to be varied.
@@ -319,14 +329,31 @@ class ScoringPolicy(BaseModel):
     )
 
     #: How a raw Elasticsearch score becomes the within-tier tie-breaker.
-    #: ``max_norm`` is what the pipeline does today; ``none`` ignores the score
-    #: entirely, leaving the tier to decide, which is the baseline for judging
-    #: whether the score contributes anything.
+    #: ``max_norm`` divides every score by the top score of the query that
+    #: produced it, as the retrieval helpers do. ``none`` drops the score
+    #: entirely and leaves the tier to decide, which is the baseline for
+    #: judging whether the score contributes anything.
     es_transform: Literal["max_norm", "none"] = "max_norm"
 
-    #: Tolerance for calling two within-tier scores equal. Needed because the
-    #: previous code compared floats with ``==`` and only got away with it while
-    #: every query's top hit was normalized to exactly 1.0.
+    #: Which of a candidate's query scores it is compared on. ``max`` takes the
+    #: best score any query gave it, even though each of those was normalized
+    #: against a different query's top hit. ``placing_query`` takes the score
+    #: from the query that set the candidate's tier, so the number it is
+    #: compared on is the evidence its placement rests on. That reading is the
+    #: more coherent one but it moves candidates, so ``max`` stays the default.
+    es_combine: Literal["max", "placing_query"] = "max"
+
+    #: How far the tie at the top reaches. ``prefix`` walks the ranking from the
+    #: front while candidates keep matching the leader's score and **does not
+    #: stop at a tier boundary**, so a query settles the mention only if the
+    #: queries before it left no clear winner. ``top_tier`` stops at the
+    #: leader's tier, so a lower-tier candidate can never join the tie.
+    tie_scope: Literal["prefix", "top_tier"] = "prefix"
+
+    #: Tolerance for calling two scores equal. The scores being compared are
+    #: floats that come out equal only because each query normalizes its own top
+    #: hit to exactly 1.0, so they are compared within a tolerance rather than
+    #: with ``==``.
     tie_epsilon: float = 1e-6
 
 
@@ -392,7 +419,11 @@ class CandidateScorer:
         Translates raw Elasticsearch scores into comparable numbers.
 
         A score is only meaningful relative to the query that produced it, so
-        the transform is applied per query label.
+        the transform is applied per query label. This is the "scale them to 1"
+        step the retrieval helpers perform today, and its purpose is to make
+        scores from **different indexes** comparable: a GND hit and a Wikidata
+        hit are scored by different fields against different corpora, so their
+        raw values cannot be compared directly.
 
         :param candidates: Candidates being scored.
         :type candidates: Sequence[Candidate]
@@ -436,30 +467,48 @@ class CandidateScorer:
         components = self._components(candidates)
         for cand in candidates:
             tier, label = self.tier(cand)
+            if self.policy.es_combine == "placing_query":
+                component = components.get((cand.gid, label), 0.0)
+            else:
+                component = max(
+                    (components.get((cand.gid, lab), 0.0) for lab in cand.retrieval),
+                    default=0.0,
+                )
             result.ranked.append(
                 ScoredCandidate(
                     gid=cand.gid,
                     tier=tier,
                     tier_label=label,
-                    # The score comes from the query that set the tier: that is
-                    # the evidence the placement rests on, and taking the best
-                    # across queries would let an unrelated query's normalized
-                    # top hit reorder a tier it had no part in.
-                    es_component=components.get((cand.gid, label), 0.0),
+                    es_component=component,
                 )
             )
 
-        # Trailing gid keeps the order total, so a run is reproducible and two
-        # policies can be diffed without spurious churn.
-        result.ranked.sort(key=lambda c: (c.tier, -c.es_component, c.gid))
+        # Tier only, and a stable sort, so candidates keep the order they were
+        # retrieved in within a tier. Sorting on the score as well would lift a
+        # candidate that a later query scored higher above one an earlier query
+        # placed first; the score settles the tie below, not the position.
+        result.ranked.sort(key=lambda c: c.tier)
 
         best = result.ranked[0]
-        result.top_tier = [
-            c.gid
-            for c in result.ranked
-            if c.tier == best.tier
-            and abs(c.es_component - best.es_component) <= self.policy.tie_epsilon
-        ]
+        if self.policy.tie_scope == "top_tier":
+            result.top_tier = [
+                c.gid
+                for c in result.ranked
+                if c.tier == best.tier
+                and abs(c.es_component - best.es_component) <= self.policy.tie_epsilon
+            ]
+        else:
+            # Walk from the front while the leader's score keeps being matched,
+            # crossing tiers: the next query counts only when the current one
+            # produced no clear winner.
+            result.top_tier = [
+                c.gid
+                for c in takewhile(
+                    lambda c: abs(c.es_component - best.es_component)
+                    <= self.policy.tie_epsilon,
+                    result.ranked,
+                )
+            ]
         result.needs_disambiguation = len(result.top_tier) > 1
 
         by_gid = {c.gid: c for c in candidates}
