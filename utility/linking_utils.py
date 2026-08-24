@@ -27,6 +27,35 @@ PREFIX_PATTERNS = [(prefix, re.compile("(^" + prefix + ")")) for prefix in PREFI
 # and child at once.
 _sessions = threading.local()
 
+# Knowledge-base entries carrying several GND ids are a property of the entry,
+# not of the mention that found it, so the same handful reappear for thousands
+# of mentions. Reported once each per process instead.
+_reported_multi_gid: set = set()
+
+
+def warn_multiple_gids(source: str, gids: set, note: str = "") -> None:
+    """
+    Reports a knowledge-base entry holding more than one GND id, once per entry.
+
+    :param source: Index the entry came from, for example "Wikidata".
+    :type source: str
+    :param gids: The GND ids found on the entry.
+    :type gids: set
+    :param note: Sentence appended to the message, defaults to "".
+    :type note: str
+    """
+
+    key = frozenset(gids)
+    if key in _reported_multi_gid:
+        return
+    _reported_multi_gid.add(key)
+    # Sorted so the same entry reads the same way from run to run; iterating a
+    # set of ids would order the message differently each time.
+    logging.warning(
+        f"{source} entry with multiple GND IDs: {sorted(gids)}."
+        + (f" {note}" if note else "")
+    )
+
 
 def _session() -> requests.Session:
     """
@@ -446,9 +475,8 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 # NOTE: This should never be degenerate better to put a hard check here
                 if len(person_info["gid"]) > 1:
-                    logging.error(
-                        f"GND entry with multiple GND IDs: {person_info['gid']}. "
-                        "An arbitrary one is selected."
+                    warn_multiple_gids(
+                        "GND", person_info["gid"], "An arbitrary one is selected."
                     )
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
@@ -584,9 +612,8 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 # NOTE: This should never be degenerate better to put a hard check here
                 if len(person_info["gid"]) > 1:
-                    logging.error(
-                        f"GND entry with multiple GND IDs: {person_info['gid']}. "
-                        "An arbitrary one is selected."
+                    warn_multiple_gids(
+                        "GND", person_info["gid"], "An arbitrary one is selected."
                     )
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
@@ -681,9 +708,7 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 person_info["score"] = hit["_score"]
                 if len(person_info["gid"]) > 1:
-                    logging.warning(
-                        f"Wikidata entry with multiple GND IDs: {person_info['gid']}."
-                    )
+                    warn_multiple_gids("Wikidata", person_info["gid"])
                 for gid in person_info["gid"]:
                     # sometimes one entity is assigned several gids.
                     # this unfortunately breaks a lot of what we did logically
