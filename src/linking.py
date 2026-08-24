@@ -11,6 +11,7 @@ import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pattern")
 
 from datetime import datetime
+import threading
 from multiprocessing import Pool
 from concurrent.futures import ThreadPoolExecutor
 import orjson
@@ -419,7 +420,10 @@ def link_person(data_in) -> dict:
     firstnames. If not, those candidates are deleted first, before we\
     truncate to `linked_persons_limit`.
     """
-    mag_year, year, person, tagging_paths = data_in
+    mag_year, year, person, tagging_paths = data_in[:4]
+    # The shared parse is optional so that a single call can still be made with
+    # just the paths, as the tests do.
+    pages_cache = data_in[4] if len(data_in) > 4 else None
     prep_person_entry(person, mag_year)
     candidates = get_candidates(
         person, year, settings.GND_LIMIT, settings.WIKIDATA_LIMIT
@@ -438,7 +442,9 @@ def link_person(data_in) -> dict:
 
     if len(same_score_cand) > 1:
         person_context_dict = deepcopy(person)
-        context = get_person_context(person_context_dict, tagging_paths)
+        context = get_person_context(
+            person_context_dict, tagging_paths, pages_cache
+        )
 
         person["context"] = context
         person["same_score_cand"] = same_score_cand
@@ -478,8 +484,13 @@ def find_links(data_in) -> list:
     else:
         year = year.group(0)
 
+    # One parse of this magazine-year's tagging output, shared by every mention
+    # in it and released with it.
+    pages_cache = TaggingPages()
     person_list = [
-        (mag_year, year, x, tagging_paths) for x in data if x["type"] == "PER"
+        (mag_year, year, x, tagging_paths, pages_cache)
+        for x in data
+        if x["type"] == "PER"
     ]
 
     if settings.BATCH_SIZE == 1:
@@ -642,7 +653,73 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
         logging.info("Linking took: " + str(datetime.now() - start_time))
 
 
-def get_person_context(per: dict, tagging_output_paths: list) -> str:
+class TaggingPages:
+    """
+    Parsed tagging output for one magazine-year, shared by its mentions.
+
+    One instance belongs to one magazine-year and is dropped with it, so the
+    memory held is one year's parsed files rather than the corpus. Files are
+    parsed on first request, so an instance starts empty and grows to hold the
+    files its mentions actually reach.
+    """
+
+    def __init__(self) -> None:
+        self._pages: dict = {}
+        self._lock = threading.Lock()
+
+    def pages_for(self, path: str) -> list:
+        """
+        Returns the parsed pages of one file, parsing it at most once.
+
+        Mentions are processed by a thread pool, so the parse is guarded: two
+        threads arriving together would otherwise each decode the same file.
+
+        :param path: Path to a tagging output file.
+        :type path: str
+        :return: List of single-page dictionaries.
+        :rtype: list
+        :raises Exception: If the path cannot be read or parsed.
+        """
+
+        with self._lock:
+            if path not in self._pages:
+                self._pages[path] = _load_tagging_pages(path)
+            return self._pages[path]
+
+
+def _load_tagging_pages(path: str) -> list:
+    """
+    Reads one tagging output file and normalizes it to one page per entry.
+
+    :param path: Path to a tagging output file.
+    :type path: str
+    :return: List of dictionaries, each holding exactly one page.
+    :rtype: list
+    :raises Exception: If the tagging output path is not a valid path.
+    """
+
+    try:
+        if path.endswith(".jsonl"):
+            with open(path, "r", encoding="utf-8") as f:
+                pages = [orjson.loads(line) for line in f]
+        else:
+            with open(path, "r", encoding="utf-8") as f:
+                pages = [orjson.loads(f.read())]
+    except Exception:
+        raise Exception(f"Tagging output: {path} is not a valid path.")
+
+    # Each line should be exactly one page
+    if not all(len(x) == 1 for x in pages):
+        # flatten it
+        pages = [
+            {k: v} for subpages_dict in pages for (k, v) in subpages_dict.items()
+        ]
+        assert all(len(x) == 1 for x in pages), list(pages[0].keys())
+    return pages
+
+
+def get_person_context(per: dict, tagging_output_paths: list,
+                       pages_cache: "TaggingPages | None" = None) -> str:
     """
     Retrieve and concatenate context surrounding all person mentions.
 
@@ -654,11 +731,16 @@ def get_person_context(per: dict, tagging_output_paths: list) -> str:
     :type per: dict
     :param tagging_output_paths: List of the paths to the tagging output files
     :type tagging_output_paths: list
+    :param pages_cache: Shared parse of this magazine-year's files. Omitting it
+        parses them here, which is what a single standalone call wants.
+    :type pages_cache: TaggingPages | None
     :return: Concatenated context text from all references to the person
     :rtype: str
     :raises Exception: If the tagging output path is not a valid path
     """
     all_context = ""
+    if pages_cache is None:
+        pages_cache = TaggingPages()
 
     for page in per["references"]:
         for r in per["references"][page]["refs"]:
@@ -671,23 +753,7 @@ def get_person_context(per: dict, tagging_output_paths: list) -> str:
     for p in tagging_output_paths:  # for custom tagging output this is empty so skipped
         # check in the person references if this page / path is even relevant
         # then do the rest below.
-        try:
-            if p.endswith(".jsonl"):
-                with open(p, "r", encoding="utf-8") as f:
-                    pages = [orjson.loads(line) for line in f]
-            else:
-                with open(p, "r", encoding="utf-8") as f:
-                    pages = [orjson.loads(f.read())]
-        except Exception:
-            raise Exception(f"Tagging output: {p} is not a valid path.")
-
-        # Each line should be exactly one page
-        if not all(len(x) == 1 for x in pages):
-            # flatten it
-            pages = [
-                {k: v} for subpages_dict in pages for (k, v) in subpages_dict.items()
-            ]
-            assert all(len(x) == 1 for x in pages), list(pages[0].keys())
+        pages = pages_cache.pages_for(p)
         # Only keep pages relevant to the person
         pages = [x for x in pages if next(iter(x.keys())) in all_relevant_pages]
 
