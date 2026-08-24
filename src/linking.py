@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore", category=SyntaxWarning, module="pattern")
 
 from datetime import datetime
 import threading
-from multiprocessing import Pool
+from multiprocessing import Pool, Value
 from concurrent.futures import ThreadPoolExecutor
 import orjson
 import string
@@ -442,9 +442,7 @@ def link_person(data_in) -> dict:
 
     if len(same_score_cand) > 1:
         person_context_dict = deepcopy(person)
-        context = get_person_context(
-            person_context_dict, tagging_paths, pages_cache
-        )
+        context = get_person_context(person_context_dict, tagging_paths, pages_cache)
 
         person["context"] = context
         person["same_score_cand"] = same_score_cand
@@ -456,6 +454,28 @@ def link_person(data_in) -> dict:
     person["candidates"] = [candidates[c_k] for c_k in person["gnd_ids"]]
     prep_person_out(person)
     return person
+
+
+_documents_done = None
+_documents_total = 0
+
+
+def init_link_progress(counter, total: int) -> None:
+    """
+    Hands a worker the tally shared by every process linking this run.
+
+    Magazine-years are linked in forked processes, so a plain counter would
+    count each worker's own share and report the same numbers several times.
+
+    :param counter: Shared count of the magazine-years finished so far.
+    :type counter: multiprocessing.Value
+    :param total: Magazine-years this run will link.
+    :type total: int
+    """
+
+    global _documents_done, _documents_total
+    _documents_done = counter
+    _documents_total = total
 
 
 def find_links(data_in) -> list:
@@ -477,6 +497,7 @@ def find_links(data_in) -> list:
     :rtype: tuple
     """
     mag_year, data, tagging_paths = data_in
+    started = datetime.now()
 
     year = re.match(r"\d{4}", mag_year[1])
     if year is None:
@@ -508,6 +529,15 @@ def find_links(data_in) -> list:
     # with Pool(conf["BATCH_SIZE"]) as p:
     #     person_list = p.map(link_person, person_list)
 
+    tally = ""
+    if _documents_done is not None:
+        with _documents_done.get_lock():
+            _documents_done.value += 1
+            tally = f" ({_documents_done.value}/{_documents_total})"
+    logging.info(
+        f"Candidates for {'-'.join(mag_year)}: {len(person_list)} mentions "
+        f"in {datetime.now() - started}{tally}"
+    )
     return mag_year, person_list, tagging_paths
 
 
@@ -557,10 +587,16 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
     ]
     # for idx, i in enumerate(links):
     #    links[idx][1] = find_links(i)  # I basically update v
+    documents_done = Value("i", 0)
     if settings.BATCH_SIZE == 1:
+        init_link_progress(documents_done, len(links))
         links = [find_links(x) for x in links]
     else:
-        with Pool(settings.BATCH_SIZE) as p:
+        with Pool(
+            settings.BATCH_SIZE,
+            initializer=init_link_progress,
+            initargs=(documents_done, len(links)),
+        ) as p:
             links = p.map(find_links, links)
     # vorschlag
     # for k,v in data.items():
@@ -711,15 +747,14 @@ def _load_tagging_pages(path: str) -> list:
     # Each line should be exactly one page
     if not all(len(x) == 1 for x in pages):
         # flatten it
-        pages = [
-            {k: v} for subpages_dict in pages for (k, v) in subpages_dict.items()
-        ]
+        pages = [{k: v} for subpages_dict in pages for (k, v) in subpages_dict.items()]
         assert all(len(x) == 1 for x in pages), list(pages[0].keys())
     return pages
 
 
-def get_person_context(per: dict, tagging_output_paths: list,
-                       pages_cache: "TaggingPages | None" = None) -> str:
+def get_person_context(
+    per: dict, tagging_output_paths: list, pages_cache: "TaggingPages | None" = None
+) -> str:
     """
     Retrieve and concatenate context surrounding all person mentions.
 
