@@ -8,7 +8,7 @@
     "DATA2_MNT": "./adl/",
     "VD_API_TOKEN": "./src/.env.api.token",
     "VD_MAX_RETRIES": 50,
-    "VD_QUERY_CHUNK_LEN": 500,
+    "VD_QUERY_CHUNK_LEN": 5000,
     "VD_MAX_DIST": 0.6,
     "VD_CONTEXT_WINDOW_LEN": 30,
     "SENTENCE_BATCH_SIZE": 128,
