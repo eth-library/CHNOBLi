@@ -645,6 +645,7 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
     assert len(batched_queryids) == len(batched_text)
     assert len(batched_queryids) == len(batched_targettextids)
     for i in range(len(batched_queryids)):
+        batch_started = datetime.now()
         response = compare_to_target_ids_multiplexed(
             batched_queryids[i],
             batched_text[i],
@@ -688,6 +689,11 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
                     for c_k in links[idx_i][1][idx_j]["gnd_ids"]
                 ]
                 prep_person_out(links[idx_i][1][idx_j])
+
+        logging.info(
+            f"Disambiguated batch {i + 1}/{len(batched_queryids)}: "
+            f"{len(batched_queryids[i])} mentions in {datetime.now() - batch_started}"
+        )
 
     for i in links:
         save_data_intermediate([i[0][0], i[0][1]], i[1], "link")
