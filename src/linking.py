@@ -20,7 +20,11 @@ import os
 from copy import deepcopy
 import time
 import requests
-from utility.utils import save_data_intermediate
+from utility.utils import (
+    save_data_intermediate,
+    start_magazine_output,
+    finish_magazine_output,
+)
 from utility.linking_utils import (
     search_person_wikidata,
     search_person_gnd,
@@ -577,6 +581,9 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
     logging.info("executeLinking reached")
     logging.info("Linking now: " + ", ".join(["-".join(x) for x in data.keys()]))
 
+    magazines = {mag_year[0] for mag_year in data}
+    start_magazine_output(magazines, "link")
+
     links = [
         [
             k,  # tuple of (mag, year) like ("cmt", "1998_076")
@@ -684,6 +691,7 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
 
     for i in links:
         save_data_intermediate([i[0][0], i[0][1]], i[1], "link")
+    finish_magazine_output(magazines, "link")
 
     if timed:
         logging.info("Linking took: " + str(datetime.now() - start_time))
