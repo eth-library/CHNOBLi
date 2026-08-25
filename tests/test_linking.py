@@ -58,26 +58,27 @@ def _candidate(gid: str, payload: dict, label: str = "gnd_pref_exact") -> Candid
 # -------------------------------------------------
 # Test get_candidates
 # -------------------------------------------------
-@patch("src.linking.search_person_gnd")
-@patch("src.linking.search_person_wikidata")
 @pytest.mark.parametrize(
     "person, year, gnd_limit, wikidata_limit, gnd_return, wikidata_return, expected",
     PARAMS_get_candidates,
 )
-def test_get_candidates(mock_search_person_gnd,
-                        mock_search_person_wikidata,
-                        person,
+def test_get_candidates(person,
                         year,
                         gnd_limit,
                         wikidata_limit,
                         expected,
                         gnd_return,
                         wikidata_return):
-    # Mock GND and Wikidata search results
-    mock_search_person_gnd.return_value = gnd_return
-    mock_search_person_wikidata.return_value = wikidata_return
+    """
+    All three searches are stubbed, the variant-name one included. It used to be
+    left live, which sent this test to the cluster and made it fail whenever the
+    first attempt did not answer inside half a second.
+    """
 
-    candidates = get_candidates(person, year, gnd_limit, wikidata_limit)
+    with patch("src.linking.search_person_gnd", return_value=gnd_return), \
+         patch("src.linking.search_person_wikidata", return_value=wikidata_return), \
+         patch("src.linking.search_person_gnd_variantName", return_value={}):
+        candidates = get_candidates(person, year, gnd_limit, wikidata_limit)
     assert {c.gid: c.fields for c in candidates} == expected
 
 
