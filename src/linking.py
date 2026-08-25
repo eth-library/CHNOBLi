@@ -196,118 +196,52 @@ def get_candidates(
     fname_abbr_fname = fname_abbr_fname.replace("  ", " ").strip()
     full_name = fname_abbr_fname + " " + lastname
 
+    # A mention with abbreviated forenames usually has no full forenames, or the
+    # two do not overlap, so the preferred-name query searches for whichever it
+    # has. The abbreviation and variant queries need both and are skipped when
+    # only one is present.
+    fnames = person["firstname"] or person["abbr_firstname"]
+    has_both = bool(person["firstname"]) and bool(person["abbr_firstname"])
+
+    # The candidate queries, in the order their tiers rank them. Each row is
+    # issued once as an exact search and, when fuzzy search is on, once more
+    # with the analyzers relaxed, under the label the tier table knows it by.
+    plan = [
+        (
+            "gnd_pref_exact",
+            search_person_gnd,
+            (fnames, lastname, year, gnd_limit),
+            True,
+        ),
+        (
+            "gnd_pref_abbr_exact",
+            search_person_gnd,
+            (fname_abbr_fname, lastname, year, gnd_limit),
+            has_both,
+        ),
+        (
+            "gnd_variant_exact",
+            search_person_gnd_variantName,
+            (full_name, year, gnd_limit),
+            has_both,
+        ),
+        (
+            "wikidata_label_exact",
+            search_person_wikidata,
+            (full_name, year, wikidata_limit),
+            True,
+        ),
+    ]
+
     collected = {}
-    if person["abbr_firstname"] and not person["firstname"]:
-        # If we have an abbr_fnames we usually don't have fnames
-        # or they don't overlap in some way.
-        _collect_hits(
-            collected,
-            search_person_gnd(
-                person["abbr_firstname"],
-                lastname,
-                year,
-                gnd_limit,
-                False,
-                label="gnd_pref_exact",
-            ),
-        )
-        _collect_hits(
-            collected,
-            search_person_wikidata(
-                full_name, year, wikidata_limit, False, label="wikidata_label_exact"
-            ),
-        )
-        if settings.ADD_FUZZY_SEARCH == "True":
-            _collect_hits(
-                collected,
-                search_person_gnd(
-                    person["abbr_firstname"],
-                    lastname,
-                    year,
-                    gnd_limit,
-                    label="gnd_pref_fuzzy",
-                ),
-            )
-            _collect_hits(
-                collected,
-                search_person_wikidata(
-                    full_name, year, wikidata_limit, label="wikidata_label_fuzzy"
-                ),
-            )
-
-    # The two branches are mutually exclusive: this one needs firstnames and
-    # the one above needs their absence, so a mention only ever takes one.
-    if person["firstname"]:
-        _collect_hits(
-            collected,
-            search_person_gnd(
-                person["firstname"],
-                lastname,
-                year,
-                gnd_limit,
-                False,
-                label="gnd_pref_exact",
-            ),
-        )
-        if person["abbr_firstname"]:
-            _collect_hits(
-                collected,
-                search_person_gnd(
-                    fname_abbr_fname,
-                    lastname,
-                    year,
-                    gnd_limit,
-                    False,
-                    label="gnd_pref_abbr_exact",
-                ),
-            )
-            _collect_hits(
-                collected,
-                search_person_gnd_variantName(
-                    full_name, year, gnd_limit, False, label="gnd_variant_exact"
-                ),
-            )
-
-        _collect_hits(
-            collected,
-            search_person_wikidata(
-                full_name, year, wikidata_limit, False, label="wikidata_label_exact"
-            ),
-        )
-        if settings.ADD_FUZZY_SEARCH == "True":
-            _collect_hits(
-                collected,
-                search_person_gnd(
-                    person["firstname"],
-                    lastname,
-                    year,
-                    gnd_limit,
-                    label="gnd_pref_fuzzy",
-                ),
-            )
-            if person["abbr_firstname"]:
-                _collect_hits(
-                    collected,
-                    search_person_gnd(
-                        fname_abbr_fname,
-                        lastname,
-                        year,
-                        gnd_limit,
-                        label="gnd_pref_abbr_fuzzy",
-                    ),
-                )
-                _collect_hits(
-                    collected,
-                    search_person_gnd_variantName(
-                        full_name, year, gnd_limit, label="gnd_variant_fuzzy"
-                    ),
-                )
-            _collect_hits(
-                collected,
-                search_person_wikidata(
-                    full_name, year, wikidata_limit, label="wikidata_label_fuzzy"
-                ),
-            )
+    passes = [False, True] if settings.ADD_FUZZY_SEARCH == "True" else [False]
+    for fuzzy in passes:
+        for label, search, args, issued in plan:
+            if not issued:
+                continue
+            if fuzzy:
+                label = label.replace("_exact", "_fuzzy")
+            _collect_hits(collected, search(*args, fuzzy, label=label))
 
     return _as_candidates(collected)
 
