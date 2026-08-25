@@ -209,26 +209,22 @@ def get_candidates(
     plan = [
         (
             "gnd_pref_exact",
-            search_person_gnd,
-            (fnames, lastname, year, gnd_limit),
+            search_person_gnd, (fnames, lastname, year, gnd_limit),
             True,
         ),
         (
             "gnd_pref_abbr_exact",
-            search_person_gnd,
-            (fname_abbr_fname, lastname, year, gnd_limit),
+            search_person_gnd, (fname_abbr_fname, lastname, year, gnd_limit),
             has_both,
         ),
         (
             "gnd_variant_exact",
-            search_person_gnd_variantName,
-            (full_name, year, gnd_limit),
+            search_person_gnd_variantName, (full_name, year, gnd_limit),
             has_both,
         ),
         (
             "wikidata_label_exact",
-            search_person_wikidata,
-            (full_name, year, wikidata_limit),
+            search_person_wikidata, (full_name, year, wikidata_limit),
             True,
         ),
     ]
