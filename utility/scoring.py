@@ -66,8 +66,8 @@ def confidence_level(
     :type name_match: bool
     :param vd_used: Whether the vector database decided the ranking.
     :type vd_used: bool
-    :return: Confidence for the frontend, on the pipeline's scale: 5 excellent,
-        4 very good, 3 good, 2 medium, 1 minimal, 0 experimental.
+    :return: Confidence for the frontend, on the pipeline's scale:
+        5 excellent, 4 very good, 3 good, 2 medium, 1 minimal, 0 experimental.
     :rtype: int
     """
 

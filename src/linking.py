@@ -25,7 +25,7 @@ from utility.utils import (
     start_magazine_output,
     finish_magazine_output,
 )
-from utility.scoring import Candidate, CandidateScorer, Mention
+from utility.scoring import Candidate, CandidateScorer, Mention, confidence_level
 from utility.linking_utils import (
     search_person_wikidata,
     search_person_gnd,
@@ -419,42 +419,17 @@ def prep_person_out(person: dict) -> None:
     :type person: dict
     """
     person["lastname"] = " ".join(person["lastname"])
-    # precision 5 is excellent, 4 is very good, 3 is good, 2 is medium, 1 is minimal and 0 is experimental
-    if person["gnd_ids"] == []:  # Confidence that this person cannot be linked
-        if "gnd_ids_scores_dist" in person:
-            person["gnd_confidence"] = 4
-        else:
-            person["gnd_confidence"] = 5
-    else:
+    n_ids = len(person["gnd_ids"])
+    if n_ids:
         assert "candidates" in person, person
-        if person["firstname"] and person["lastname"]:
-            if len(person["gnd_ids"]) == 1:
-                if _name_matches(person):
-                    person["gnd_confidence"] = 5
-                else:
-                    person["gnd_confidence"] = 4
-            else:
-                if "gnd_ids_scores_dist" in person:
-                    if _name_matches(person):
-                        person["gnd_confidence"] = 4
-                    else:
-                        person["gnd_confidence"] = 3
-                else:
-                    person["gnd_confidence"] = 3
-        else:
-            if len(person["gnd_ids"]) == 1:
-                if _name_matches(person):
-                    person["gnd_confidence"] = 4
-                else:
-                    person["gnd_confidence"] = 3
-            else:
-                if _name_matches(person):
-                    person["gnd_confidence"] = 2
-                else:
-                    if "gnd_ids_scores_dist" in person:
-                        person["gnd_confidence"] = 2
-                    else:
-                        person["gnd_confidence"] = 1
+    person["gnd_confidence"] = confidence_level(
+        n_ids,
+        bool(person["firstname"]) and bool(person["lastname"]),
+        # Guarded: the grade for an unlinkable person does not consult the name,
+        # and _name_matches reads a leading candidate that is not there.
+        n_ids > 0 and _name_matches(person),
+        "gnd_ids_scores_dist" in person,
+    )
 
     for key in [
         "same_score_cand",
