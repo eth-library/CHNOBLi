@@ -14,12 +14,15 @@
 
 - [Overview](#overview)
 - [Installation](#installation)
-  - [Local Setup](#local-setup)
-  - [Docker](#docker)
+  - [Setup Wizard](#setup-wizard)
+  - [Manual Setup (Optional)](#manual-setup-optional)
+  - [Alternative to step 2-4: Docker](#alternative-to-step-2-4-docker)
 - [Management with Makefile](#management-with-makefile)
 - [Quick Start](#quick-start)
 - [Using Your Data](#using-your-data)
 - [Resources](#resources)
+- [Citation](#citation)
+- [Documentation](#documentation)
 - [License](#license)
 
 ## Overview
@@ -34,7 +37,7 @@ CHNOBLi is a pipeline for named entity linking and disambiguation in retro-digit
 
 ## Installation
 
-### Installation
+### Setup Wizard
 
 The easiest way to set up the project is using the interactive setup wizard:
 
@@ -47,8 +50,24 @@ make setup
 The wizard will guide you through:
 1. Creating your `.env` configuration file.
 2. Choosing between
-    1. **Minimal Setup** (using remote APIs) or
-    2. **Full Local Setup** (cloning and setting up local databases). Once the databases are running, you can import the required data using `make import-data`
+    1. **Minimal Setup** (using remote APIs) — nothing is cloned; you provide your
+       own Elasticsearch, Milvus and embeddings endpoints in `.env`.
+    2. **Full Local Setup** — clones and configures the local services under
+       `services/`: [CHNOBLi-elasticsearch](https://github.com/eth-library/CHNOBLi-elasticsearch),
+       [CHNOBLi-vectordb](https://github.com/eth-library/CHNOBLi-vectordb) and the
+       [embeddings backend](https://github.com/eth-library/CHNOBLi-embedding-backend).
+       All repositories are public, so no access token is required.
+
+For the full local setup you then start three services, in this order:
+
+```bash
+cd services/CHNOBLi-elasticsearch && docker compose up -d
+cd services/CHNOBLi-vectordb      && docker compose up -d
+# wait for Milvus to be ready, then:
+cd services/embeddings-backend    && docker compose -f docker-compose.chnobli.yml --env-file .env.chnobli up -d --build
+```
+
+Once they are running, import the required data with `make import-data`.
 
 ### Manual Setup (Optional)
 
@@ -93,15 +112,20 @@ Instead of setting up the environment yourself as explained above you can also c
 
 that automatically sets up your environment for you, although you still need to set up your own vector database and ElasticSearch index. To link you can then call
 
-```docker exec -it linking sh scripts/link_example.sh```
+```bash
+docker exec -it chnobli-linking sh scripts/link_example.sh
+```
+
+Note that the container is named `chnobli-linking`, while `linking` is the compose
+service name — `docker exec` needs the container name.
 
 #### Step 5: Configure ElasticSearch
 
 A public API endpoint is coming soon. To set up your own:
 
 1. Follow the setup guide in [CHNOBLi-elasticsearch](https://github.com/eth-library/CHNOBLi-elasticsearch)
-2. Update `CHNOBLi/.env_template` with your endpoints and index names
-3. Rename file to `.env`
+2. Copy the template with `cp .env_template .env` (keep the template in place)
+3. Fill in your endpoints and index names in `.env`
 4. Copy the certificate hierarchy: `secrets/certs/ca/ca.crt` from the CHNOBLi-elasticsearch directory to this one
 
 #### Step 6: Configure Milvus
@@ -109,8 +133,8 @@ A public API endpoint is coming soon. To set up your own:
 A public API endpoint is coming soon. To set up your own:
 
 1. Set up Milvus following the setup guide in [CHNOBLi-vectordb](https://github.com/eth-library/CHNOBLi-vectordb)
-2. Update `CHNOBLi/.env_template` with your host and port
-3. Rename file to `.env`
+2. Copy the template with `cp .env_template .env` if you have not already done so
+3. Fill in your host and port in `.env`
 
 ## Management with Makefile
 
@@ -127,7 +151,7 @@ The project includes a `Makefile` to simplify common tasks and ensure consistent
 - **`make logs`**: Tail the logs from all running services.
 
 ### Interactive Access
-- **`make shell`**: Drop into a bash shell inside the `linking` container.
+- **`make shell`**: Drop into a bash shell inside the `chnobli-linking` container.
 - **`make shell-root`**: Same as above, but with root privileges.
 
 ## Quick Start

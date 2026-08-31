@@ -1,5 +1,13 @@
 # syntax=docker/dockerfile:1
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+FROM ubuntu:22.04
+
+# torch ships its own CUDA and cuDNN under site-packages/nvidia and links
+# against those, so a CUDA base image would only add an unused second copy.
+# The NVIDIA container runtime injects the host driver libraries at run time;
+# these variables tell it which devices and capabilities to expose.
+ENV NVIDIA_VISIBLE_DEVICES=all \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility \
+    LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64
 
 # ENV choices:
 # - DEBIAN_FRONTEND=noninteractive: Prevents interactive prompts during package installation.
@@ -11,9 +19,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
     VIRTUAL_ENV=/opt/venv
 
 # Install Python 3.12 via PPA and system dependencies
+# gnupg/dirmngr provide gpg-agent, which add-apt-repository needs to import the
+# PPA signing key; the plain `gpg` package pulled in by software-properties-common
+# does not include it.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common \
-    && add-apt-repository ppa:deadsnakes/ppa \
+    software-properties-common gnupg dirmngr ca-certificates \
+    && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update && apt-get install -y --no-install-recommends \
     python3.12 python3.12-venv python3.12-dev \
     git unzip wget ssh-client build-essential \

@@ -5,6 +5,9 @@ GID := $(shell id -g)
 
 COMPOSE_BUILD  = docker-compose-dev.yml
 IMAGE_NAME     = linking:v0.1
+# `linking` is the compose service name; the container itself is named
+# chnobli-linking, which is what docker exec needs.
+CONTAINER_NAME = chnobli-linking
 
 # Directories that will be mounted into the container.
 # Pre-creating them ensures they are owned by the current user, not root.
@@ -52,10 +55,10 @@ logs:
 	docker compose logs -f
 
 shell:
-	docker exec -it linking bash
+	docker exec -it $(CONTAINER_NAME) bash
 
 shell-root:
-	docker exec -u 0 -it linking bash
+	docker exec -u 0 -it $(CONTAINER_NAME) bash
 
 # Pre-create mounted directories as the current user so Docker does not
 # create them as root when starting the container for the first time.
