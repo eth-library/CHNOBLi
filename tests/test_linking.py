@@ -505,8 +505,12 @@ def test_compare_to_target_ids_multiplexed_success():
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.text = '{"results": [{"text_id": "id1", "distance": 0.1}]}'
-    mock_response.json = (lambda: {"access_token": 0})
-    with patch("requests.post", return_value=mock_response) as mock_post:
+    mock_response.json.return_value = {
+        "results": [{"text_id": "id1", "distance": 0.1}]
+    }
+
+    with patch("src.linking.get_paramanera_token", return_value="test-token"), \
+         patch("requests.post", return_value=mock_response) as mock_post:
         result = compare_to_target_ids_multiplexed(
             [1, 2],
             sample_args_multi["text"],
@@ -514,32 +518,32 @@ def test_compare_to_target_ids_multiplexed_success():
             sample_args_multi["backend_url"],
             sample_args_multi["collection_name"],
             sample_args_multi["model"],
-            sample_args_multi["model_name"]
+            sample_args_multi["model_name"],
         )
-        assert result == [{"text_id": "id1", "distance": 0.1}]
-        assert mock_post.call_count == 1
-        _, kwargs = mock_post.call_args
-        assert kwargs["json"]["content"][0]["query_text"] == sample_args_multi["text"][0]
-        assert kwargs["json"]["content"][1]["query_text"] == sample_args_multi["text"][1]
-        assert kwargs["json"]["content"][0]["reference_text_ids"] == sample_args_multi["target_text_ids"][0]
-        assert kwargs["json"]["content"][1]["reference_text_ids"] == sample_args_multi["target_text_ids"][1]
 
+    assert result == [{"text_id": "id1", "distance": 0.1}]
+    assert mock_post.call_count == 1
+    _, kwargs = mock_post.call_args
+    assert kwargs["json"]["content"][0]["query_text"] == sample_args_multi["text"][0]
+    assert kwargs["json"]["content"][1]["query_text"] == sample_args_multi["text"][1]
+    assert kwargs["json"]["content"][0]["reference_text_ids"] == sample_args_multi["target_text_ids"][0]
+    assert kwargs["json"]["content"][1]["reference_text_ids"] == sample_args_multi["target_text_ids"][1]
 
 def test_compare_to_target_ids_multiplexed_failure_logs(caplog):
-    mock_response = Mock()
-    mock_response.status_code = 400
-    mock_response.text = "Bad Request"
-    mock_response.json = (lambda: {"access_token": 0})
-    with patch("requests.post", return_value=mock_response):
-        with pytest.raises(Exception) as excinfo:
-            result = compare_to_target_ids_multiplexed(
-                [1, 2],
-                sample_args_multi["text"],
-                sample_args_multi["target_text_ids"],
-                sample_args_multi["backend_url"],
-                sample_args_multi["collection_name"],
-                sample_args_multi["model"],
-                sample_args_multi["model_name"]
-            )
-            assert result is None
-            assert "Authentication failed with status 400" in str(excinfo.value)
+    caplog.set_level("ERROR")
+    mock_response = Mock(status_code=400, text="Bad Request")
+
+    with patch("src.linking.get_paramanera_token", return_value="test-token"), \
+         patch("requests.post", return_value=mock_response) as mock_post:
+        compare_to_target_ids_multiplexed(
+            [1, 2],
+            sample_args_multi["text"],
+            sample_args_multi["target_text_ids"],
+            sample_args_multi["backend_url"],
+            sample_args_multi["collection_name"],
+            sample_args_multi["model"],
+            sample_args_multi["model_name"],
+        )
+
+    assert mock_post.call_count > 0
+    assert "Max retries exceeded" in caplog.text
