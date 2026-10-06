@@ -1,6 +1,7 @@
 """
 Utility functions for finding candidates via ElasticSearch
 """
+
 import os
 import threading
 import unicodedata
@@ -33,28 +34,38 @@ _sessions = threading.local()
 _reported_multi_gid: set = set()
 
 
-def warn_multiple_gids(source: str, gids: set, note: str = "") -> None:
+def warn_multiple_gids(source: str, gids: set, wikidata_id: str, person_to_search: str, note: str = "") -> list:
     """
     Reports a knowledge-base entry holding more than one GND id, once per entry.
+    Sorts the gids so the results are fixed but arbitrary and returns said list.
 
     :param source: Index the entry came from, for example "Wikidata".
     :type source: str
     :param gids: The GND ids found on the entry.
     :type gids: set
+    :param wikidata_id: Wikidata id if the source is Wikidata.
+    :type wikidata_id: str
+    :param person_to_search: The person name we searched for on ES.
+    :type person_to_search: str
     :param note: Sentence appended to the message, defaults to "".
     :type note: str
+    :return: A sorted list of GND-IDs.
+    :rtype: list
     """
 
     key = frozenset(gids)
-    if key in _reported_multi_gid:
-        return
-    _reported_multi_gid.add(key)
     # Sorted so the same entry reads the same way from run to run; iterating a
     # set of ids would order the message differently each time.
-    logging.warning(
-        f"{source} entry with multiple GND IDs: {sorted(gids)}."
-        + (f" {note}" if note else "")
-    )
+    sorted_gids = sorted(gids)
+    if key not in _reported_multi_gid:
+        _reported_multi_gid.add(key)
+        if wikidata_id is not None:
+            source = source + " " + wikidata_id
+        logging.warning(
+            f"{source} entry for {person_to_search} with multiple GND IDs: {sorted_gids}."
+            + (f" {note}" if note else "")
+        )
+    return sorted_gids
 
 
 def _session() -> requests.Session:
@@ -466,7 +477,7 @@ def build_variant_name_query(
     return json_data
 
 
-def parse_variant_name_response(result_json: dict, label: str = "") -> dict:
+def parse_variant_name_response(result_json: dict, label: str = "", search_term: str = "") -> dict:
     """
     Turns one variant-name response into candidates, keyed by gnd id.
 
@@ -478,6 +489,8 @@ def parse_variant_name_response(result_json: dict, label: str = "") -> dict:
     :param label: Name of the query these hits answer, carried onto each
         candidate for the scorer. Omitted when the caller named no query.
     :type label: str
+    :param search_term: The search term for the ES query.
+    :type search_term: str
     :return: Dictionary of each viable candidate, keyed by gnd id.
     :rtype: dict
     """
@@ -493,9 +506,8 @@ def parse_variant_name_response(result_json: dict, label: str = "") -> dict:
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 # NOTE: This should never be degenerate better to put a hard check here
                 if len(person_info["gid"]) > 1:
-                    warn_multiple_gids(
-                        "GND", person_info["gid"], "An arbitrary one is selected."
-                    )
+                    person_info["gid"] = resolve_old_gids(person_info["gid"], "GND", person_to_search=search_term)
+                    
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
                 person_info["score"] = hit["_score"]
@@ -543,7 +555,7 @@ def search_person_gnd_variantName(
 
     headers = {"Content-Type": "application/json"}
     result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
-    return parse_variant_name_response(result_json, label)
+    return parse_variant_name_response(result_json, label, fullname)
 
 
 def build_person_gnd_query(
@@ -583,7 +595,6 @@ def build_person_gnd_query(
     # if after cleaning the lastname is empty, do not search
     if lastname == "":
         return None
-
 
     # If the lastname contains a prefix, split it off and search for it
     # in its own field; otherwise just clean/prep the lastname as usual.
@@ -641,10 +652,7 @@ def build_person_gnd_query(
                     "preferredNameEntityForThePerson"],
         "from": 0,
         "size": gnd_limit,
-        "sort": [
-            { "_score": "desc" },
-            { "gndIdentifier.keyword": "asc" }
-        ],
+        "sort": [{"_score": "desc"}, {"gndIdentifier.keyword": "asc"}],
         "query": {
             "bool": {
                 "must": must_clauses,
@@ -654,8 +662,103 @@ def build_person_gnd_query(
 
     return json_data
 
+from functools import lru_cache
 
-def parse_person_gnd_response(result_json: dict, label: str = "") -> dict:
+@lru_cache(maxsize=4096)
+def _preferred_gids(wikidata_id: str) -> list:
+    """
+    Cache successfull results
+    """
+    # wdt: prefix makes sure only the preferred ranked entries are returned.
+    req = _session().get(
+        "https://query.wikidata.org/sparql",
+        params={
+            "query": f"""SELECT ?gndId WHERE {{
+                VALUES ?gndProp {{wdt:P227 wdt:P7902 }}
+                wd:{wikidata_id} ?gndProp ?gndId .}}
+                GROUP BY ?gndId""",
+            "format": "json",
+        },
+        headers={
+            "User-Agent": "GND-Wikidata-resolver/1.0 (https://github.com/rashitig/gnd-wikidata-resolver; 6xchepfl0@mozmail.com)",
+            "Accept": "application/sparql-results+json",
+        },
+        timeout=60,
+    )
+    req.raise_for_status()
+    return [b["gndId"]["value"] for b in req.json()["results"]["bindings"]]
+
+
+@lru_cache(maxsize=16384)
+def _resolve_gid(gnd_id: str) -> str:
+    req = requests.get(
+        f"https://lobid.org/gnd/{gnd_id}.json",
+        allow_redirects=False,
+        headers={"Range": "bytes=0-0"},
+        timeout=60,
+    )
+
+    if req.is_redirect:
+        location = req.headers.get("Location", "")
+        resolved = location.rstrip("/").split("/")[-1].split("?")[0]
+        if resolved:
+            return resolved
+        raise requests.HTTPError("LOBID redirect has no usable Location", response=req)
+
+    if not 200 <= req.status_code < 300:
+        req.raise_for_status()  # Raises for 4xx/5xx.
+        raise requests.HTTPError(
+            f"Unexpected LOBID status: {req.status_code}", response=req
+        )
+
+    return gnd_id
+
+def get_preferred_gnd_entry_wikidata(wikidata_id, session):
+    """Gets the preferred gnd entry for the given wikidata id.
+    We only do this if there are several gnd_ids associated
+    with a wikidata id.
+
+    Args:
+        query (_type_): _description_
+
+    Returns:
+        _type_: _description_
+
+    Raises:
+    """
+    try:
+        return _preferred_gids(wikidata_id)
+    except requests.RequestException as e:
+        logging.error(f"Error accessing Wikidata endpoint: {e}")
+    except requests.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+    return None
+
+
+def resolve_old_gids(gids_list, data_source=None, wikidata_id=None, person_to_search=None):
+    gids_list_out = []
+    for gnd_id in gids_list:
+        try:
+            new_gnd_id = _resolve_gid(gnd_id)
+            if new_gnd_id not in gids_list_out:
+                gids_list_out.append(new_gnd_id)
+        except requests.RequestException as e:
+            logging.error(f"Error accessing LOBID endpoint: {e}")
+            if gnd_id not in gids_list_out:
+                gids_list_out.append(gnd_id)
+        except Exception as e:
+            logging.error(f"An unexpected error occurred: {e}")
+            if gnd_id not in gids_list_out:
+                gids_list_out.append(gnd_id)
+
+    if len(gids_list_out) > 1:
+        gids_list_out = warn_multiple_gids(data_source, gids_list_out, wikidata_id, person_to_search, "An arbitrary one is selected.")
+    return gids_list_out
+
+
+def parse_person_gnd_response(result_json: dict, label: str = "", search_term: str = "") -> dict:
     """
     Turns one GND response into candidates, keyed by gnd id.
 
@@ -667,6 +770,8 @@ def parse_person_gnd_response(result_json: dict, label: str = "") -> dict:
     :param label: Name of the query these hits answer, carried onto each
         candidate for the scorer. Omitted when the caller named no query.
     :type label: str
+    :param search_term: The search term for the ES query.
+    :type search_term: str
     :return: Dictionary of each viable candidate, keyed by gnd id.
     :rtype: dict
     """
@@ -682,9 +787,8 @@ def parse_person_gnd_response(result_json: dict, label: str = "") -> dict:
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 # NOTE: This should never be degenerate better to put a hard check here
                 if len(person_info["gid"]) > 1:
-                    warn_multiple_gids(
-                        "GND", person_info["gid"], "An arbitrary one is selected."
-                    )
+                    person_info["gid"] = resolve_old_gids(person_info["gid"], "GND", person_to_search=search_term)
+
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
                 person_info["score"] = hit["_score"]
@@ -735,7 +839,7 @@ def search_person_gnd(
 
     headers = {"Content-Type": "application/json"}
     result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
-    return parse_person_gnd_response(result_json, label)
+    return parse_person_gnd_response(result_json, label, " ".join(fnames)+" "+lastname)
 
 
 def build_wikidata_query(
@@ -769,7 +873,7 @@ def build_wikidata_query(
 
 
     json_data = {
-        "_source": ["GND_ID", "GND_ID_2", "labels"],
+        "_source": ["GND_ID", "GND_ID_2", "labels", "id"],
         "from": 0,
         "size": wikidata_limit,
         "sort": [
@@ -805,7 +909,7 @@ def build_wikidata_query(
     return json_data
 
 
-def parse_wikidata_response(result_json: dict, label: str = "") -> dict:
+def parse_wikidata_response(result_json: dict, label: str = "", search_term: str = "") -> dict:
     """
     Turns one Wikidata response into candidates, keyed by gnd id.
 
@@ -820,6 +924,8 @@ def parse_wikidata_response(result_json: dict, label: str = "") -> dict:
     :param label: Name of the query these hits answer, carried onto each
         candidate for the scorer. Omitted when the caller named no query.
     :type label: str
+    :param search_term: The search term for the ES query.
+    :type search_term: str
     :return: Dictionary of each viable candidate, keyed by gnd id.
     :rtype: dict
     """
@@ -828,14 +934,20 @@ def parse_wikidata_response(result_json: dict, label: str = "") -> dict:
     if len(result_json) == 0:
         return {}
     max_score = 0
+    session = _session()
     for hit in result_json["hits"]["hits"]:
         if "GND_ID" in hit["_source"] or "GND_ID_2" in hit["_source"]:
+            wikidata_id = hit["_source"]["id"]
             person_info = convert_wikidata_format_kibana(hit["_source"])
 
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 person_info["score"] = hit["_score"]
                 if len(person_info["gid"]) > 1:
-                    warn_multiple_gids("Wikidata", person_info["gid"])
+                    pref_gnds = get_preferred_gnd_entry_wikidata(wikidata_id, session)
+                    if pref_gnds:
+                        person_info["gid"] = pref_gnds
+                    if len(person_info["gid"]) > 1:
+                        person_info["gid"] = resolve_old_gids(person_info["gid"], "wikidata", wikidata_id, person_to_search=search_term)
                 for gid in person_info["gid"]:
                     # sometimes one entity is assigned several gids.
                     # this unfortunately breaks a lot of what we did logically
