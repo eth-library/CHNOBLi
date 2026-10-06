@@ -36,8 +36,8 @@ _reported_multi_gid: set = set()
 
 def warn_multiple_gids(source: str, gids: set, wikidata_id: str, person_to_search: str, note: str = "") -> list:
     """
-    Reports a knowledge-base entry holding more than one GND id, once per entry.
-    Sorts the gids so the results are fixed but arbitrary and returns said list.
+    Reports a knowledge-base entry holding more than one GND id, once per GND-ID set.
+    Sorts and returns the gids so the results are fixed but arbitrary.
 
     :param source: Index the entry came from, for example "Wikidata".
     :type source: str
@@ -97,6 +97,19 @@ def _session() -> requests.Session:
 
 
 def clean_namestring(name: str) -> str:
+    """
+    Normalizes a name string for use in Elasticsearch queries. Removes
+    punctuation, expands German sharp s to ``ss``, and converts periods
+    in initials to wildcards. Internal name hyphens are preserved.
+
+    :param name: Name string to clean.
+    :type name: str
+    :return: Cleaned name string.
+    :rtype: str
+    :Example:
+        >>> clean_namestring("D. Birchall")
+        'D* Birchall'
+    """
     punct = '!"#$%&\'()*+,/:;<=>?@[\\]^_`{|}~'  # without period, dash
     name = unicodedata.normalize("NFC", name)
 
@@ -129,8 +142,8 @@ def prep_name_for_elasticsearch_query(name: str) -> str:
     :return: Name to be searched including allowed edit distances.
     :rtype: str
     :Example:
-        >>> "D. Birchall" => "D* Birchall~2"
-        >>> "J.P. Wittbach => J*P* Wittbach~2"
+        >>> "D* Birchall" => "D* Birchall~2"
+        >>> "J*P* Wittbach => J*P* Wittbach~2"
     """
 
     name_list = name.split(" ")
@@ -349,7 +362,7 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
         logging.warning(f"{error_label} ES Query timed out.")
         try:
             data = session.get(url, headers=headers, json=json_data,
-                               verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+                               verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=10)
         except requests.exceptions.Timeout:
             logging.error(f"{error_label} ES query timeout. No more retries.")
             logging.info(f"Query: {json_data}")
@@ -358,11 +371,12 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
         logging.warning(f"SSL error {error_label}")
         try:
             data = session.get(url, headers=headers, json=json_data,
-                               verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+                               verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=10)
         except requests.exceptions.Timeout:
             logging.error(f"{error_label} ES SSL Error timeout. No more retries.")
             logging.info(f"Query: {json_data}")
             raise
+    data.raise_for_status()
     return data.json()
 
 
@@ -530,8 +544,9 @@ def parse_variant_name_response(result_json: dict, label: str = "", search_term:
         return {}
     # to make scores across different indexes comparable
     # scale them to 1
-    for per_dict in res_candidates.values():
-        per_dict["score"] = per_dict["score"]/max_score
+    if max_score:
+        for candidate in res_candidates.values():
+            candidate["score"] /= max_score
     return res_candidates
 
 
@@ -671,9 +686,17 @@ def build_person_gnd_query(
 from functools import lru_cache
 
 @lru_cache(maxsize=4096)
-def _preferred_gids(wikidata_id: str) -> list:
+def _preferred_gids(wikidata_id: str) -> tuple:
     """
-    Cache successfull results
+    Retrieves the GND IDs linked to a Wikidata entity through its preferred
+    GND identifier properties. Successful results are cached by Wikidata ID.
+
+    :param wikidata_id: Wikidata entity ID, such as ``"Q312384"``.
+    :type wikidata_id: str
+    :return: GND IDs associated with the entity.
+    :rtype: tuple
+    :raises requests.RequestException: If the Wikidata request fails.
+    :raises requests.JSONDecodeError: If the response is not valid JSON.
     """
     # wdt: prefix makes sure only the preferred ranked entries are returned.
     req = _session().get(
@@ -692,11 +715,23 @@ def _preferred_gids(wikidata_id: str) -> list:
         timeout=60,
     )
     req.raise_for_status()
-    return [b["gndId"]["value"] for b in req.json()["results"]["bindings"]]
+    return tuple(b["gndId"]["value"] for b in req.json()["results"]["bindings"])
 
 
 @lru_cache(maxsize=16384)
 def _resolve_gid(gnd_id: str) -> str:
+    """
+    Resolves a GND ID through lobid, returning the redirected ID when one
+    is provided. Successful results are cached by the original GND ID;
+    HTTP and request failures are raised and therefore not cached.
+
+    :param gnd_id: GND identifier to resolve.
+    :type gnd_id: str
+    :return: The resolved GND ID, or the original ID if no redirect exists.
+    :rtype: str
+    :raises requests.RequestException: If the request fails or lobid returns
+        an unsuccessful or unexpected HTTP status.
+    """
     req = requests.get(
         f"https://lobid.org/gnd/{gnd_id}.json",
         allow_redirects=False,
@@ -706,7 +741,7 @@ def _resolve_gid(gnd_id: str) -> str:
 
     if req.is_redirect:
         location = req.headers.get("Location", "")
-        resolved = location.rstrip("/").split("/")[-1].split("?")[0]
+        resolved = location.rstrip("/").split("/")[-1].split("?")[0].replace(".json", "")
         if resolved:
             return resolved
         raise requests.HTTPError("LOBID redirect has no usable Location", response=req)
@@ -719,21 +754,20 @@ def _resolve_gid(gnd_id: str) -> str:
 
     return gnd_id
 
-def get_preferred_gnd_entry_wikidata(wikidata_id, session):
-    """Gets the preferred gnd entry for the given wikidata id.
-    We only do this if there are several gnd_ids associated
-    with a wikidata id.
+def get_preferred_gnd_entry_wikidata(wikidata_id):
+    """
+    Retrieves the preferred GND IDs associated with a Wikidata entity.
 
-    Args:
-        query (_type_): _description_
+    This lookup is used when an entity has multiple GND IDs. Errors are
+    logged and return ``None``; successful results are cached by Wikidata ID.
 
-    Returns:
-        _type_: _description_
-
-    Raises:
+    :param wikidata_id: Wikidata entity ID, such as ``"Q312384"``.
+    :type wikidata_id: str
+    :return: Associated GND IDs, or ``None`` if the lookup fails.
+    :rtype: list[str] | None
     """
     try:
-        return _preferred_gids(wikidata_id)
+        return list(_preferred_gids(wikidata_id))
     except requests.RequestException as e:
         logging.error(f"Error accessing Wikidata endpoint: {e}")
     except requests.JSONDecodeError as e:
@@ -744,6 +778,22 @@ def get_preferred_gnd_entry_wikidata(wikidata_id, session):
 
 
 def resolve_old_gids(gids_list, data_source=None, wikidata_id=None, person_to_search=None):
+    """
+    Resolves GND IDs through lobid, retaining each original ID if its lookup
+    fails. Duplicate resolved IDs are removed. If multiple IDs remain, they
+    are reported and returned in sorted order.
+
+    :param gids_list: GND IDs to resolve.
+    :type gids_list: iterable[str]
+    :param data_source: Source of the IDs, used in warning messages.
+    :type data_source: str | None
+    :param wikidata_id: Wikidata entity ID, if applicable.
+    :type wikidata_id: str | None
+    :param person_to_search: Name associated with the lookup, if available.
+    :type person_to_search: str | None
+    :return: Resolved IDs, with originals retained when lookups fail.
+    :rtype: list[str]
+    """
     gids_list_out = []
     for gnd_id in gids_list:
         try:
@@ -811,8 +861,9 @@ def parse_person_gnd_response(result_json: dict, label: str = "", search_term: s
         return {}
     # to make scores across different indexes comparable
     # scale them to 1
-    for per_dict in res_candidates.values():
-        per_dict["score"] = per_dict["score"]/max_score
+    if max_score:
+        for candidate in res_candidates.values():
+            candidate["score"] /= max_score
 
     return res_candidates
 
@@ -940,7 +991,6 @@ def parse_wikidata_response(result_json: dict, label: str = "", search_term: str
     if len(result_json) == 0:
         return {}
     max_score = 0
-    session = _session()
     for hit in result_json["hits"]["hits"]:
         if "GND_ID" in hit["_source"] or "GND_ID_2" in hit["_source"]:
             wikidata_id = hit["_source"]["id"]
@@ -949,7 +999,7 @@ def parse_wikidata_response(result_json: dict, label: str = "", search_term: str
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 person_info["score"] = hit["_score"]
                 if len(person_info["gid"]) > 1:
-                    pref_gnds = get_preferred_gnd_entry_wikidata(wikidata_id, session)
+                    pref_gnds = get_preferred_gnd_entry_wikidata(wikidata_id)
                     if pref_gnds:
                         person_info["gid"] = pref_gnds
                     if len(person_info["gid"]) > 1:
@@ -973,7 +1023,8 @@ def parse_wikidata_response(result_json: dict, label: str = "", search_term: str
         if gid in normalized_gids:
             continue
         normalized_gids.update(per_dict["gid"])
-        per_dict["score"] = per_dict["score"] / max_score
+        if max_score:
+            per_dict["score"] /= max_score
 
     return res_candidates
 
