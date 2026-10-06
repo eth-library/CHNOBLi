@@ -80,11 +80,17 @@ def _session() -> requests.Session:
     session = getattr(_sessions, "session", None)
     if session is None or getattr(_sessions, "pid", None) != pid:
         session = requests.Session()
-        adapter = requests.adapters.HTTPAdapter(max_retries=20)
-        session.mount("http://", adapter)
+        retries = requests.adapters.Retry(
+            total=20,
+            connect=5,
+            read=5,
+            backoff_factor=1,
+            status_forcelist=[500, 502, 503, 504],
+        )
+        session.mount("http://", requests.adapters.HTTPAdapter(max_retries=retries))
         # The cluster is reached over https; mounting only http left the
         # retrying adapter unused.
-        session.mount("https://", adapter)
+        session.mount("https://", requests.adapters.HTTPAdapter(max_retries=retries))
         _sessions.session = session
         _sessions.pid = pid
     return session
@@ -338,7 +344,7 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
     session = _session()
     try:
         data = session.get(url, headers=headers, json=json_data,
-                           verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=0.5)
+                           verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
     except requests.exceptions.Timeout:
         logging.warning(f"{error_label} ES Query timed out.")
         try:
@@ -997,4 +1003,4 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
 
     headers = {"Content-Type": "application/json"}
     result_json = _es_search(settings.es.index_name_wikidata, headers, json_data, "Wikidata")
-    return parse_wikidata_response(result_json, label)
+    return parse_wikidata_response(result_json, label, search_term)
