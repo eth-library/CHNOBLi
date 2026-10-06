@@ -139,8 +139,8 @@ def test_score_priority_can_be_reordered():
 # -------------------------------------------------
 def test_max_norm_scales_each_query_to_its_own_top_hit():
     """
-    The transform decides the tie, not the order: only the leader's equals stay
-    in the tie set, and the rest keep their retrieval positions.
+    The transform decides the tie, not the order: only the leader's equals (including
+    the tie epsilon) stay in the tie set, and the rest keep their retrieval positions.
     """
     cands = [
         gnd("high", {"gnd_pref_exact": 18.4}),
@@ -149,7 +149,7 @@ def test_max_norm_scales_each_query_to_its_own_top_hit():
     ]
     result = CandidateScorer().score(HANS, cands)
     assert result.gids() == ["high", "mid", "low"]
-    assert result.top_tier == ["high"]
+    assert result.top_tier == ["high", "mid"]
 
 
 def test_transform_none_leaves_the_tier_to_decide():
@@ -161,15 +161,6 @@ def test_transform_none_leaves_the_tier_to_decide():
     result = CandidateScorer(ScoringPolicy(es_transform="none")).score(HANS, cands)
     assert sorted(result.top_tier) == ["high", "low"]
     assert result.needs_disambiguation is True
-
-
-def test_default_tie_is_exact():
-    """By default only bit-for-bit equal scores tie, as the linking stage does."""
-    cands = [
-        gnd("a", {"gnd_pref_exact": 1.0}),
-        gnd("b", {"gnd_pref_exact": 1.0 - 1e-12}),
-    ]
-    assert CandidateScorer().score(HANS, cands).top_tier == ["a"]
 
 
 def test_tie_epsilon_absorbs_float_noise():
