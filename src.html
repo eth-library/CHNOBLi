@@ -558,6 +558,39 @@ information</p></li>
 <section id="module-src.linking">
 <span id="src-linking-module"></span><h2>src.linking module<a class="headerlink" href="#module-src.linking" title="Link to this heading">¶</a></h2>
 <p>Linking module</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.linking.TaggingPages">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">TaggingPages</span></span><a class="headerlink" href="#src.linking.TaggingPages" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parsed tagging output for one magazine-year, shared by its mentions.</p>
+<p>One instance belongs to one magazine-year and is dropped with it, so the
+memory held is one year’s parsed files rather than the corpus. Files are
+parsed on first request, so an instance starts empty and grows to hold the
+files its mentions actually reach.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.linking.TaggingPages.pages_for">
+<span class="sig-name descname"><span class="pre">pages_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.linking.TaggingPages.pages_for" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the parsed pages of one file, parsing it at most once.</p>
+<p>Mentions are processed by a thread pool, so the parse is guarded: two
+threads arriving together would otherwise each decode the same file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Path to a tagging output file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of single-page dictionaries.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If the path cannot be read or parsed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="src.linking.backend_api_call">
 <span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">backend_api_call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend_url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.linking.backend_api_call" title="Link to this definition">¶</a></dt>
@@ -649,7 +682,7 @@ ditance_metric: “cosine” | “l2” | “ip”</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.linking.get_candidates">
-<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">get_candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">person</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gnd_limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikidata_limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.linking.get_candidates" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">get_candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">person</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gnd_limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikidata_limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#src.linking.get_candidates" title="Link to this definition">¶</a></dt>
 <dd><p>Searches the GND and Wikidata index for candidates of a given person.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -661,10 +694,10 @@ ditance_metric: “cosine” | “l2” | “ip”</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary of candidates for the given person, containing        information on the candidates themselves.</p>
+<dd class="field-even"><p>Candidates for the given person, in the order the queries        retrieved them, each carrying its payload and the score every query        that returned it gave it.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
@@ -677,7 +710,7 @@ ditance_metric: “cosine” | “l2” | “ip”</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.linking.get_person_context">
-<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">get_person_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">per</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tagging_output_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#src.linking.get_person_context" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">get_person_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">per</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tagging_output_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pages_cache</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.linking.TaggingPages" title="src.linking.TaggingPages"><span class="pre">TaggingPages</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#src.linking.get_person_context" title="Link to this definition">¶</a></dt>
 <dd><p>Retrieve and concatenate context surrounding all person mentions.</p>
 <p>Extracts the text surrounding each reference to the given person and
 concatenates all context windows into a single string.</p>
@@ -687,6 +720,8 @@ concatenates all context windows into a single string.</p>
 <li><p><strong>per</strong> (<em>dict</em>) – Person entity dictionary containing a “references” key with
 mention locations</p></li>
 <li><p><strong>tagging_output_paths</strong> (<em>list</em>) – List of the paths to the tagging output files</p></li>
+<li><p><strong>pages_cache</strong> (<a class="reference internal" href="#src.linking.TaggingPages" title="src.linking.TaggingPages"><em>TaggingPages</em></a><em> | </em><em>None</em>) – Shared parse of this magazine-year’s files. Omitting it
+parses them here, which is what a single standalone call wants.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -723,6 +758,22 @@ mention locations</p></li>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>Exception</strong> – If the tagging output path is not a valid path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.linking.init_link_progress">
+<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">init_link_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">counter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#src.linking.init_link_progress" title="Link to this definition">¶</a></dt>
+<dd><p>Hands a worker the tally shared by every process linking this run.</p>
+<p>Magazine-years are linked in forked processes, so a plain counter would
+count each worker’s own share and report the same numbers several times.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>counter</strong> (<em>multiprocessing.Value</em>) – Shared count of the magazine-years finished so far.</p></li>
+<li><p><strong>total</strong> (<em>int</em>) – Magazine-years this run will link.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -831,11 +882,6 @@ to a “confidence score” on a scale from 1 to 5 for the frontend.</p>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="src.linking.update_per_dict_score">
-<span class="sig-prename descclassname"><span class="pre">src.linking.</span></span><span class="sig-name descname"><span class="pre">update_per_dict_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dict_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_to_add</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#src.linking.update_per_dict_score" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </section>
 <section id="module-src.postprocess">

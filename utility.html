@@ -424,6 +424,76 @@ the ground truth gndid would be.</p>
 <span id="utility-linking-utils-module"></span><h2>utility.linking_utils module<a class="headerlink" href="#module-utility.linking_utils" title="Link to this heading">¶</a></h2>
 <p>Utility functions for finding candidates via ElasticSearch</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="utility.linking_utils.build_person_gnd_query">
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">build_person_gnd_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fnames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lastname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gnd_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#utility.linking_utils.build_person_gnd_query" title="Link to this definition">¶</a></dt>
+<dd><p>Builds the Elasticsearch body for a preferred-name person search.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fnames</strong> (<em>list</em>) – List of firstnames of the person to search</p></li>
+<li><p><strong>lastname</strong> (<em>str</em>) – Lastname of the person to search</p></li>
+<li><p><strong>year</strong> (<em>str</em>) – Year this magazine was published in</p></li>
+<li><p><strong>gnd_limit</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of results, defaults to 15</p></li>
+<li><p><strong>fuzzy</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to search for the names including some edits</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The query body, or None when there is nothing worth asking for:
+no room for results, or a lastname that cleaning left empty.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utility.linking_utils.build_variant_name_query">
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">build_variant_name_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gnd_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#utility.linking_utils.build_variant_name_query" title="Link to this definition">¶</a></dt>
+<dd><p>Builds the Elasticsearch body for a variant-name person search.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fullname</strong> (<em>str</em>) – Full name of the person to search</p></li>
+<li><p><strong>year</strong> (<em>str</em>) – Year this magazine was published in</p></li>
+<li><p><strong>gnd_limit</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of results, defaults to 15</p></li>
+<li><p><strong>fuzzy</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to search for the names including some edits</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The query body, or None when cleaning left nothing to
+search for, or there is no room for results.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utility.linking_utils.build_wikidata_query">
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">build_wikidata_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">search_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikidata_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#utility.linking_utils.build_wikidata_query" title="Link to this definition">¶</a></dt>
+<dd><p>Builds the Elasticsearch body for a Wikidata label search.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>search_term</strong> (<em>str</em>) – Full name of the person to search</p></li>
+<li><p><strong>year</strong> (<em>str</em>) – Year this magazine was published in</p></li>
+<li><p><strong>wikidata_limit</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of results, defaults to 5</p></li>
+<li><p><strong>fuzzy</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to search for the names including some edits</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The query body, or None when cleaning left nothing to
+search for, or there is no room for results.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.clean_namestring">
 <span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">clean_namestring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#utility.linking_utils.clean_namestring" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -485,6 +555,77 @@ the dictionary we use for the rest of the pipeline.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="utility.linking_utils.parse_person_gnd_response">
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">parse_person_gnd_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.parse_person_gnd_response" title="Link to this definition">¶</a></dt>
+<dd><p>Turns one GND response into candidates, keyed by gnd id.</p>
+<p>Scores are scaled to the top hit of this response, which is what makes
+them comparable with scores from a different index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result_json</strong> (<em>dict</em>) – One decoded Elasticsearch response.</p></li>
+<li><p><strong>label</strong> (<em>str</em>) – Name of the query these hits answer, carried onto each
+candidate for the scorer. Omitted when the caller named no query.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of each viable candidate, keyed by gnd id.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utility.linking_utils.parse_variant_name_response">
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">parse_variant_name_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.parse_variant_name_response" title="Link to this definition">¶</a></dt>
+<dd><p>Turns one variant-name response into candidates, keyed by gnd id.</p>
+<p>Scores are scaled to the top hit of this response, which is what makes
+them comparable with scores from a different index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result_json</strong> (<em>dict</em>) – One decoded Elasticsearch response.</p></li>
+<li><p><strong>label</strong> (<em>str</em>) – Name of the query these hits answer, carried onto each
+candidate for the scorer. Omitted when the caller named no query.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of each viable candidate, keyed by gnd id.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utility.linking_utils.parse_wikidata_response">
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">parse_wikidata_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.parse_wikidata_response" title="Link to this definition">¶</a></dt>
+<dd><p>Turns one Wikidata response into candidates, keyed by gnd id.</p>
+<p>An entry carrying several gnd ids is registered under each of them and
+scaled only once, so the shared score is not divided twice.</p>
+<p>Scores are scaled to the top hit of this response, which is what makes
+them comparable with scores from a different index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result_json</strong> (<em>dict</em>) – One decoded Elasticsearch response.</p></li>
+<li><p><strong>label</strong> (<em>str</em>) – Name of the query these hits answer, carried onto each
+candidate for the scorer. Omitted when the caller named no query.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of each viable candidate, keyed by gnd id.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.prep_name_for_elasticsearch_query">
 <span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">prep_name_for_elasticsearch_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#utility.linking_utils.prep_name_for_elasticsearch_query" title="Link to this definition">¶</a></dt>
 <dd><p>Specify allowed edit distance for each word of a name
@@ -512,7 +653,7 @@ on the length of the word. We do not allow more than 2 edits per word.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.search_person_gnd">
-<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">search_person_gnd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fnames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lastname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gnd_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.search_person_gnd" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">search_person_gnd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fnames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lastname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gnd_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.search_person_gnd" title="Link to this definition">¶</a></dt>
 <dd><p>We search for this firstnames lastname in our elasticsearch GND index.
 We return at most <cite>gnd_limit</cite> results.</p>
 <dl class="field-list simple">
@@ -536,7 +677,7 @@ We return at most <cite>gnd_limit</cite> results.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.search_person_gnd_variantName">
-<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">search_person_gnd_variantName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gnd_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.search_person_gnd_variantName" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">search_person_gnd_variantName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fullname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gnd_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.search_person_gnd_variantName" title="Link to this definition">¶</a></dt>
 <dd><p>We search for this fullname in our elasticsearch GND index.
 We return at most <cite>gnd_limit</cite> results.</p>
 <dl class="field-list simple">
@@ -559,7 +700,7 @@ We return at most <cite>gnd_limit</cite> results.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.search_person_wikidata">
-<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">search_person_wikidata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">search_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikidata_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.search_person_wikidata" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">search_person_wikidata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">search_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikidata_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzzy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.search_person_wikidata" title="Link to this definition">¶</a></dt>
 <dd><p>We search for this firstnames lastname in our elasticsearch
 Wikidata index. We return at most <cite>wikidata_limit</cite> results.</p>
 <dl class="field-list simple">
@@ -576,6 +717,21 @@ Wikidata index. We return at most <cite>wikidata_limit</cite> results.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utility.linking_utils.warn_multiple_gids">
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">warn_multiple_gids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">note</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#utility.linking_utils.warn_multiple_gids" title="Link to this definition">¶</a></dt>
+<dd><p>Reports a knowledge-base entry holding more than one GND id, once per entry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>str</em>) – Index the entry came from, for example “Wikidata”.</p></li>
+<li><p><strong>gids</strong> (<em>set</em>) – The GND ids found on the entry.</p></li>
+<li><p><strong>note</strong> (<em>str</em>) – Sentence appended to the message, defaults to “”.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1008,6 +1164,22 @@ it returns 0 indicating that the code will run on CPU.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="utility.utils.finish_magazine_output">
+<span class="sig-prename descclassname"><span class="pre">utility.utils.</span></span><span class="sig-name descname"><span class="pre">finish_magazine_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">magazines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taskname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#utility.utils.finish_magazine_output" title="Link to this definition">¶</a></dt>
+<dd><p>Drops the incomplete marker now that every file has been written.</p>
+<p>A marker left behind means the run did not reach this point, so the folder
+holds a partial result whatever its files look like.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>magazines</strong> (<em>iterable</em>) – Magazine shortnames this run wrote.</p></li>
+<li><p><strong>taskname</strong> (<em>str</em>) – The task at hand, for example “link” or “tag”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utility.utils.offset_len_to_linking_input">
 <span class="sig-prename descclassname"><span class="pre">utility.utils.</span></span><span class="sig-name descname"><span class="pre">offset_len_to_linking_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mention_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utility.utils.offset_len_to_linking_input" title="Link to this definition">¶</a></dt>
 <dd><p>Transforms tagging output that contains the mention,
@@ -1094,6 +1266,22 @@ years for a magazine instead of saving each year individually into a file.</p>
 <span class="sig-prename descclassname"><span class="pre">utility.utils.</span></span><span class="sig-name descname"><span class="pre">set_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utility.utils.set_default" title="Link to this definition">¶</a></dt>
 <dd><p>Helper function to translate all sets in the aggregated dictionaries into
 lists when dumping them to files.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utility.utils.start_magazine_output">
+<span class="sig-prename descclassname"><span class="pre">utility.utils.</span></span><span class="sig-name descname"><span class="pre">start_magazine_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">magazines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taskname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#utility.utils.start_magazine_output" title="Link to this definition">¶</a></dt>
+<dd><p>Marks a magazine’s output folder as being written by a run in progress.</p>
+<p>Nothing existing is removed: a run that fails leaves the previous result in
+place, and the marker is what says the folder cannot be trusted yet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>magazines</strong> (<em>iterable</em>) – Magazine shortnames this run will write.</p></li>
+<li><p><strong>taskname</strong> (<em>str</em>) – The task at hand, for example “link” or “tag”.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

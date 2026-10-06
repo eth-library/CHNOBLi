@@ -93,11 +93,17 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="src.html#src.linking.backend_api_call">backend_api_call() (in module src.linking)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utility.html#utility.settings.ElasticSettings.base_url">base_url (utility.settings.ElasticSettings attribute)</a>
 </li>
       <li><a href="utility.html#utility.settings.Settings.BATCH_SIZE">BATCH_SIZE (utility.settings.Settings attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utility.html#utility.linking_utils.build_person_gnd_query">build_person_gnd_query() (in module utility.linking_utils)</a>
+</li>
+      <li><a href="utility.html#utility.linking_utils.build_variant_name_query">build_variant_name_query() (in module utility.linking_utils)</a>
+</li>
+      <li><a href="utility.html#utility.linking_utils.build_wikidata_query">build_wikidata_query() (in module utility.linking_utils)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -237,9 +243,11 @@
 </li>
       <li><a href="src.html#src.aggregation.find_place_match">find_place_match() (in module src.aggregation)</a>
 </li>
+      <li><a href="main.html#main.finish_data">finish_data() (in module main)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="main.html#main.finish_data">finish_data() (in module main)</a>
+      <li><a href="utility.html#utility.utils.finish_magazine_output">finish_magazine_output() (in module utility.utils)</a>
 </li>
       <li><a href="src.html#src.aggregation.full_firstname_match">full_firstname_match() (in module src.aggregation)</a>
 </li>
@@ -299,6 +307,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="src.html#src.linking.init_link_progress">init_link_progress() (in module src.linking)</a>
+</li>
       <li><a href="src.html#src.postprocess.initialize_found_entry">initialize_found_entry() (in module src.postprocess)</a>
 </li>
       <li><a href="src.html#src.postprocess.initialize_found_place_entry">initialize_found_place_entry() (in module src.postprocess)</a>
@@ -443,7 +453,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="src.html#src.tag_flair.package_generator_output_paths">package_generator_output_paths() (in module src.tag_flair)</a>
 </li>
+      <li><a href="src.html#src.linking.TaggingPages.pages_for">pages_for() (src.linking.TaggingPages method)</a>
+</li>
       <li><a href="utility.html#utility.utils.parse_arguments">parse_arguments() (in module utility.utils)</a>
+</li>
+      <li><a href="utility.html#utility.linking_utils.parse_person_gnd_response">parse_person_gnd_response() (in module utility.linking_utils)</a>
+</li>
+      <li><a href="utility.html#utility.linking_utils.parse_variant_name_response">parse_variant_name_response() (in module utility.linking_utils)</a>
+</li>
+      <li><a href="utility.html#utility.linking_utils.parse_wikidata_response">parse_wikidata_response() (in module utility.linking_utils)</a>
 </li>
       <li><a href="utility.html#utility.settings.ElasticSettings.password">password (utility.settings.ElasticSettings attribute)</a>
 </li>
@@ -459,12 +477,12 @@
 </li>
       <li><a href="utility.html#utility.settings.Settings.PATH_TO_NER_MODEL_2">PATH_TO_NER_MODEL_2 (utility.settings.Settings attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utility.html#utility.settings.Settings.PATH_TO_OUTFILE_FOLDER">PATH_TO_OUTFILE_FOLDER (utility.settings.Settings attribute)</a>
 </li>
       <li><a href="utility.html#utility.evaluation_utils.Paths">Paths (class in utility.evaluation_utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="src.html#src.postprocess.populate_year_dict">populate_year_dict() (in module src.postprocess)</a>
 </li>
       <li><a href="utility.html#utility.utils.positive_int">positive_int() (in module utility.utils)</a>
@@ -591,6 +609,8 @@
         <li><a href="src.html#module-src.tag_flair">module</a>
 </li>
       </ul></li>
+      <li><a href="utility.html#utility.utils.start_magazine_output">start_magazine_output() (in module utility.utils)</a>
+</li>
       <li><a href="src.preprocessing.html#src.preprocessing.preprocess.start_preprocessing">start_preprocessing() (in module src.preprocessing.preprocess)</a>
 </li>
       <li><a href="utility.html#utility.utils.str2bool">str2bool() (in module utility.utils)</a>
@@ -602,6 +622,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="src.html#src.tag_flair.tag_year_data_and_save">tag_year_data_and_save() (in module src.tag_flair)</a>
+</li>
+      <li><a href="src.html#src.linking.TaggingPages">TaggingPages (class in src.linking)</a>
 </li>
       <li><a href="src.preprocessing.html#src.preprocessing.preprocess.timed_execute_preprocessing">timed_execute_preprocessing() (in module src.preprocessing.preprocess)</a>
 </li>
@@ -623,8 +645,6 @@
 </li>
       <li><a href="utility.html#utility.evaluation_utils.Scores.update_counter">update_counter() (utility.evaluation_utils.Scores method)</a>
 </li>
-      <li><a href="src.html#src.linking.update_per_dict_score">update_per_dict_score() (in module src.linking)</a>
-</li>
       <li><a href="utility.html#utility.settings.Settings.USE_RICH_LOGGING">USE_RICH_LOGGING (utility.settings.Settings attribute)</a>
 </li>
       <li><a href="utility.html#utility.settings.ElasticSettings.username">username (utility.settings.ElasticSettings attribute)</a>
@@ -643,8 +663,6 @@
         <li><a href="utility.html#module-utility.compare">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     utility.evaluation_utils
 
@@ -652,6 +670,8 @@
         <li><a href="utility.html#module-utility.evaluation_utils">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     utility.linking_utils
 
@@ -708,10 +728,12 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="utility.html#utility.settings.Settings.WIKIDATA_LIMIT">WIKIDATA_LIMIT (utility.settings.Settings attribute)</a>
+      <li><a href="utility.html#utility.linking_utils.warn_multiple_gids">warn_multiple_gids() (in module utility.linking_utils)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utility.html#utility.settings.Settings.WIKIDATA_LIMIT">WIKIDATA_LIMIT (utility.settings.Settings attribute)</a>
+</li>
       <li><a href="src.html#src.tag_flair.write_sentences_to_outfile">write_sentences_to_outfile() (in module src.tag_flair)</a>
 </li>
   </ul></td>
