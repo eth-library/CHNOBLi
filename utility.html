@@ -496,7 +496,27 @@ search for, or there is no room for results.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.clean_namestring">
 <span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">clean_namestring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#utility.linking_utils.clean_namestring" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Normalizes a name string for use in Elasticsearch queries. Removes
+punctuation, expands German sharp s to <code class="docutils literal notranslate"><span class="pre">ss</span></code>, and converts periods
+in initials to wildcards. Internal name hyphens are preserved.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Name string to clean.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cleaned name string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clean_namestring</span><span class="p">(</span><span class="s2">"D. Birchall"</span><span class="p">)</span>
+<span class="go">'D* Birchall'</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.convert_dates_wikidata">
@@ -555,8 +575,27 @@ the dictionary we use for the rest of the pipeline.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="utility.linking_utils.get_preferred_gnd_entry_wikidata">
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">get_preferred_gnd_entry_wikidata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wikidata_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utility.linking_utils.get_preferred_gnd_entry_wikidata" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves the preferred GND IDs associated with a Wikidata entity.</p>
+<p>This lookup is used when an entity has multiple GND IDs. Errors are
+logged and return <code class="docutils literal notranslate"><span class="pre">None</span></code>; successful results are cached by Wikidata ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>wikidata_id</strong> (<em>str</em>) – Wikidata entity ID, such as <code class="docutils literal notranslate"><span class="pre">&quot;Q312384&quot;</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Associated GND IDs, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the lookup fails.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str] | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.parse_person_gnd_response">
-<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">parse_person_gnd_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.parse_person_gnd_response" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">parse_person_gnd_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.parse_person_gnd_response" title="Link to this definition">¶</a></dt>
 <dd><p>Turns one GND response into candidates, keyed by gnd id.</p>
 <p>Scores are scaled to the top hit of this response, which is what makes
 them comparable with scores from a different index.</p>
@@ -566,6 +605,7 @@ them comparable with scores from a different index.</p>
 <li><p><strong>result_json</strong> (<em>dict</em>) – One decoded Elasticsearch response.</p></li>
 <li><p><strong>label</strong> (<em>str</em>) – Name of the query these hits answer, carried onto each
 candidate for the scorer. Omitted when the caller named no query.</p></li>
+<li><p><strong>search_term</strong> (<em>str</em>) – The search term for the ES query.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -579,7 +619,7 @@ candidate for the scorer. Omitted when the caller named no query.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.parse_variant_name_response">
-<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">parse_variant_name_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.parse_variant_name_response" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">parse_variant_name_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.parse_variant_name_response" title="Link to this definition">¶</a></dt>
 <dd><p>Turns one variant-name response into candidates, keyed by gnd id.</p>
 <p>Scores are scaled to the top hit of this response, which is what makes
 them comparable with scores from a different index.</p>
@@ -589,6 +629,7 @@ them comparable with scores from a different index.</p>
 <li><p><strong>result_json</strong> (<em>dict</em>) – One decoded Elasticsearch response.</p></li>
 <li><p><strong>label</strong> (<em>str</em>) – Name of the query these hits answer, carried onto each
 candidate for the scorer. Omitted when the caller named no query.</p></li>
+<li><p><strong>search_term</strong> (<em>str</em>) – The search term for the ES query.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -602,7 +643,7 @@ candidate for the scorer. Omitted when the caller named no query.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.parse_wikidata_response">
-<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">parse_wikidata_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.parse_wikidata_response" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">parse_wikidata_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utility.linking_utils.parse_wikidata_response" title="Link to this definition">¶</a></dt>
 <dd><p>Turns one Wikidata response into candidates, keyed by gnd id.</p>
 <p>An entry carrying several gnd ids is registered under each of them and
 scaled only once, so the shared score is not divided twice.</p>
@@ -614,6 +655,7 @@ them comparable with scores from a different index.</p>
 <li><p><strong>result_json</strong> (<em>dict</em>) – One decoded Elasticsearch response.</p></li>
 <li><p><strong>label</strong> (<em>str</em>) – Name of the query these hits answer, carried onto each
 candidate for the scorer. Omitted when the caller named no query.</p></li>
+<li><p><strong>search_term</strong> (<em>str</em>) – The search term for the ES query.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -643,10 +685,34 @@ on the length of the word. We do not allow more than 2 edits per word.</p>
 <dd class="field-odd"><p>str</p>
 </dd>
 <dt class="field-even">Example<span class="colon">:</span></dt>
-<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="s2">"D. Birchall"</span> <span class="o">=&gt;</span> <span class="s2">"D* Birchall~2"</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s2">"J.P. Wittbach =&gt; J*P* Wittbach~2"</span>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="s2">"D* Birchall"</span> <span class="o">=&gt;</span> <span class="s2">"D* Birchall~2"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s2">"J*P* Wittbach =&gt; J*P* Wittbach~2"</span>
 </pre></div>
 </div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utility.linking_utils.resolve_old_gids">
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">resolve_old_gids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gids_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikidata_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">person_to_search</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utility.linking_utils.resolve_old_gids" title="Link to this definition">¶</a></dt>
+<dd><p>Resolves GND IDs through lobid, retaining each original ID if its lookup
+fails. Duplicate resolved IDs are removed. If multiple IDs remain, they
+are reported and returned in sorted order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gids_list</strong> (<em>iterable</em><em>[</em><em>str</em><em>]</em>) – GND IDs to resolve.</p></li>
+<li><p><strong>data_source</strong> (<em>str</em><em> | </em><em>None</em>) – Source of the IDs, used in warning messages.</p></li>
+<li><p><strong>wikidata_id</strong> (<em>str</em><em> | </em><em>None</em>) – Wikidata entity ID, if applicable.</p></li>
+<li><p><strong>person_to_search</strong> (<em>str</em><em> | </em><em>None</em>) – Name associated with the lookup, if available.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Resolved IDs, with originals retained when lookups fail.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -723,15 +789,24 @@ Wikidata index. We return at most <cite>wikidata_limit</cite> results.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utility.linking_utils.warn_multiple_gids">
-<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">warn_multiple_gids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">note</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#utility.linking_utils.warn_multiple_gids" title="Link to this definition">¶</a></dt>
-<dd><p>Reports a knowledge-base entry holding more than one GND id, once per entry.</p>
+<span class="sig-prename descclassname"><span class="pre">utility.linking_utils.</span></span><span class="sig-name descname"><span class="pre">warn_multiple_gids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wikidata_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">person_to_search</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">note</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#utility.linking_utils.warn_multiple_gids" title="Link to this definition">¶</a></dt>
+<dd><p>Reports a knowledge-base entry holding more than one GND id, once per GND-ID set.
+Sorts and returns the gids so the results are fixed but arbitrary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>source</strong> (<em>str</em>) – Index the entry came from, for example “Wikidata”.</p></li>
 <li><p><strong>gids</strong> (<em>set</em>) – The GND ids found on the entry.</p></li>
+<li><p><strong>wikidata_id</strong> (<em>str</em>) – Wikidata id if the source is Wikidata.</p></li>
+<li><p><strong>person_to_search</strong> (<em>str</em>) – The person name we searched for on ES.</p></li>
 <li><p><strong>note</strong> (<em>str</em>) – Sentence appended to the message, defaults to “”.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A sorted list of GND-IDs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
