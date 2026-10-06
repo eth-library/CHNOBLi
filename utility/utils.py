@@ -7,7 +7,14 @@ import os
 import orjson
 import logging
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from .settings import settings
+
+# Suffix a file carries while it is still being written.
+PART_SUFFIX = ".part"
+# Present in a magazine's output folder from the moment a run starts writing it
+# until that run finishes; its presence means the folder is a partial result.
+INCOMPLETE_MARKER = "_INCOMPLETE.json"
 
 
 def set_default(obj):
@@ -125,10 +132,67 @@ def save_data_intermediate(year: list, files: dict, taskname: str):
     magfolder = os.path.join(outfolder, taskname, year[0])
     if not os.path.exists(magfolder):
         os.makedirs(magfolder)
-    with open(os.path.join(magfolder, "".join(year[1:]) + ".jsonl"), mode="wb") as out:
+    # Written aside and moved into place, so a reader never meets a half-written
+    # file and an interrupted run leaves a visibly named ".part" behind instead
+    # of something that looks finished. The move is atomic within a directory.
+    final_path = os.path.join(magfolder, "".join(year[1:]) + ".jsonl")
+    part_path = final_path + PART_SUFFIX
+    with open(part_path, mode="wb") as out:
         for entry in files:
             out.write(orjson.dumps(entry, default=set_default))
             out.write(b"\n")
+    os.replace(part_path, final_path)
+
+
+def start_magazine_output(magazines, taskname: str) -> None:
+    """
+    Marks a magazine's output folder as being written by a run in progress.
+
+    Nothing existing is removed: a run that fails leaves the previous result in
+    place, and the marker is what says the folder cannot be trusted yet.
+
+    :param magazines: Magazine shortnames this run will write.
+    :type magazines: iterable
+    :param taskname: The task at hand, for example "link" or "tag".
+    :type taskname: str
+    """
+
+    from utility.settings import settings
+    outfolder = settings.PATH_TO_OUTFILE_FOLDER
+    for magazine in sorted(set(magazines)):
+        magfolder = os.path.join(outfolder, taskname, magazine)
+        os.makedirs(magfolder, exist_ok=True)
+        with open(os.path.join(magfolder, INCOMPLETE_MARKER), mode="wb") as out:
+            out.write(
+                orjson.dumps(
+                    {
+                        "job_id": settings.JOB_ID,
+                        "task": taskname,
+                        "started": datetime.now().isoformat(),
+                    }
+                )
+            )
+
+
+def finish_magazine_output(magazines, taskname: str) -> None:
+    """
+    Drops the incomplete marker now that every file has been written.
+
+    A marker left behind means the run did not reach this point, so the folder
+    holds a partial result whatever its files look like.
+
+    :param magazines: Magazine shortnames this run wrote.
+    :type magazines: iterable
+    :param taskname: The task at hand, for example "link" or "tag".
+    :type taskname: str
+    """
+
+    from utility.settings import settings
+    outfolder = settings.PATH_TO_OUTFILE_FOLDER
+    for magazine in sorted(set(magazines)):
+        marker = os.path.join(outfolder, taskname, magazine, INCOMPLETE_MARKER)
+        if os.path.exists(marker):
+            os.remove(marker)
 
 
 def save_data(data: dict, taskname: str):

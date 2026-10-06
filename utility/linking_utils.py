@@ -1,6 +1,8 @@
 """
 Utility functions for finding candidates via ElasticSearch
 """
+import os
+import threading
 import unicodedata
 import requests
 import re
@@ -13,10 +15,68 @@ BASE_DIR = Path(__file__).resolve().parent
 with open(BASE_DIR / "gnd_prefix_lastnames.txt", "r", encoding="utf-8") as f:
     PREFIX = set(f.read().splitlines())
 
-# ES sessions
-sess = requests.Session()
-adapter = requests.adapters.HTTPAdapter(max_retries=20)
-sess.mount('http://', adapter)
+# Compiled once, at import. There are ~1178 prefixes and Python's regex cache
+# holds 512, so building these patterns inside the per-lastname loop evicted
+# every one of them before it could be reused: each lastname recompiled the
+# whole list. Iteration order follows PREFIX, so which prefix wins is unchanged.
+PREFIX_PATTERNS = [(prefix, re.compile("(^" + prefix + ")")) for prefix in PREFIX]
+
+# One session per thread and per process, rather than one shared module-level
+# session: linking runs under a process Pool over magazine-years and a thread
+# pool over persons, and a socket inherited across fork would be used by parent
+# and child at once.
+_sessions = threading.local()
+
+# Knowledge-base entries carrying several GND ids are a property of the entry,
+# not of the mention that found it, so the same handful reappear for thousands
+# of mentions. Reported once each per process instead.
+_reported_multi_gid: set = set()
+
+
+def warn_multiple_gids(source: str, gids: set, note: str = "") -> None:
+    """
+    Reports a knowledge-base entry holding more than one GND id, once per entry.
+
+    :param source: Index the entry came from, for example "Wikidata".
+    :type source: str
+    :param gids: The GND ids found on the entry.
+    :type gids: set
+    :param note: Sentence appended to the message, defaults to "".
+    :type note: str
+    """
+
+    key = frozenset(gids)
+    if key in _reported_multi_gid:
+        return
+    _reported_multi_gid.add(key)
+    # Sorted so the same entry reads the same way from run to run; iterating a
+    # set of ids would order the message differently each time.
+    logging.warning(
+        f"{source} entry with multiple GND IDs: {sorted(gids)}."
+        + (f" {note}" if note else "")
+    )
+
+
+def _session() -> requests.Session:
+    """
+    Returns this thread's Elasticsearch session, creating it if needed.
+
+    :return: A session whose connections are safe to reuse here.
+    :rtype: requests.Session
+    """
+
+    pid = os.getpid()
+    session = getattr(_sessions, "session", None)
+    if session is None or getattr(_sessions, "pid", None) != pid:
+        session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(max_retries=20)
+        session.mount("http://", adapter)
+        # The cluster is reached over https; mounting only http left the
+        # retrying adapter unused.
+        session.mount("https://", adapter)
+        _sessions.session = session
+        _sessions.pid = pid
+    return session
 
 
 def clean_namestring(name: str) -> str:
@@ -264,14 +324,15 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
     url = settings.es.base_url + "/" + index_name + "/_search?pretty"
     auth = (settings.es.username, settings.es.password)
 
+    session = _session()
     try:
-        data = requests.get(url, headers=headers, json=json_data,
-                            verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=0.5)
+        data = session.get(url, headers=headers, json=json_data,
+                           verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=0.5)
     except requests.exceptions.Timeout:
         logging.warning(f"{error_label} ES Query timed out.")
         try:
-            data = requests.get(url, headers=headers, json=json_data,
-                                verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+            data = session.get(url, headers=headers, json=json_data,
+                               verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
         except requests.exceptions.Timeout:
             logging.error(f"{error_label} ES query timeout. No more retries.")
             logging.info(f"Query: {json_data}")
@@ -279,8 +340,8 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
     except requests.exceptions.SSLError:
         logging.warning(f"SSL error {error_label}")
         try:
-            data = sess.get(url, headers=headers, json=json_data,
-                            verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+            data = session.get(url, headers=headers, json=json_data,
+                               verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
         except requests.exceptions.Timeout:
             logging.error(f"{error_label} ES SSL Error timeout. No more retries.")
             logging.info(f"Query: {json_data}")
@@ -329,30 +390,31 @@ def _alive_before_year_filter(year: str) -> dict:
     }
 
 
-def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
+def build_variant_name_query(
+    fullname: str, year: str, gnd_limit=15, fuzzy=True
+) -> dict | None:
     """
-    We search for this fullname in our elasticsearch GND index.
-    We return at most `gnd_limit` results.
+    Builds the Elasticsearch body for a variant-name person search.
 
-    :param fullname: Full namestring of the person to search
+    :param fullname: Full name of the person to search
     :type fullname: str
     :param year: Year this magazine was published in
     :type year: str
     :param gnd_limit: Number of results, defaults to 15
     :type gnd_limit: int, optional
-    :param fuzzy: Whether to search for the names including some edits, defaults to True
+    :param fuzzy: Whether to search for the names including some edits
     :type fuzzy: bool, optional
-    :return: Dictionary of each viable candidate where the keys are the\
-        gnd ids.
-    :rtype: dict
+    :return: The query body, or None when cleaning left nothing to
+        search for, or there is no room for results.
+    :rtype: dict | None
     """
 
     if gnd_limit == 0:
-        return {}
+        return None
 
     fullname = clean_namestring(fullname)
     if fullname == "":
-        return {}
+        return None
 
     if fuzzy:
         fullname_wildcard = "*"+fullname+"*"
@@ -361,7 +423,6 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
         fullname_wildcard = fullname
         fullname_fuzzy = fullname
 
-    headers = {"Content-Type": "application/json"}
 
     json_data = {
             "_source": ["gndIdentifier", "variantName"],
@@ -402,8 +463,26 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
                 },
             }
         }
+    return json_data
+
+
+def parse_variant_name_response(result_json: dict, label: str = "") -> dict:
+    """
+    Turns one variant-name response into candidates, keyed by gnd id.
+
+    Scores are scaled to the top hit of this response, which is what makes
+    them comparable with scores from a different index.
+
+    :param result_json: One decoded Elasticsearch response.
+    :type result_json: dict
+    :param label: Name of the query these hits answer, carried onto each
+        candidate for the scorer. Omitted when the caller named no query.
+    :type label: str
+    :return: Dictionary of each viable candidate, keyed by gnd id.
+    :rtype: dict
+    """
+
     res_candidates = {}
-    result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
     if len(result_json) == 0:
         return {}
     try:
@@ -414,15 +493,19 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 # NOTE: This should never be degenerate better to put a hard check here
                 if len(person_info["gid"]) > 1:
-                    logging.error(
-                        f"GND entry with multiple GND IDs: {person_info['gid']}. "
-                        "An arbitrary one is selected."
+                    warn_multiple_gids(
+                        "GND", person_info["gid"], "An arbitrary one is selected."
                     )
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
                 person_info["score"] = hit["_score"]
                 if person_info["score"] > max_score:
                     max_score = person_info["score"]
+                # Which query found this candidate. Carried with the hit and not
+                # read here; the scorer uses it to place the candidate. Absent when
+                # the caller named no query, so an unlabelled call is unchanged.
+                if label:
+                    person_info["query_label"] = label
                 res_candidates[gid] = person_info
     except Exception:
         logging.error("This query caused an exception: "+str(result_json))
@@ -434,15 +517,15 @@ def search_person_gnd_variantName(fullname: str, year: str, gnd_limit=15, fuzzy=
     return res_candidates
 
 
-def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzzy=True) -> dict:
+def search_person_gnd_variantName(
+    fullname: str, year: str, gnd_limit=15, fuzzy=True, label: str = ""
+) -> dict:
     """
-    We search for this firstnames lastname in our elasticsearch GND index.
+    We search for this fullname in our elasticsearch GND index.
     We return at most `gnd_limit` results.
 
-    :param fnames: List of firstnames of the person to search
-    :type fnames: list
-    :param lastname: Lastname of the person to search
-    :type lastname: str
+    :param fullname: Full namestring of the person to search
+    :type fullname: str
     :param year: Year this magazine was published in
     :type year: str
     :param gnd_limit: Number of results, defaults to 15
@@ -454,8 +537,38 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
     :rtype: dict
     """
 
-    if gnd_limit == 0:
+    json_data = build_variant_name_query(fullname, year, gnd_limit, fuzzy)
+    if json_data is None:
         return {}
+
+    headers = {"Content-Type": "application/json"}
+    result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
+    return parse_variant_name_response(result_json, label)
+
+
+def build_person_gnd_query(
+    fnames: list, lastname: str, year: str, gnd_limit=15, fuzzy=True
+) -> dict | None:
+    """
+    Builds the Elasticsearch body for a preferred-name person search.
+
+    :param fnames: List of firstnames of the person to search
+    :type fnames: list
+    :param lastname: Lastname of the person to search
+    :type lastname: str
+    :param year: Year this magazine was published in
+    :type year: str
+    :param gnd_limit: Number of results, defaults to 15
+    :type gnd_limit: int, optional
+    :param fuzzy: Whether to search for the names including some edits
+    :type fuzzy: bool, optional
+    :return: The query body, or None when there is nothing worth asking for:
+        no room for results, or a lastname that cleaning left empty.
+    :rtype: dict | None
+    """
+
+    if gnd_limit == 0:
+        return None
 
     if isinstance(fnames, list):
         # should even throw an exception, but I'll be nice
@@ -469,15 +582,14 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
     lastname = clean_namestring(lastname)
     # if after cleaning the lastname is empty, do not search
     if lastname == "":
-        return {}
+        return None
 
-    headers = {"Content-Type": "application/json"}
 
     # If the lastname contains a prefix, split it off and search for it
     # in its own field; otherwise just clean/prep the lastname as usual.
     prefix = None
-    for p in PREFIX:
-        split_lname = re.split("(^"+p+")", lastname)
+    for p, prefix_pattern in PREFIX_PATTERNS:
+        split_lname = prefix_pattern.split(lastname)
         if len(split_lname) > 1:
             split_lname = [x.strip() for x in split_lname if x != ""]
             if len(split_lname) != 2:
@@ -540,8 +652,26 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
         }
     }
 
+    return json_data
+
+
+def parse_person_gnd_response(result_json: dict, label: str = "") -> dict:
+    """
+    Turns one GND response into candidates, keyed by gnd id.
+
+    Scores are scaled to the top hit of this response, which is what makes
+    them comparable with scores from a different index.
+
+    :param result_json: One decoded Elasticsearch response.
+    :type result_json: dict
+    :param label: Name of the query these hits answer, carried onto each
+        candidate for the scorer. Omitted when the caller named no query.
+    :type label: str
+    :return: Dictionary of each viable candidate, keyed by gnd id.
+    :rtype: dict
+    """
+
     res_candidates = {}
-    result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
     if len(result_json) == 0:
         return {}
     try:
@@ -552,15 +682,19 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 # NOTE: This should never be degenerate better to put a hard check here
                 if len(person_info["gid"]) > 1:
-                    logging.error(
-                        f"GND entry with multiple GND IDs: {person_info['gid']}. "
-                        "An arbitrary one is selected."
+                    warn_multiple_gids(
+                        "GND", person_info["gid"], "An arbitrary one is selected."
                     )
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
                 person_info["score"] = hit["_score"]
                 if person_info["score"] > max_score:
                     max_score = person_info["score"]
+                # Which query found this candidate. Carried with the hit and not
+                # read here; the scorer uses it to place the candidate. Absent when
+                # the caller named no query, so an unlabelled call is unchanged.
+                if label:
+                    person_info["query_label"] = label
                 res_candidates[gid] = person_info
     except Exception:
         logging.error("This query caused an exception: "+str(result_json))
@@ -573,17 +707,21 @@ def search_person_gnd(fnames: list, lastname: str, year: str, gnd_limit=15, fuzz
     return res_candidates
 
 
-def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=True) -> dict:
+def search_person_gnd(
+    fnames: list, lastname: str, year: str, gnd_limit=15, fuzzy=True, label: str = ""
+) -> dict:
     """
-    We search for this firstnames lastname in our elasticsearch
-    Wikidata index. We return at most `wikidata_limit` results.
+    We search for this firstnames lastname in our elasticsearch GND index.
+    We return at most `gnd_limit` results.
 
-    :param search_term: first- and lastname of the person to search.
-    :type search_term: str
-    :param year: year this magazine was published in.
+    :param fnames: List of firstnames of the person to search
+    :type fnames: list
+    :param lastname: Lastname of the person to search
+    :type lastname: str
+    :param year: Year this magazine was published in
     :type year: str
-    :param wikidata_limit: Number of results, defaults to 5
-    :type wikidata_limit: int, optional
+    :param gnd_limit: Number of results, defaults to 15
+    :type gnd_limit: int, optional
     :param fuzzy: Whether to search for the names including some edits, defaults to True
     :type fuzzy: bool, optional
     :return: Dictionary of each viable candidate where the keys are the\
@@ -591,17 +729,44 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
     :rtype: dict
     """
 
-    if wikidata_limit == 0:
+    json_data = build_person_gnd_query(fnames, lastname, year, gnd_limit, fuzzy)
+    if json_data is None:
         return {}
+
+    headers = {"Content-Type": "application/json"}
+    result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
+    return parse_person_gnd_response(result_json, label)
+
+
+def build_wikidata_query(
+    search_term: str, year: str, wikidata_limit=5, fuzzy=True
+) -> dict | None:
+    """
+    Builds the Elasticsearch body for a Wikidata label search.
+
+    :param search_term: Full name of the person to search
+    :type search_term: str
+    :param year: Year this magazine was published in
+    :type year: str
+    :param wikidata_limit: Number of results, defaults to 5
+    :type wikidata_limit: int, optional
+    :param fuzzy: Whether to search for the names including some edits
+    :type fuzzy: bool, optional
+    :return: The query body, or None when cleaning left nothing to
+        search for, or there is no room for results.
+    :rtype: dict | None
+    """
+
+    if wikidata_limit == 0:
+        return None
     search_term = clean_namestring(search_term)
     # if after cleaning the search term is empty, do not search
     if search_term == "":
-        return {}
+        return None
 
     if fuzzy:
         search_term = prep_name_for_elasticsearch_query(search_term)
 
-    headers = {"Content-Type": "application/json"}
 
     json_data = {
         "_source": ["GND_ID", "GND_ID_2", "labels"],
@@ -637,8 +802,29 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
             }
         }
     }
+    return json_data
+
+
+def parse_wikidata_response(result_json: dict, label: str = "") -> dict:
+    """
+    Turns one Wikidata response into candidates, keyed by gnd id.
+
+    An entry carrying several gnd ids is registered under each of them and
+    scaled only once, so the shared score is not divided twice.
+
+    Scores are scaled to the top hit of this response, which is what makes
+    them comparable with scores from a different index.
+
+    :param result_json: One decoded Elasticsearch response.
+    :type result_json: dict
+    :param label: Name of the query these hits answer, carried onto each
+        candidate for the scorer. Omitted when the caller named no query.
+    :type label: str
+    :return: Dictionary of each viable candidate, keyed by gnd id.
+    :rtype: dict
+    """
+
     res_candidates = {}
-    result_json = _es_search(settings.es.index_name_wikidata, headers, json_data, "Wikidata")
     if len(result_json) == 0:
         return {}
     max_score = 0
@@ -649,13 +835,16 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 person_info["score"] = hit["_score"]
                 if len(person_info["gid"]) > 1:
-                    logging.warning(
-                        f"Wikidata entry with multiple GND IDs: {person_info['gid']}."
-                    )
+                    warn_multiple_gids("Wikidata", person_info["gid"])
                 for gid in person_info["gid"]:
                     # sometimes one entity is assigned several gids.
                     # this unfortunately breaks a lot of what we did logically
                     # but this cannot be fixed on our end.
+                    # Which query found this candidate. Carried with the hit and not
+                    # read here; the scorer uses it to place the candidate. Absent when
+                    # the caller named no query, so an unlabelled call is unchanged.
+                    if label:
+                        person_info["query_label"] = label
                     res_candidates.setdefault(gid, person_info)
                     if person_info["score"] > max_score:
                         max_score = person_info["score"]
@@ -669,3 +858,31 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
         per_dict["score"] = per_dict["score"] / max_score
 
     return res_candidates
+
+
+def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=True,
+                           label: str = "") -> dict:
+    """
+    We search for this firstnames lastname in our elasticsearch
+    Wikidata index. We return at most `wikidata_limit` results.
+
+    :param search_term: first- and lastname of the person to search.
+    :type search_term: str
+    :param year: year this magazine was published in.
+    :type year: str
+    :param wikidata_limit: Number of results, defaults to 5
+    :type wikidata_limit: int, optional
+    :param fuzzy: Whether to search for the names including some edits, defaults to True
+    :type fuzzy: bool, optional
+    :return: Dictionary of each viable candidate where the keys are the\
+        gnd ids.
+    :rtype: dict
+    """
+
+    json_data = build_wikidata_query(search_term, year, wikidata_limit, fuzzy)
+    if json_data is None:
+        return {}
+
+    headers = {"Content-Type": "application/json"}
+    result_json = _es_search(settings.es.index_name_wikidata, headers, json_data, "Wikidata")
+    return parse_wikidata_response(result_json, label)

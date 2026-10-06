@@ -6,12 +6,14 @@ import re
 import unicodedata
 import logging
 import warnings
+import math
 
 # Suppress noisy third-party SyntaxWarning from the 'pattern' library (bug in Python 3.12)
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pattern")
 
 from datetime import datetime
-from multiprocessing import Pool
+import threading
+from multiprocessing import Pool, Value
 from concurrent.futures import ThreadPoolExecutor
 import orjson
 import string
@@ -19,14 +21,19 @@ import os
 from copy import deepcopy
 import time
 import requests
-from utility.utils import save_data_intermediate
+from utility.utils import (
+    save_data_intermediate,
+    start_magazine_output,
+    finish_magazine_output,
+)
+from utility.scoring import Candidate, CandidateScorer, Mention, confidence_level
 from utility.linking_utils import (
     search_person_wikidata,
     search_person_gnd,
     search_person_gnd_variantName,
 )
 from utility.settings import settings
-from itertools import batched, takewhile
+from itertools import batched
 
 # Until we can set up the API
 import numpy as np
@@ -35,6 +42,10 @@ from collections import OrderedDict
 from typing import List
 
 MAX_YEAR_STR = "3000"
+
+# Ranks the candidates of a mention. Stateless, so one instance serves every
+# worker; its defaults are the ranking this stage has always produced.
+_SCORER = CandidateScorer()
 
 
 def prep_word(word: str) -> str:
@@ -53,41 +64,66 @@ def prep_word(word: str) -> str:
     return word
 
 
-def update_per_dict_score(dict_in: dict, dict_to_add: dict, strategy="max") -> dict:
-    if strategy not in ("max", "min", "avg"):
-        raise ValueError("Not a valid strategy. Choose: max, min, avg.")
+def _collect_hits(collected: dict, hits: dict) -> dict:
+    """
+    Adds one query's hits to the candidates gathered for a person so far.
 
-    # Handle multiple gnd-ids returned by Wikidata
-    cleaned_dict_to_add = {}
-    for k, v in dict_to_add.items():
-        if len(v["gid"]) > 1:
-            found = False
-            for gid in v["gid"]:
-                if gid in dict_in:
-                    cleaned_dict_to_add[gid] = v.copy()
-                    cleaned_dict_to_add[gid]["gid"] = {gid}
-                    found = True
-                    break
-            if not found:
-                cleaned_dict_to_add[k] = v.copy()
-        else:
-            cleaned_dict_to_add[k] = v.copy()
+    A candidate keeps the position it was first retrieved at and the payload of
+    the query that found it, gaining from later queries only the fields that
+    payload does not already carry. Every query that returned it is recorded
+    under its label with the score it gave, so what each one contributed stays
+    readable instead of collapsing into a single number.
 
-    for k, v in cleaned_dict_to_add.items():
-        # Aggregate scores
-        if k in dict_in:
-            if strategy == "max":
-                dict_in[k]["score"] = max(v["score"], dict_in[k]["score"])
-            elif strategy == "min":
-                dict_in[k]["score"] = min(v["score"], dict_in[k]["score"])
-            elif strategy == "avg":
-                dict_in[k]["score"] = (v["score"] + dict_in[k]["score"]) / 2
-            for k_j, v_j in v.items():
-                if k_j not in dict_in[k]:
-                    dict_in[k][k_j] = v_j
+    :param collected: Candidates gathered so far, gid to a (payload, retrieval)
+        pair. Mutated in place.
+    :type collected: dict
+    :param hits: One query's results, gid to payload.
+    :type hits: dict
+    :return: The same mapping, for chaining.
+    :rtype: dict
+    """
+
+    for gid, hit in hits.items():
+        if gid in collected:
+            payload, retrieval = collected[gid]
+            for key, value in hit.items():
+                if key not in payload:
+                    payload[key] = value
         else:
-            dict_in[k] = v
-    return dict_in
+            payload, retrieval = dict(hit), {}
+            collected[gid] = (payload, retrieval)
+        label = hit.get("query_label")
+        if label:
+            retrieval[label] = max(retrieval.get(label, 0.0), hit.get("score", 0.0))
+    return collected
+
+
+def _as_candidates(collected: dict) -> list:
+    """
+    Turns the gathered payloads into candidates the scorer can rank.
+
+    The payload's score becomes the best any query gave the candidate, which is
+    the number the rest of the pipeline reads off it.
+
+    :param collected: Output of :func:`_collect_hits`.
+    :type collected: dict
+    :return: Candidates, in the order they were retrieved.
+    :rtype: list
+    """
+
+    candidates = []
+    for gid, (payload, retrieval) in collected.items():
+        if retrieval:
+            payload["score"] = max(retrieval.values())
+        source = (
+            "wikidata"
+            if retrieval and all(lab.startswith("wikidata") for lab in retrieval)
+            else "gnd"
+        )
+        candidates.append(
+            Candidate(gid=gid, source=source, fields=payload, retrieval=retrieval)
+        )
+    return candidates
 
 
 def remove_obsolete_abbrevs(fnames: list, abbr_firstnames: list) -> list:
@@ -122,7 +158,7 @@ def remove_obsolete_abbrevs(fnames: list, abbr_firstnames: list) -> list:
 
 def get_candidates(
     person: dict, year: str, gnd_limit: int, wikidata_limit: int
-) -> dict:
+) -> list:
     """Searches the GND and Wikidata index for candidates of a given person.
 
     :param person: A dictionary with various information on the given\
@@ -136,9 +172,10 @@ def get_candidates(
     :param wikidata_limit: The number of candidates to truncate out wikidata\
         candidate list to.
     :type wikidata_limit: int
-    :return: Dictionary of candidates for the given person, containing\
-        information on the candidates themselves.
-    :rtype: dict
+    :return: Candidates for the given person, in the order the queries\
+        retrieved them, each carrying its payload and the score every query\
+        that returned it gave it.
+    :rtype: list
     """
 
     if (
@@ -146,7 +183,7 @@ def get_candidates(
         or (len(" ".join(person["lastname"])) < 3)
         or (not person["firstname"] and not person["abbr_firstname"])
     ):
-        return {}
+        return []
 
     lastname = person["lastname"]
     if len(lastname) > 1:
@@ -160,83 +197,50 @@ def get_candidates(
     fname_abbr_fname = fname_abbr_fname.replace("  ", " ").strip()
     full_name = fname_abbr_fname + " " + lastname
 
-    candidate_dict = {}
-    if person["abbr_firstname"] and not person["firstname"]:
-        # If we have an abbr_fnames we usually don't have fnames
-        # or they don't overlap in some way.
-        candidate_dict = update_per_dict_score(
-            candidate_dict,
-            search_person_gnd(
-                person["abbr_firstname"], lastname, year, gnd_limit, False
-            ),
-            "max",
-        )
-        candidate_dict = update_per_dict_score(
-            candidate_dict,
-            search_person_wikidata(full_name, year, wikidata_limit, False),
-            "max",
-        )
-        if settings.ADD_FUZZY_SEARCH == "True":
-            candidate_dict = update_per_dict_score(
-                candidate_dict,
-                search_person_gnd(person["abbr_firstname"], lastname, year, gnd_limit),
-                "max",
-            )
-            candidate_dict = update_per_dict_score(
-                candidate_dict,
-                search_person_wikidata(full_name, year, wikidata_limit),
-                "max",
-            )
+    # A mention with abbreviated forenames usually has no full forenames, or the
+    # two do not overlap, so the preferred-name query searches for whichever it
+    # has. The abbreviation and variant queries need both and are skipped when
+    # only one is present.
+    fnames = person["firstname"] or person["abbr_firstname"]
+    has_both = bool(person["firstname"]) and bool(person["abbr_firstname"])
 
-    res_dict_fullname = {}
-    if person["firstname"]:
-        res_dict_fullname = update_per_dict_score(
-            res_dict_fullname,
-            search_person_gnd(person["firstname"], lastname, year, gnd_limit, False),
-            "max",
-        )
-        if person["abbr_firstname"]:
-            res_dict_fullname = update_per_dict_score(
-                res_dict_fullname,
-                search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit, False),
-                "max",
-            )
-            res_dict_fullname = update_per_dict_score(
-                res_dict_fullname,
-                search_person_gnd_variantName(full_name, year, gnd_limit, False),
-                "max",
-            )
+    # The candidate queries, in the order their tiers rank them. Each row is
+    # issued once as an exact search and, when fuzzy search is on, once more
+    # with the analyzers relaxed, under the label the tier table knows it by.
+    plan = [
+        (
+            "gnd_pref_exact",
+            search_person_gnd, (fnames, lastname, year, gnd_limit),
+            True,
+        ),
+        (
+            "gnd_pref_abbr_exact",
+            search_person_gnd, (fname_abbr_fname, lastname, year, gnd_limit),
+            has_both,
+        ),
+        (
+            "gnd_variant_exact",
+            search_person_gnd_variantName, (full_name, year, gnd_limit),
+            has_both,
+        ),
+        (
+            "wikidata_label_exact",
+            search_person_wikidata, (full_name, year, wikidata_limit),
+            True,
+        ),
+    ]
 
-        res_dict_fullname = update_per_dict_score(
-            res_dict_fullname,
-            search_person_wikidata(full_name, year, wikidata_limit, False),
-            "max",
-        )
-        if settings.ADD_FUZZY_SEARCH == "True":
-            res_dict_fullname = update_per_dict_score(
-                res_dict_fullname,
-                search_person_gnd(person["firstname"], lastname, year, gnd_limit),
-                "max",
-            )
-            if person["abbr_firstname"]:
-                res_dict_fullname = update_per_dict_score(
-                    res_dict_fullname,
-                    search_person_gnd(fname_abbr_fname, lastname, year, gnd_limit),
-                    "max",
-                )
-                res_dict_fullname = update_per_dict_score(
-                    res_dict_fullname,
-                    search_person_gnd_variantName(full_name, year, gnd_limit),
-                    "max",
-                )
-            res_dict_fullname = update_per_dict_score(
-                res_dict_fullname,
-                search_person_wikidata(full_name, year, wikidata_limit),
-                "max",
-            )
+    collected = {}
+    passes = [False, True] if settings.ADD_FUZZY_SEARCH == "True" else [False]
+    for fuzzy in passes:
+        for label, search, args, issued in plan:
+            if not issued:
+                continue
+            if fuzzy:
+                label = label.replace("_exact", "_fuzzy")
+            _collect_hits(collected, search(*args, fuzzy, label=label))
 
-    candidate_dict = update_per_dict_score(candidate_dict, res_dict_fullname, "max")
-    return candidate_dict
+    return _as_candidates(collected)
 
 
 def prep_person_entry(person: dict, mag_year: str) -> None:
@@ -346,51 +350,26 @@ def prep_person_out(person: dict) -> None:
     :type person: dict
     """
     person["lastname"] = " ".join(person["lastname"])
-    # precision 5 is excellent, 4 is very good, 3 is good, 2 is medium, 1 is minimal and 0 is experimental
-    if person["gnd_ids"] == []:  # Confidence that this person cannot be linked
-        if "gnd_ids_scores_dist" in person:
-            person["gnd_confidence"] = 4
-        else:
-            person["gnd_confidence"] = 5
-    else:
+    n_ids = len(person["gnd_ids"])
+    if n_ids:
         assert "candidates" in person, person
-        if person["firstname"] and person["lastname"]:
-            if len(person["gnd_ids"]) == 1:
-                if _name_matches(person):
-                    person["gnd_confidence"] = 5
-                else:
-                    person["gnd_confidence"] = 4
-            else:
-                if "gnd_ids_scores_dist" in person:
-                    if _name_matches(person):
-                        person["gnd_confidence"] = 4
-                    else:
-                        person["gnd_confidence"] = 3
-                else:
-                    person["gnd_confidence"] = 3
-        else:
-            if len(person["gnd_ids"]) == 1:
-                if _name_matches(person):
-                    person["gnd_confidence"] = 4
-                else:
-                    person["gnd_confidence"] = 3
-            else:
-                if _name_matches(person):
-                    person["gnd_confidence"] = 2
-                else:
-                    if "gnd_ids_scores_dist" in person:
-                        person["gnd_confidence"] = 2
-                    else:
-                        person["gnd_confidence"] = 1
+    person["gnd_confidence"] = confidence_level(
+        n_ids,
+        bool(person["firstname"]) and bool(person["lastname"]),
+        # Guarded: the grade for an unlinkable person does not consult the name,
+        # and _name_matches reads a leading candidate that is not there.
+        n_ids > 0 and _name_matches(person),
+        "gnd_ids_scores_dist" in person,
+    )
 
-    for key in [
-        "same_score_cand",
-        "context",
-        "gnd_ids_scores_dist",
-        "gnd_ids_scores_sim",
-        "candidates",
-    ]:
-        person.pop(key, None)
+    # for key in [
+    #     "same_score_cand",
+    #     "context",
+    #     "gnd_ids_scores_dist",
+    #     "gnd_ids_scores_sim",
+    #     "candidates",
+    # ]:
+    #     person.pop(key, None)
 
     # For the frontend: delete pid if it's None
     if "references" in person:
@@ -437,7 +416,10 @@ def link_person(data_in) -> dict:
     firstnames. If not, those candidates are deleted first, before we\
     truncate to `linked_persons_limit`.
     """
-    mag_year, year, person, tagging_paths = data_in
+    mag_year, year, person, tagging_paths = data_in[:4]
+    # The shared parse is optional so that a single call can still be made with
+    # just the paths, as the tests do.
+    pages_cache = data_in[4] if len(data_in) > 4 else None
     prep_person_entry(person, mag_year)
     candidates = get_candidates(
         person, year, settings.GND_LIMIT, settings.WIKIDATA_LIMIT
@@ -447,27 +429,53 @@ def link_person(data_in) -> dict:
         prep_person_out(person)
         return person
 
-    most_imp_sc = candidates[next(iter(candidates))]["score"]
+    mention = Mention(
+        lastname=tuple(person["lastname"]),
+        firstnames=tuple(person["firstname"]),
+        abbr_firstnames=tuple(person["abbr_firstname"]),
+        year=year,
+    )
     # if several of the first gnds have the same score,
     # take all of them and re-rank with our vdb
-    same_score_cand = list(
-        takewhile(lambda c: candidates[c]["score"] == most_imp_sc, candidates)
-    )
+    ranking = _SCORER.score(mention, candidates)
+    payloads = {c.gid: c.fields for c in candidates}
 
-    if len(same_score_cand) > 1:
+    if ranking.needs_disambiguation:
         person_context_dict = deepcopy(person)
-        context = get_person_context(person_context_dict, tagging_paths)
+        context = get_person_context(person_context_dict, tagging_paths, pages_cache)
 
         person["context"] = context
-        person["same_score_cand"] = same_score_cand
-        person["candidates"] = {c_k: candidates[c_k] for c_k in same_score_cand}
+        person["same_score_cand"] = ranking.top_tier
+        person["candidates"] = {gid: payloads[gid] for gid in ranking.top_tier}
         return person
 
-    person["gnd_ids"] = list(candidates.keys())[: settings.LINKED_PERSONS_LIMIT]
-    person["gnd_ids_scores_sim"] = [candidates[x]["score"] for x in person["gnd_ids"]]
-    person["candidates"] = [candidates[c_k] for c_k in person["gnd_ids"]]
+    person["gnd_ids"] = ranking.gids(settings.LINKED_PERSONS_LIMIT)
+    person["gnd_ids_scores_sim"] = [payloads[g]["score"] for g in person["gnd_ids"]]
+    person["candidates"] = [payloads[g] for g in person["gnd_ids"]]
     prep_person_out(person)
     return person
+
+
+_documents_done = None
+_documents_total = 0
+
+
+def init_link_progress(counter, total: int) -> None:
+    """
+    Hands a worker the tally shared by every process linking this run.
+
+    Magazine-years are linked in forked processes, so a plain counter would
+    count each worker's own share and report the same numbers several times.
+
+    :param counter: Shared count of the magazine-years finished so far.
+    :type counter: multiprocessing.Value
+    :param total: Magazine-years this run will link.
+    :type total: int
+    """
+
+    global _documents_done, _documents_total
+    _documents_done = counter
+    _documents_total = total
 
 
 def find_links(data_in) -> list:
@@ -489,6 +497,7 @@ def find_links(data_in) -> list:
     :rtype: tuple
     """
     mag_year, data, tagging_paths = data_in
+    started = datetime.now()
 
     year = re.match(r"\d{4}", mag_year[1])
     if year is None:
@@ -496,8 +505,13 @@ def find_links(data_in) -> list:
     else:
         year = year.group(0)
 
+    # One parse of this magazine-year's tagging output, shared by every mention
+    # in it and released with it.
+    pages_cache = TaggingPages()
     person_list = [
-        (mag_year, year, x, tagging_paths) for x in data if x["type"] == "PER"
+        (mag_year, year, x, tagging_paths, pages_cache)
+        for x in data
+        if x["type"] == "PER"
     ]
 
     if settings.BATCH_SIZE == 1:
@@ -515,6 +529,15 @@ def find_links(data_in) -> list:
     # with Pool(conf["BATCH_SIZE"]) as p:
     #     person_list = p.map(link_person, person_list)
 
+    tally = ""
+    if _documents_done is not None:
+        with _documents_done.get_lock():
+            _documents_done.value += 1
+            tally = f" ({_documents_done.value}/{_documents_total})"
+    logging.info(
+        f"Candidates for {'-'.join(mag_year)}: {len(person_list)} mentions "
+        f"in {datetime.now() - started}{tally}"
+    )
     return mag_year, person_list, tagging_paths
 
 
@@ -554,6 +577,9 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
     logging.info("executeLinking reached")
     logging.info("Linking now: " + ", ".join(["-".join(x) for x in data.keys()]))
 
+    magazines = {mag_year[0] for mag_year in data}
+    start_magazine_output(magazines, "link")
+
     links = [
         [
             k,  # tuple of (mag, year) like ("cmt", "1998_076")
@@ -564,10 +590,16 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
     ]
     # for idx, i in enumerate(links):
     #    links[idx][1] = find_links(i)  # I basically update v
+    documents_done = Value("i", 0)
     if settings.BATCH_SIZE == 1:
+        init_link_progress(documents_done, len(links))
         links = [find_links(x) for x in links]
     else:
-        with Pool(settings.BATCH_SIZE) as p:
+        with Pool(
+            settings.BATCH_SIZE,
+            initializer=init_link_progress,
+            initargs=(documents_done, len(links)),
+        ) as p:
             links = p.map(find_links, links)
     # vorschlag
     # for k,v in data.items():
@@ -609,6 +641,7 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
     assert len(batched_queryids) == len(batched_text)
     assert len(batched_queryids) == len(batched_targettextids)
     for i in range(len(batched_queryids)):
+        batch_started = datetime.now()
         response = compare_to_target_ids_multiplexed(
             batched_queryids[i],
             batched_text[i],
@@ -653,14 +686,85 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
                 ]
                 prep_person_out(links[idx_i][1][idx_j])
 
+        logging.info(
+            f"Disambiguated batch {i + 1}/{len(batched_queryids)}: "
+            f"{len(batched_queryids[i])} mentions in {datetime.now() - batch_started}"
+        )
+
     for i in links:
         save_data_intermediate([i[0][0], i[0][1]], i[1], "link")
+    finish_magazine_output(magazines, "link")
 
     if timed:
         logging.info("Linking took: " + str(datetime.now() - start_time))
 
 
-def get_person_context(per: dict, tagging_output_paths: list) -> str:
+class TaggingPages:
+    """
+    Parsed tagging output for one magazine-year, shared by its mentions.
+
+    One instance belongs to one magazine-year and is dropped with it, so the
+    memory held is one year's parsed files rather than the corpus. Files are
+    parsed on first request, so an instance starts empty and grows to hold the
+    files its mentions actually reach.
+    """
+
+    def __init__(self) -> None:
+        self._pages: dict = {}
+        self._lock = threading.Lock()
+
+    def pages_for(self, path: str) -> list:
+        """
+        Returns the parsed pages of one file, parsing it at most once.
+
+        Mentions are processed by a thread pool, so the parse is guarded: two
+        threads arriving together would otherwise each decode the same file.
+
+        :param path: Path to a tagging output file.
+        :type path: str
+        :return: List of single-page dictionaries.
+        :rtype: list
+        :raises Exception: If the path cannot be read or parsed.
+        """
+
+        with self._lock:
+            if path not in self._pages:
+                self._pages[path] = _load_tagging_pages(path)
+            return self._pages[path]
+
+
+def _load_tagging_pages(path: str) -> list:
+    """
+    Reads one tagging output file and normalizes it to one page per entry.
+
+    :param path: Path to a tagging output file.
+    :type path: str
+    :return: List of dictionaries, each holding exactly one page.
+    :rtype: list
+    :raises Exception: If the tagging output path is not a valid path.
+    """
+
+    try:
+        if path.endswith(".jsonl"):
+            with open(path, "r", encoding="utf-8") as f:
+                pages = [orjson.loads(line) for line in f]
+        else:
+            with open(path, "r", encoding="utf-8") as f:
+                pages = [orjson.loads(f.read())]
+    except Exception:
+        raise Exception(f"Tagging output: {path} is not a valid path.")
+
+    # Each line should be exactly one page
+    if not all(len(x) == 1 for x in pages):
+        # flatten it
+        pages = [{k: v} for subpages_dict in pages for (k, v) in subpages_dict.items()]
+        assert all(len(x) == 1 for x in pages), list(pages[0].keys())
+    return pages
+
+
+def get_person_context(
+    per: dict, tagging_output_paths: list, pages_cache: "TaggingPages | None" = None
+) -> str:
     """
     Retrieve and concatenate context surrounding all person mentions.
 
@@ -672,11 +776,16 @@ def get_person_context(per: dict, tagging_output_paths: list) -> str:
     :type per: dict
     :param tagging_output_paths: List of the paths to the tagging output files
     :type tagging_output_paths: list
+    :param pages_cache: Shared parse of this magazine-year's files. Omitting it
+        parses them here, which is what a single standalone call wants.
+    :type pages_cache: TaggingPages | None
     :return: Concatenated context text from all references to the person
     :rtype: str
     :raises Exception: If the tagging output path is not a valid path
     """
     all_context = ""
+    if pages_cache is None:
+        pages_cache = TaggingPages()
 
     for page in per["references"]:
         for r in per["references"][page]["refs"]:
@@ -689,23 +798,7 @@ def get_person_context(per: dict, tagging_output_paths: list) -> str:
     for p in tagging_output_paths:  # for custom tagging output this is empty so skipped
         # check in the person references if this page / path is even relevant
         # then do the rest below.
-        try:
-            if p.endswith(".jsonl"):
-                with open(p, "r", encoding="utf-8") as f:
-                    pages = [orjson.loads(line) for line in f]
-            else:
-                with open(p, "r", encoding="utf-8") as f:
-                    pages = [orjson.loads(f.read())]
-        except Exception:
-            raise Exception(f"Tagging output: {p} is not a valid path.")
-
-        # Each line should be exactly one page
-        if not all(len(x) == 1 for x in pages):
-            # flatten it
-            pages = [
-                {k: v} for subpages_dict in pages for (k, v) in subpages_dict.items()
-            ]
-            assert all(len(x) == 1 for x in pages), list(pages[0].keys())
+        pages = pages_cache.pages_for(p)
         # Only keep pages relevant to the person
         pages = [x for x in pages if next(iter(x.keys())) in all_relevant_pages]
 
@@ -966,6 +1059,9 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
         token = get_paramanera_token()
         if token:
             headers["Authorization"] = f"Bearer {token}"
+        else:
+            import sys
+            sys.exit()
 
     payload = {
         "content": content,
@@ -987,13 +1083,13 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
             timeout=settings.VD_TIMEOUT_RETRY,
         )
 
-    # retry until it works.
+    # retry until it works. only if there's an internal server error, not if it's a timeout issue.
     retries = 0
     while response.status_code != 200 and retries < settings.VD_MAX_RETRIES:
         retries += 1
         time.sleep(2)
         logging.warning(
-            f"Querying the VD failed or timed out {retries} times with payload: {payload}"
+            f"Querying the VD failed or timed out {retries} times with payload: {payload} and status code {response.status_code}"
         )
         try:
             response = requests.post(
