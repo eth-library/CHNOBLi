@@ -356,7 +356,7 @@ class ScoringPolicy(BaseModel):
     #: coincide bit for bit rather than approximately. A small tolerance such as
     #: 1e-6 admits scores that merely came close, which widens ties and sends
     #: more mentions to the vector database.
-    tie_epsilon: float = 0.0
+    tie_epsilon: float = 0.06
 
 
 class CandidateScorer:
