@@ -517,7 +517,7 @@ def test_compare_to_target_ids_multiplexed_success():
             sample_args_multi["model_name"]
         )
         assert result == [{"text_id": "id1", "distance": 0.1}]
-        assert mock_post.call_count == 2
+        assert mock_post.call_count == 1
         _, kwargs = mock_post.call_args
         assert kwargs["json"]["content"][0]["query_text"] == sample_args_multi["text"][0]
         assert kwargs["json"]["content"][1]["query_text"] == sample_args_multi["text"][1]

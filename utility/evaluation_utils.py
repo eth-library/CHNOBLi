@@ -293,9 +293,11 @@ def get_main_name(per_dict: dict) -> str:
             )
     elif "abbr_firstname" in per_dict and per_dict["abbr_firstname"]:
         return " ".join(per_dict["abbr_firstname"])
-    elif "other" in per_dict:
-        for other_elem in per_dict["other"]:
-            return " ".join(other_elem)
+    elif "other" in per_dict and per_dict["other"]:
+        try:
+            return " ".join(per_dict["other"])
+        except:
+            return " ".join([x for y in per_dict["other"] for x in y])
     return "--"
 
 
