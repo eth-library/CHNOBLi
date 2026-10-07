@@ -514,7 +514,7 @@ def test_clean_lastname(word, expected):
     params.PARAMS_aggregate_names
 )
 def test_aggregate_names(data, expected):
-    res, year, paths = aggregate_names(data)
+    res, _, _ = aggregate_names(data)
 
     for entry in res:
         entry.pop("id")  # id depends on the order

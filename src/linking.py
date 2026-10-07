@@ -254,7 +254,6 @@ def prep_person_entry(person: dict, mag_year: str) -> None:
         )
     ]
     person["firstname"] = [n for n in names if len(n) > 1]
-    person["abbr_firstname"] += [n for n in names if len(n) == 1]
 
     abbr_names = [
         [prep_word(w) for w in name.split()] for name in person["abbr_firstname"]

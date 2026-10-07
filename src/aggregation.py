@@ -775,7 +775,15 @@ def aggregate_names(input_triplet) -> list:
         abbr = info["abbr_firstnames"]
 
         existing = set(abbr)
-        abbr += [f"{n}." for n in firstnames if len(n) == 1 and f"{n}." not in existing]
+        abbr += [f"{n}.".upper() for n in firstnames if len(n) == 1 and f"{n}.".upper() not in existing]
+
+        # Drop a lowercase single-letter abbreviation if its uppercase form is present
+        upper = {a for a in abbr if a.isupper()}
+        abbr = [
+            a.upper() for a in abbr
+            if not (len(a.rstrip(".")) == 1 and a.islower() and a.upper() in upper)
+        ]
+
         info["firstnames"] = " ".join(n for n in firstnames if len(n) > 1)
         info["abbr_firstnames"] = " ".join(abbr)
 
