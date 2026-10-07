@@ -267,11 +267,8 @@ def aggregate_with(namepart_dict: dict,
                 candidates = only_lastname_match(reference, aggregated_names)
             elif namepart == "onlyfirstnames":
                 candidates = only_firstname_match(reference, aggregated_names)
-            elif namepart == "onlyabbrevfirstnames":
-                candidates = only_abbrev_firstname_match(reference,
-                                                         aggregated_names)
-            elif namepart == "others":
-                candidates = others_match(reference, aggregated_names)
+            elif namepart == "onlyabbrevfirstnames" or namepart == "others": # we do not aggregate on these two alone
+                candidates = []
             else:
                 raise Exception(f"This namepart: {namepart} is unknown.")
 
@@ -813,7 +810,6 @@ def aggregate_names(input_triplet) -> list:
         else:
             if len(info["firstnames"]) > 0:
                 lastnames_with_firstnames[lastname].append(entry)
-            # these lines were commented out, but why?
             elif len(info["abbr_firstnames"]) > 0:
                 lastnames_with_abbrev[lastname].append(entry)
             else:
