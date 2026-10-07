@@ -769,8 +769,15 @@ def aggregate_names(input_triplet) -> list:
         info = entry["info"]
         lastname = " ".join([clean_lastname(x) for x in info["lastnames"]])
         info["lastnames"] = lastname
-        info["firstnames"] = " ".join(info["firstnames"])
-        info["abbr_firstnames"] = " ".join(info["abbr_firstnames"])
+        # If a firstname is a singular letter, it should have been tagged as
+        # an abbreviated firstname
+        firstnames = info["firstnames"]
+        abbr = info["abbr_firstnames"]
+
+        existing = set(abbr)
+        abbr += [f"{n}." for n in firstnames if len(n) == 1 and f"{n}." not in existing]
+        info["firstnames"] = " ".join(n for n in firstnames if len(n) > 1)
+        info["abbr_firstnames"] = " ".join(abbr)
 
         # lemmatize descriptors
         # We assume all occupations are nouns

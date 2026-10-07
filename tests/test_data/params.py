@@ -2538,6 +2538,24 @@ PARAMS_aggregate_names = [
                               '920,2014,101,24:main']}],
               'elements': []}},
         'type': 'PER', 'id': 0}]),
+        # if a firstname is only a single letter, that gets moved to abbr firstnames
+     ((("abc", "1234"), [{'info': {
+         'lastnames': ["Hodel"], 'firstnames': ["H"], 'abbr_firstnames': [],
+         'occupations': [], 'titles': [], 'address': [], 'others': ["Beta"]},
+         'pid': 1, 'pageNames': 'abc-001_1234_123_0001.txt', 'pageNo': 1,
+         'sentenceNo': 29, 'positions': ['865,1781,49,22:main',
+                                         '924,1780,100,23:main'],
+         'type': 'PER', 'articles': []}],
+        ["abc-001_1234_123_0001.json", "abc-001_1234_123_0100.json"]),
+      [{'lastname': 'Hodel', 'firstname': [], 'abbr_firstname': ["H."], 'address': [],
+        'titles': [], 'profession': [], 'other': ['Beta'],
+        'references': {
+            'abc-001_1234_123_0001.txt': {
+              'pid': 1, 'refs': [
+                  {'sent': 29,
+                   'coords': ['865,1781,49,22:main', '924,1780,100,23:main']}],
+              'elements': []}},
+        'type': 'PER', 'id': 0}]),
 ]
 PARAMS_aggregate_place = [
     (
