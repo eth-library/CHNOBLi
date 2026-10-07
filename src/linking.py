@@ -128,32 +128,24 @@ def _as_candidates(collected: dict) -> list:
 
 def remove_obsolete_abbrevs(fnames: list, abbr_firstnames: list) -> list:
     """
-    Removes abbreviated firstnames that are already covered by full\
-    firstnames.
+    Remove abbreviated firstnames that are already covered by a full firstname.
 
-    :param fnames: List of firstnames
-    :type fnames: list
-    :param abbr_firstnames: List of abbreviated firstnames
-    :type abbr_firstnames: list
-    :return: List of firstnames where the obsolete abbreviated firstnames\
-            have been removed.
-    :rtype: list
-    :Example: fnames = ["R.", "Richard"] => fnames = ["Richard"]
+    :param fnames: List of full firstnames
+    :param abbr_firstnames: List of groups (lists) of abbreviated firstnames
+    :return: The groups with obsolete abbreviations removed; the remaining
+        abbreviations are normalized to end with a single period
+    :Example: fnames = ["Richard"], abbr_firstnames = [["R.", "J"]]
+          =>  fnames = ["Richard"], abbr_firstnames = [["J."]]
     """
-
-    cleaned_abbr_fnames = []
-    for abbr_group in abbr_firstnames:
-        cleaned_abbr_group = []
-        for abbr in abbr_group:
-            is_obsolete = False
-            abbr = abbr.rstrip(".")
-            for fname in fnames:
-                if fname.lower().startswith(abbr.lower()):
-                    is_obsolete = True
-            if not is_obsolete:
-                cleaned_abbr_group.append(abbr + ".")
-        cleaned_abbr_fnames.append(cleaned_abbr_group)
-    return cleaned_abbr_fnames
+    full_names = [f.lower() for f in fnames]
+    return [
+        [
+            stem + "."
+            for stem in (a.rstrip(".") for a in group)
+            if not any(f.startswith(stem.lower()) for f in full_names)
+        ]
+        for group in abbr_firstnames
+    ]
 
 
 def get_candidates(
@@ -255,37 +247,38 @@ def prep_person_entry(person: dict, mag_year: str) -> None:
     :type mag_year: tuple
     """
 
-    person["firstname"] = [
-        [prep_word(y) for y in x.split()] for x in person["firstname"]
+    names = [
+        w.title()
+        for w in dict.fromkeys(
+            prep_word(w).lower() for name in person["firstname"] for w in name.split()
+        )
     ]
-    fnames_flat = [x.lower() for y in person["firstname"] for x in y]
-    person["firstname"] = [
-        x.title() for x in dict.fromkeys(fnames_flat)
-    ]  # slower than list(set(items)) but keeps the order
+    person["firstname"] = [n for n in names if len(n) > 1]
+    person["abbr_firstname"] += [n for n in names if len(n) == 1]
 
-    person["abbr_firstname"] = [
-        [prep_word(y) for y in x.split()] for x in person["abbr_firstname"]
+    abbr_names = [
+        [prep_word(w) for w in name.split()] for name in person["abbr_firstname"]
     ]
-    abbr_fnames_trunc = remove_obsolete_abbrevs(
-        person["firstname"], person["abbr_firstname"]
-    )
-    abbr_fnames_flat = [x for y in abbr_fnames_trunc for x in y]
+    trimmed = remove_obsolete_abbrevs(person["firstname"], abbr_names)
     person["abbr_firstname"] = list(
-        dict.fromkeys(abbr_fnames_flat)
-    )  # slower than list(set(items)) but keeps the order
-
-    person["lastname"] = [prep_word(x) for x in person["lastname"].split()]
+        dict.fromkeys(w for names in trimmed for w in names)
+    )
     person["lastname"] = [
-        prep_word(y) for x in person["lastname"] for y in x.split("-")
+        prep_word(part)
+        for word in person["lastname"].split()
+        for part in word.split("-")
     ]
     person["profession"] = [prep_word(x) for x in person["profession"]]
     person["profession"].sort()
-    person["other"] = [prep_word(x) for x in person["other"]]
-    person["other"] = [x for x in person["other"] if x not in string.punctuation]
+
+    person["other"] = [
+        w
+        for x in person["other"]
+        if (w := prep_word(x)) and not all(c in set(string.punctuation) for c in w)
+    ]
     person["id"] = (
         mag_year[0] + ":" + mag_year[1].replace("_", ":") + ":" + str(person["id"])
     )
-
 
 def _name_matches(person: dict) -> bool:
     """
