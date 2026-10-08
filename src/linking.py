@@ -148,6 +148,21 @@ def remove_obsolete_abbrevs(fnames: list, abbr_firstnames: list) -> list:
     ]
 
 
+def _combine_nameparts(person):
+    lastname = person["lastname"]
+    if len(lastname) > 1:
+        lastname = " ".join(lastname)
+    else:
+        lastname = lastname[0]
+
+    fname_abbr_fname = (
+        " ".join(person["firstname"]) + " " + " ".join(person["abbr_firstname"])
+    )
+    fname_abbr_fname = fname_abbr_fname.replace("  ", " ").strip()
+    full_name = fname_abbr_fname + " " + lastname
+    return lastname, fname_abbr_fname, full_name
+
+
 def get_candidates(
     person: dict, year: str, gnd_limit: int, wikidata_limit: int
 ) -> list:
@@ -177,17 +192,7 @@ def get_candidates(
     ):
         return []
 
-    lastname = person["lastname"]
-    if len(lastname) > 1:
-        lastname = " ".join(lastname)
-    else:
-        lastname = lastname[0]
-
-    fname_abbr_fname = (
-        " ".join(person["firstname"]) + " " + " ".join(person["abbr_firstname"])
-    )
-    fname_abbr_fname = fname_abbr_fname.replace("  ", " ").strip()
-    full_name = fname_abbr_fname + " " + lastname
+    lastname, fname_abbr_fname, full_name = _combine_nameparts(person)
 
     # A mention with abbreviated forenames usually has no full forenames, or the
     # two do not overlap, so the preferred-name query searches for whichever it
@@ -754,6 +759,31 @@ def _load_tagging_pages(path: str) -> list:
     return pages
 
 
+def expand_name(text, lastname, fullname):
+    """Expand standalone surname mentions to the person's full name.
+
+    A surname preceded by a capitalized word is left unchanged, since it may
+    already be part of a name.
+
+    :param text: Text in which to expand surname mentions.
+    :type text: str
+    :param lastname: Surname to search for.
+    :type lastname: str
+    :param fullname: Full name to substitute for standalone surname mentions.
+    :type fullname: str
+    :return: The text with eligible surname mentions expanded.
+    :rtype: str
+    """
+    def repl(m):
+        before = m.string[:m.start()]
+        # last word before the match, ignoring any punctuation/whitespace in between
+        w = re.search(r"([^\W\d_]+)[\W_]*$", before)
+        if w and w.group(1)[0].isupper():
+            return m.group(0)
+        return fullname
+    return re.sub(rf"\b{re.escape(lastname)}\b", repl, text)
+
+
 def get_person_context(
     per: dict, tagging_output_paths: list, pages_cache: "TaggingPages | None" = None
 ) -> str:
@@ -782,7 +812,7 @@ def get_person_context(
     for page in per["references"]:
         for r in per["references"][page]["refs"]:
             if "context" in r:  # custom tagging output has context already
-                all_context += ";" + r["context"] + " "
+                all_context += ". " + r["context"]
 
     all_relevant_pages = per.get("references", {}).keys()
 
@@ -851,98 +881,43 @@ def get_person_context(
                             + (max(indices)[0] - min(indices)[0])
                         ),
                     )
+
+                    # Extend boundaries that fall inside a word.
+                    while (
+                        0 < start < len(full_text)
+                        and not full_text[start].isspace()
+                        and not full_text[start - 1].isspace()
+                    ):
+                        start -= 1
+
+                    while (
+                        0 < end < len(full_text)
+                        and not full_text[end].isspace()
+                        and not full_text[end - 1].isspace()
+                    ):
+                        end += 1
+
                     extract = full_text[start:end].strip()
-                    all_context += ";" + extract + " "
-                    # I'm fine with overlap, works better this way
-    all_context = all_context[1:]
-    # return " ".join(all_context.strip().split(" ")[:1024])
-    return all_context[
-        :2048
-    ]  # https://huggingface.co/Snowflake/snowflake-arctic-embed-l-v2.0/discussions/3#6751e3b48409e4c1b2330c2d
+                    if extract[0] not in string.punctuation:
+                        all_context += ". " + extract
+                    else:
+                        all_context += extract
+                    # I'm fine with some overlap, works better this way
+    context = all_context[2:].strip()
 
+    # If we never use the full name in the text, our vector DB does poorly
+    lastname, _, full_name = _combine_nameparts(per)
+    context = expand_name(context, lastname, full_name)
 
-def get_person_context_reflevel(per: dict, tagging_output_path: str) -> list:
-    """
-    Retrieve context surrounding all person mentions.
+    if not context:
+        return ""
 
-    Extracts the text surrounding each reference to the given person and
-    returns them as a list.
-
-    :param per: Person entity dictionary containing a "references" key with
-        mention locations
-    :type per: dict
-    :param tagging_output_path: Path to the tagging output file
-    :type tagging_output_path: str
-    :return: List of context window strings, one per reference to the person
-    :rtype: list
-    :raises Exception: If the tagging output path is not a valid path
-    """
-
-    try:
-        with open(tagging_output_path, "r", encoding="utf-8") as f:
-            pages = [orjson.loads(line) for line in f]
-    except Exception:
-        raise Exception(f"Tagging output: {tagging_output_path} is not a valid path.")
-
-    # Flatten all tokens into a single list for fast lookup
-    all_tokens = []
-    for page in pages:
-        for sent_lists in page.values():
-            for sent in sent_lists:
-                all_tokens.extend(sent)
-
-    # Build a string of the full text for context extraction
-    full_text = ""
-    token_offsets = []
-    for token in all_tokens:
-        start = len(full_text)
-        if token["token"] in string.punctuation:
-            full_text += token["token"]
-        else:
-            full_text += " " + token["token"]
-        end = len(full_text)
-        token_offsets.append((token, start, end))
-
-    # Helper: find token indices by coord
-    coord_to_indices = {}
-    for idx, (token, _, _) in enumerate(token_offsets):
-        coord = token.get("coord", "").split(":")[0]
-        if coord:
-            coord_to_indices.setdefault(coord, []).append(idx)
-
-    all_context = []
-    for ref_list in per.get("references", {}).values():
-        for ref in ref_list.get("refs", []):
-            if "coords" in ref and len(ref["coords"]) > 0:
-                coords = [
-                    x.split(":")[0] if isinstance(x, str) else x.get("c", "")
-                    for x in ref["coords"]
-                ]
-                indices = [coord_to_indices.get(x, []) for x in coords]
-                if indices == [[]]:
-                    continue
-
-                start = max(
-                    0,
-                    token_offsets[min(indices)[0]][1]
-                    - (
-                        settings.VD_CONTEXT_WINDOW_LEN
-                        + (max(indices)[0] - min(indices)[0])
-                    ),
-                )
-                end = min(
-                    len(full_text),
-                    token_offsets[max(indices)[0]][2]
-                    + (
-                        settings.VD_CONTEXT_WINDOW_LEN
-                        + (max(indices)[0] - min(indices)[0])
-                    ),
-                )
-                extract = full_text[start:end].strip()
-                all_context.append(
-                    extract[:8192]
-                )  # https://huggingface.co/Snowflake/snowflake-arctic-embed-l-v2.0/discussions/3#6751e3b48409e4c1b2330c2d
-    return all_context
+    if len(context) < settings.VD_CONTEXT_WINDOW_LEN_FULL:
+        repetitions = (settings.VD_CONTEXT_WINDOW_LEN_FULL + len(context) - 1) // len(context)
+        context = (context + " ") * repetitions
+    if len(context) > settings.VD_CONTEXT_WINDOW_LEN_FULL:
+        context = context[:settings.VD_CONTEXT_WINDOW_LEN_FULL].rsplit(" ", 1)[0]
+    return context.rstrip()
 
 
 def compare_to_target_ids_multiplexed(
