@@ -658,7 +658,7 @@ def get_data_paths_iterative():
         inputs = glob.glob(inputs + "/*")
 
     if inputs == []:
-        raise Exception(f"No valid data paths found in {settings.model_dump(exclude={"es"})}")
+        raise Exception(f"""No valid data paths found in {settings.model_dump(exclude={"es"})}""")
 
     for mag_year_path in inputs:
         if os.path.isdir(mag_year_path):
