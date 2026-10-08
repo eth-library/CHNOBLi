@@ -506,15 +506,15 @@ def map_genitive_versions(all_names: list,
     """
 
     for lastname in lastname_dict:
+        lastname_lastpart = lastname.split(" ")[-1]
         if (
-            lastname.endswith("s")
-            and len(lastname) > 1
-            and lastname[-2] != 's'
-            and lastname[:-1] in all_names
+            lastname_lastpart.endswith("s")
+            and len(lastname_lastpart) > 1
+            and lastname_lastpart[-2] != "s"
+            and (lastname_lastpart[:-1] in all_names or lastname in all_names)
         ):
             for entry in lastname_dict[lastname]:
                 entry["info"][key] = entry["info"][key][:-1]
-
 
 def map_genitive_places(all_names: list, place_list: list) -> None:
     """
@@ -723,6 +723,8 @@ def clean_lastname(word: str) -> str:
     :return: The cleaned last name with patterns removed
     :rtype: str
     """
+    if word == "v":
+        word = "von"
     word = PREPATTERN.sub("", word)
     word = POSTPATTERN.sub("", word)
     return word
