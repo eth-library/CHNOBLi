@@ -267,8 +267,11 @@ def aggregate_with(namepart_dict: dict,
                 candidates = only_lastname_match(reference, aggregated_names)
             elif namepart == "onlyfirstnames":
                 candidates = only_firstname_match(reference, aggregated_names)
-            elif namepart == "onlyabbrevfirstnames" or namepart == "others": # we do not aggregate on these two alone
-                candidates = []
+            elif namepart == "onlyabbrevfirstnames":
+                candidates = only_abbrev_firstname_match(reference,
+                                                         aggregated_names)
+            elif namepart == "others":
+                candidates = others_match(reference, aggregated_names)
             else:
                 raise Exception(f"This namepart: {namepart} is unknown.")
 
