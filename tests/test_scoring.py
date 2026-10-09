@@ -3,7 +3,6 @@
 from dataclasses import FrozenInstanceError
 
 import pytest
-
 from utility.scoring import (
     Candidate,
     CandidateScorer,

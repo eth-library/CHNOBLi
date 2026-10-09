@@ -1,5 +1,3 @@
-#! /usr/bin/python3
-
 """
 Read entities, then aggregate them.
 
@@ -11,15 +9,16 @@ aggregation, linking and prep_import we can simply use that id to get the
 article information from the xml.
 """
 
-import orjson
 import glob
-from multiprocessing import Pool
+import logging
 import os
 from datetime import datetime
-import logging
+from multiprocessing import Pool
+
+import orjson
 from lxml import etree
-from utility.utils import save_data_intermediate
 from utility.settings import settings
+from utility.utils import save_data_intermediate
 
 
 def initialize_found_entry() -> dict:
@@ -32,13 +31,13 @@ def initialize_found_entry() -> dict:
             "occupations": [],
             "titles": [],
             "address": [],
-            "others": []
-            },
+            "others": [],
+        },
         "pid": [],
         "pageNames": [],
         "pageNo": [],
         "sentenceNo": [],
-        "positions": []
+        "positions": [],
     }
     return entity
 
@@ -52,19 +51,21 @@ def initialize_found_place_entry() -> dict:
         "pageNames": [],
         "pageNo": [],
         "sentenceNo": [],
-        "positions": []
+        "positions": [],
     }
     return entity
 
 
-def add_info_to_entity(entity: dict,
-                       tag: str,
-                       token: dict,
-                       pageNo: str,
-                       sentNo: str,
-                       pageName: str,
-                       articles: list,
-                       pid: int) -> None:
+def add_info_to_entity(
+    entity: dict,
+    tag: str,
+    token: dict,
+    pageNo: str,
+    sentNo: str,
+    pageName: str,
+    articles: list,
+    pid: int,
+) -> None:
     """
     Adds information to a person entity based on the provided token dictionary\
     and metadata about the page.
@@ -118,7 +119,7 @@ def add_info_to_entity(entity: dict,
         pass
     else:
         entity["info"]["others"].append(token["token"])
-        logging.info("UNKNOWN TAG ENCOUNTERED: "+tag)
+        logging.info("UNKNOWN TAG ENCOUNTERED: " + tag)
     entity["pageNames"].append(pageName)
     entity["pid"].append(pid)
     entity["positions"].append(token["coord"])
@@ -132,14 +133,16 @@ def add_info_to_entity(entity: dict,
         entity["articles"] = articles
 
 
-def add_info_to_place_entity(entity: dict,
-                             tag: str,
-                             token: dict,
-                             pageNo: str,
-                             sentNo: str,
-                             pageName: str,
-                             articles: list,
-                             pid: int) -> None:
+def add_info_to_place_entity(
+    entity: dict,
+    tag: str,
+    token: dict,
+    pageNo: str,
+    sentNo: str,
+    pageName: str,
+    articles: list,
+    pid: int,
+) -> None:
     """
     Adds information to a place entity based on the provided token dict and\
     metadata about the page.
@@ -221,11 +224,9 @@ def adjust_information(entitylist: list) -> None:
             value = entity[key]
             set_value = set(value)
             if len(set_value) > 1:
-                logging.warning(
-                 "WHY DOES THIS REFERENCE CONTAIN MULTIPLE SENTENCES"
-                )
+                logging.warning("WHY DOES THIS REFERENCE CONTAIN MULTIPLE SENTENCES")
             if len(set_value) > 0:
-                entity[key] = list(set_value)[0]
+                entity[key] = next(iter(set_value))
             elif key == "pid":
                 # if no pids were appended, we delete that entry as it's only
                 # used for the frontend and Kai informed me not to write it if
@@ -240,7 +241,7 @@ def get_article_info(article):
             article_dict["elementType"] = c.attrib["type"]
         for d in article[0]:
             if "type" in d.attrib:
-                if 'Title' in d.attrib["type"]:
+                if "Title" in d.attrib["type"]:
                     article_dict["title"] = d.text
                 if "Author" in d.attrib["type"]:
                     article_dict.setdefault("authors", []).append(d.text)
@@ -289,14 +290,11 @@ def get_structure_info(year: tuple, custom_path=None) -> dict:
                 settings.DATA2_MNT,
                 "xml.cache.prod01",
                 short,
-                f"{short.upper()}-{year}.xml"
+                f"{short.upper()}-{year}.xml",
             )
         else:
             xml_storage = os.path.join(
-                settings.DATA2_MNT,
-                "xml.cache.prod01",
-                short,
-                f"{short}_{year}.xml"
+                settings.DATA2_MNT, "xml.cache.prod01", short, f"{short}_{year}.xml"
             )
 
         try:
@@ -310,24 +308,32 @@ def get_structure_info(year: tuple, custom_path=None) -> dict:
 
     pages_to_articles = {}
 
-    document_id = root.find("./element-list/element[@type='Agora:Document']/attr[@type='Agora:DocumentID']").text
+    document_id = root.find(
+        "./element-list/element[@type='Agora:Document']/attr[@type='Agora:DocumentID']"
+    ).text
 
-    page_elems = root.findall("./element-list/element[@type='Agora:ImageSet']/element[@type='Agora:Page']")
+    page_elems = root.findall(
+        "./element-list/element[@type='Agora:ImageSet']/element[@type='Agora:Page']"
+    )
 
     for page_elem in page_elems:
         articles = []
         idx = page_elem.get("ID")
         pagenum = page_elem.find("./attr[@type='Agora:PhysicalNo']").text
-        links = root.findall("./link-list/link[@to='{0}']".format(idx))
+        links = root.findall(f"./link-list/link[@to='{idx}']")
         for link in links:
             article_idx = link.get("from")
             # NOTE: Journal-level connections should usually be uninteresting,
             # so we skip them specifically. For completeness sake, we might
             # take them in as well though.
-            is_journal = root.find("./element-list/element[@type='Journal'][@ID='{0}']".format(article_idx))
+            is_journal = root.find(
+                f"./element-list/element[@type='Journal'][@ID='{article_idx}']"
+            )
             if is_journal:
                 continue
-            article = root.find("./element-list/element[@type='Journal']//element[@ID='{0}']".format(article_idx))
+            article = root.find(
+                f"./element-list/element[@type='Journal']//element[@ID='{article_idx}']"
+            )
             articles.append({article_idx: get_article_info([article])})
 
             # if the first element found was not an article
@@ -335,9 +341,7 @@ def get_structure_info(year: tuple, custom_path=None) -> dict:
             if article.get("type") == "Article":
                 continue
 
-            article_ancestor = article.xpath(
-                "ancestor::element[@type='Article']"
-            )
+            article_ancestor = article.xpath("ancestor::element[@type='Article']")
             if not article_ancestor:
                 continue
 
@@ -346,23 +350,23 @@ def get_structure_info(year: tuple, custom_path=None) -> dict:
             articles.append({ancestor_idx: get_article_info(ancestor_article)})
 
         resource_id = page_elem.find("./resource-id").text
-        path = root.find("./resource-list/resource[@ID='{0}']/attr[@type='Agora:Path']".format(resource_id)).text
+        path = root.find(
+            f"./resource-list/resource[@ID='{resource_id}']/attr[@type='Agora:Path']"
+        ).text
         filename = os.path.basename(path).replace(".jpg", ".txt").lower()
-        pages_to_articles[filename] = (
-            document_id + ":" + idx,
-            articles,
-            pagenum
-        )
+        pages_to_articles[filename] = (document_id + ":" + idx, articles, pagenum)
 
     return pages_to_articles
 
 
-def process_page(page: str,
-                 sentences: list,
-                 entitylist: list,
-                 placeEntitylist: list,
-                 structure_info: dict,
-                 i: int) -> None:
+def process_page(
+    page: str,
+    sentences: list,
+    entitylist: list,
+    placeEntitylist: list,
+    structure_info: dict,
+    i: int,
+) -> None:
     """
     Processes a single page of tagged sentences to extract entity information.
 
@@ -424,20 +428,16 @@ def process_page(page: str,
                         elif placeEntitylist is not None:
                             placeEntitylist.append(entity)
                     entity = initialize_found_entry()
-                    add_info_to_entity(
-                        entity, tagend, token, i, j, page, articles, pid
-                    )
+                    add_info_to_entity(entity, tagend, token, i, j, page, articles, pid)
                 elif tagstart.startswith("I-"):
                     if not entity:
                         entity = initialize_found_entry()
                     elif current_tag != "PER" and placeEntitylist is not None:
                         placeEntitylist.append(entity)
                         entity = initialize_found_entry()
-                    add_info_to_entity(
-                        entity, tagend, token, i, j, page, articles, pid
-                    )
+                    add_info_to_entity(entity, tagend, token, i, j, page, articles, pid)
                 else:
-                    logging.info("UNKNOWN TAG ENCOUNTERED: "+tag)
+                    logging.info("UNKNOWN TAG ENCOUNTERED: " + tag)
                 current_tag = "PER"
             elif tag == "O" or tag.endswith("adj"):
                 # ADJ tags will be ignored for the moment
@@ -470,7 +470,7 @@ def process_page(page: str,
                         entity, tagend, token, i, j, page, articles, pid
                     )
                 else:
-                    logging.info("UNKNOWN TAG ENCOUNTERED: "+tag)
+                    logging.info("UNKNOWN TAG ENCOUNTERED: " + tag)
                 current_tag = tagend
         if entity:
             if current_tag == "PER":
@@ -533,12 +533,7 @@ def get_found_names(items: tuple) -> list:
             p = orjson.loads(inf.read())
             for i, (page, sentences) in enumerate(p.items()):
                 process_page(
-                    page,
-                    sentences,
-                    entitylist,
-                    placeEntitylist,
-                    structure_info,
-                    i
+                    page, sentences, entitylist, placeEntitylist, structure_info, i
                 )
         pages = [pages]
     else:
@@ -553,7 +548,7 @@ def get_found_names(items: tuple) -> list:
                             entitylist,
                             placeEntitylist,
                             structure_info,
-                            i
+                            i,
                         )
 
     adjust_information(entitylist)
@@ -633,7 +628,7 @@ def get_data_paths_iterative():
         ]
         inputs_magazine_year_level = []
 
-        magazine_folder = sorted(glob.glob(settings.PATH_TO_INPUT_FOLDERS+"/*"))
+        magazine_folder = sorted(glob.glob(settings.PATH_TO_INPUT_FOLDERS + "/*"))
         for magazine in magazine_folder:
             if (
                 len(os.path.basename(magazine)) == LEN_MAGAZINE_SHORTNAME
@@ -646,19 +641,17 @@ def get_data_paths_iterative():
 
     year_dict = {}
 
-    if (
-        isinstance(inputs, str)
-        and (
-            inputs.split("/")[-1] == "tag"
-            or (inputs.split("/")[-1] == ""
-                and inputs.split("/")[-2] == "tag")
-        )
+    if isinstance(inputs, str) and (
+        inputs.split("/")[-1] == "tag"
+        or (inputs.split("/")[-1] == "" and inputs.split("/")[-2] == "tag")
     ):
         # process everything in the tag folder
         inputs = glob.glob(inputs + "/*")
 
     if inputs == []:
-        raise Exception(f"""No valid data paths found in {settings.model_dump(exclude={"es"})}""")
+        raise Exception(
+            f"""No valid data paths found in {settings.model_dump(exclude={"es"})}"""
+        )
 
     for mag_year_path in inputs:
         if os.path.isdir(mag_year_path):
@@ -666,7 +659,9 @@ def get_data_paths_iterative():
         elif os.path.isfile(mag_year_path):
             populate_year_dict(year_dict, [mag_year_path])
         else:
-            raise Exception(f'The given input: {inputs} is neither a valid directory, nor a valid file.')
+            raise Exception(
+                f"The given input: {inputs} is neither a valid directory, nor a valid file."
+            )
         if len(year_dict) >= settings.BATCH_SIZE:
             yield year_dict
             year_dict = {}
@@ -713,10 +708,14 @@ def execute_postprocessing(magazines, tasks: list, timed=True, places=False) -> 
     postprocessed_data = []
     for data in magazines:
         if settings.BATCH_SIZE == 1:
-            postprocessed_years = [get_found_names((x[0], x[1], places)) for x in data.items()]
+            postprocessed_years = [
+                get_found_names((x[0], x[1], places)) for x in data.items()
+            ]
         else:
             with Pool(settings.BATCH_SIZE) as p:
-                postprocessed_years = p.map(get_found_names, [(x[0], x[1], places) for x in data.items()])
+                postprocessed_years = p.map(
+                    get_found_names, [(x[0], x[1], places) for x in data.items()]
+                )
         for data, year, paths in postprocessed_years:
             logging.info(f"Postprocessed: {year}")
             postprocessed_data.append((year, data, paths))

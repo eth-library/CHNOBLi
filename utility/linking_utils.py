@@ -2,14 +2,17 @@
 Utility functions for finding candidates via ElasticSearch
 """
 
+import logging
 import os
+import re
 import threading
 import unicodedata
-import requests
-import re
-import logging
-from utility.settings import settings
+from functools import lru_cache
 from pathlib import Path
+
+import requests
+
+from utility.settings import settings
 
 # Lastname Prefix GND
 BASE_DIR = Path(__file__).resolve().parent
@@ -34,7 +37,9 @@ _sessions = threading.local()
 _reported_multi_gid: set = set()
 
 
-def warn_multiple_gids(source: str, gids: set, wikidata_id: str, person_to_search: str, note: str = "") -> list:
+def warn_multiple_gids(
+    source: str, gids: set, wikidata_id: str, person_to_search: str, note: str = ""
+) -> list:
     """
     Reports a knowledge-base entry holding more than one GND id, once per GND-ID set.
     Sorts and returns the gids so the results are fixed but arbitrary.
@@ -110,7 +115,7 @@ def clean_namestring(name: str) -> str:
         >>> clean_namestring("D. Birchall")
         'D* Birchall'
     """
-    punct = '!"#$%&\'()*+,/:;<=>?@[\\]^_`{|}~'  # without period, dash
+    punct = "!\"#$%&'()*+,/:;<=>?@[\\]^_`{|}~"  # without period, dash
     name = unicodedata.normalize("NFC", name)
 
     # Replace everything except periods
@@ -223,17 +228,27 @@ def convert_wikidata_format_kibana(person_dict: dict) -> dict:
 
     # Handle preferred names
     if "birthname" in person_dict:
-        res_dict.setdefault("prefVarName", set()).update(_safe_set(person_dict["birthname"]))
+        res_dict.setdefault("prefVarName", set()).update(
+            _safe_set(person_dict["birthname"])
+        )
     if "givenName" in person_dict:
-        res_dict.setdefault("prefForename", set()).update(_safe_set(person_dict["givenName"]))
+        res_dict.setdefault("prefForename", set()).update(
+            _safe_set(person_dict["givenName"])
+        )
     if "familyName" in person_dict:
-        res_dict.setdefault("prefSurname", set()).update(_safe_set(person_dict["familyName"]))
+        res_dict.setdefault("prefSurname", set()).update(
+            _safe_set(person_dict["familyName"])
+        )
 
     # Handle dates
-    if "dateOfBirth" in person_dict and person_dict["dateOfBirth"]:
-        res_dict["birthdate"] = _safe_set([convert_dates_wikidata(person_dict["dateOfBirth"][0])])
-    if "dateOfDeath" in person_dict and person_dict["dateOfDeath"]:
-        res_dict["deathdate"] = _safe_set([convert_dates_wikidata(person_dict["dateOfDeath"][0])])
+    if person_dict.get("dateOfBirth"):
+        res_dict["birthdate"] = _safe_set(
+            [convert_dates_wikidata(person_dict["dateOfBirth"][0])]
+        )
+    if person_dict.get("dateOfDeath"):
+        res_dict["deathdate"] = _safe_set(
+            [convert_dates_wikidata(person_dict["dateOfDeath"][0])]
+        )
 
     # Handle GND IDs
     if "GND_ID" in person_dict:
@@ -246,9 +261,9 @@ def convert_wikidata_format_kibana(person_dict: dict) -> dict:
         res_dict["name"] = _safe_set([person_dict["labels"]])
         for fullname in res_dict["name"]:
             if "prefSurname" not in res_dict:
-                res_dict["prefSurname"] = set([fullname.split(" ")[-1]])
+                res_dict["prefSurname"] = {fullname.split(" ")[-1]}
             if "prefForename" not in res_dict:
-                res_dict["prefForename"] = set([" ".join(fullname.split(" ")[:-1])])
+                res_dict["prefForename"] = {" ".join(fullname.split(" ")[:-1])}
 
     return res_dict
 
@@ -289,8 +304,13 @@ def convert_gnd_format_kibana(person_dict: dict) -> dict:
         res_dict["birthplaceLiteral"] = _safe_set(person_dict["placeOfBirth"]["label"])
     if "placeOfDeath" in person_dict and "label" in person_dict["placeOfDeath"]:
         res_dict["deathplaceLiteral"] = _safe_set(person_dict["placeOfDeath"]["label"])
-    if "professionOrOccupation" in person_dict and "label" in person_dict["professionOrOccupation"]:
-        res_dict["jobliteral"] = _safe_set(person_dict["professionOrOccupation"]["label"])
+    if (
+        "professionOrOccupation" in person_dict
+        and "label" in person_dict["professionOrOccupation"]
+    ):
+        res_dict["jobliteral"] = _safe_set(
+            person_dict["professionOrOccupation"]["label"]
+        )
     if "academicDegree" in person_dict:
         res_dict["academic"] = set(person_dict["academicDegree"])
     if "periodOfActivity" in person_dict:
@@ -323,7 +343,9 @@ def convert_gnd_format_kibana(person_dict: dict) -> dict:
     return res_dict
 
 
-def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str) -> dict:
+def _es_search(
+    index_name: str, headers: dict, json_data: dict, error_label: str
+) -> dict:
     """
     Executes an ElasticSearch query against the given index.
 
@@ -356,13 +378,25 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
 
     session = _session()
     try:
-        data = session.get(url, headers=headers, json=json_data,
-                           verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=5)
+        data = session.get(
+            url,
+            headers=headers,
+            json=json_data,
+            verify=settings.PATH_TO_CA_CERT,
+            auth=auth,
+            timeout=5,
+        )
     except requests.exceptions.Timeout:
         logging.warning(f"{error_label} ES Query timed out.")
         try:
-            data = session.get(url, headers=headers, json=json_data,
-                               verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=10)
+            data = session.get(
+                url,
+                headers=headers,
+                json=json_data,
+                verify=settings.PATH_TO_CA_CERT,
+                auth=auth,
+                timeout=10,
+            )
         except requests.exceptions.Timeout:
             logging.error(f"{error_label} ES query timeout. No more retries.")
             logging.info(f"Query: {json_data}")
@@ -370,8 +404,14 @@ def _es_search(index_name: str, headers: dict, json_data: dict, error_label: str
     except requests.exceptions.SSLError:
         logging.warning(f"SSL error {error_label}")
         try:
-            data = session.get(url, headers=headers, json=json_data,
-                               verify=settings.PATH_TO_CA_CERT, auth=auth, timeout=10)
+            data = session.get(
+                url,
+                headers=headers,
+                json=json_data,
+                verify=settings.PATH_TO_CA_CERT,
+                auth=auth,
+                timeout=10,
+            )
         except requests.exceptions.Timeout:
             logging.error(f"{error_label} ES SSL Error timeout. No more retries.")
             logging.info(f"Query: {json_data}")
@@ -402,20 +442,16 @@ def _alive_before_year_filter(year: str) -> dict:
                     "bool": {
                         "must_not": {
                             "bool": {
-                                "should": [
-                                    {"exists": {"field": "dateOfBirth"}}
-                                ],
+                                "should": [{"exists": {"field": "dateOfBirth"}}],
                             }
                         }
                     }
                 },
                 {
                     "bool": {
-                        "should": [
-                            {"range": {"dateOfBirth": {"lt": year + "||/y"}}}
-                        ]
+                        "should": [{"range": {"dateOfBirth": {"lt": year + "||/y"}}}]
                     }
-                }
+                },
             ],
         }
     }
@@ -448,56 +484,54 @@ def build_variant_name_query(
         return None
 
     if fuzzy:
-        fullname_wildcard = "*"+fullname+"*"
+        fullname_wildcard = "*" + fullname + "*"
         fullname_fuzzy = prep_name_for_elasticsearch_query(fullname)
     else:
         fullname_wildcard = fullname
         fullname_fuzzy = fullname
 
-
     json_data = {
-            "_source": ["gndIdentifier", "variantName"],
-            "from": 0,
-            "size": gnd_limit,
-            "sort": [
-                { "_score": "desc" },
-                { "gndIdentifier.keyword": "asc" }
-            ],
-            "query": {
-                "bool": {
-                    "must": [
-                        _alive_before_year_filter(year),
-                        {
-                            "bool": {
-                                "should": [
-                                    {
-                                        "wildcard": {
-                                            "variantName.keyword": {
-                                                "value": fullname_wildcard,
-                                                "case_insensitive": "true"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "query_string": {
-                                            "query": fullname_fuzzy,
-                                            "default_field": "variantName",
-                                            "default_operator": "and",
-                                            "analyze_wildcard": "true"
+        "_source": ["gndIdentifier", "variantName"],
+        "from": 0,
+        "size": gnd_limit,
+        "sort": [{"_score": "desc"}, {"gndIdentifier.keyword": "asc"}],
+        "query": {
+            "bool": {
+                "must": [
+                    _alive_before_year_filter(year),
+                    {
+                        "bool": {
+                            "should": [
+                                {
+                                    "wildcard": {
+                                        "variantName.keyword": {
+                                            "value": fullname_wildcard,
+                                            "case_insensitive": "true",
                                         }
                                     }
-                                ],
-                                "minimum_should_match": 1
-                            }
+                                },
+                                {
+                                    "query_string": {
+                                        "query": fullname_fuzzy,
+                                        "default_field": "variantName",
+                                        "default_operator": "and",
+                                        "analyze_wildcard": "true",
+                                    }
+                                },
+                            ],
+                            "minimum_should_match": 1,
                         }
-                    ],
-                },
-            }
-        }
+                    },
+                ],
+            },
+        },
+    }
     return json_data
 
 
-def parse_variant_name_response(result_json: dict, label: str = "", search_term: str = "") -> dict:
+def parse_variant_name_response(
+    result_json: dict, label: str = "", search_term: str = ""
+) -> dict:
     """
     Turns one variant-name response into candidates, keyed by gnd id.
 
@@ -526,13 +560,14 @@ def parse_variant_name_response(result_json: dict, label: str = "", search_term:
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 # NOTE: This should never be degenerate better to put a hard check here
                 if len(person_info["gid"]) > 1:
-                    person_info["gid"] = resolve_old_gids(person_info["gid"], "GND", person_to_search=search_term)
-                    
+                    person_info["gid"] = resolve_old_gids(
+                        person_info["gid"], "GND", person_to_search=search_term
+                    )
+
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
                 person_info["score"] = hit["_score"]
-                if person_info["score"] > max_score:
-                    max_score = person_info["score"]
+                max_score = max(max_score, person_info["score"])
                 # Which query found this candidate. Carried with the hit and not
                 # read here; the scorer uses it to place the candidate. Absent when
                 # the caller named no query, so an unlabelled call is unchanged.
@@ -540,7 +575,7 @@ def parse_variant_name_response(result_json: dict, label: str = "", search_term:
                     person_info["query_label"] = label
                 res_candidates[gid] = person_info
     except Exception:
-        logging.error("This query caused an exception: "+str(result_json))
+        logging.error("This query caused an exception: " + str(result_json))
         return {}
     # to make scores across different indexes comparable
     # scale them to 1
@@ -625,7 +660,9 @@ def build_person_gnd_query(
         if len(split_lname) > 1:
             split_lname = [x.strip() for x in split_lname if x != ""]
             if len(split_lname) != 2:
-                logging.warning(f"lastname {lastname} split by {p} splits it into more than len two {split_lname}")
+                logging.warning(
+                    f"lastname {lastname} split by {p} splits it into more than len two {split_lname}"
+                )
                 break
             if fuzzy:
                 lastname = prep_name_for_elasticsearch_query(split_lname[1])
@@ -645,7 +682,7 @@ def build_person_gnd_query(
                 "default_field": "preferredNameEntityForThePerson.forename",
                 "query": fnames,
                 "default_operator": "and",
-                "analyze_wildcard": "true"
+                "analyze_wildcard": "true",
             }
         },
         {
@@ -653,24 +690,25 @@ def build_person_gnd_query(
                 "default_field": "preferredNameEntityForThePerson.surname",
                 "query": lastname,
                 "default_operator": "and",
-                "analyze_wildcard": "true"
+                "analyze_wildcard": "true",
             }
         },
     ]
 
     if prefix is not None:
-        must_clauses.append({
-            "query_string": {
-                "default_field": "preferredNameEntityForThePerson.prefix",
-                "query": prefix,
-                "default_operator": "and",
-                "analyze_wildcard": "true"
+        must_clauses.append(
+            {
+                "query_string": {
+                    "default_field": "preferredNameEntityForThePerson.prefix",
+                    "query": prefix,
+                    "default_operator": "and",
+                    "analyze_wildcard": "true",
+                }
             }
-        })
+        )
 
     json_data = {
-        "_source": ["gndIdentifier",
-                    "preferredNameEntityForThePerson"],
+        "_source": ["gndIdentifier", "preferredNameEntityForThePerson"],
         "from": 0,
         "size": gnd_limit,
         "sort": [{"_score": "desc"}, {"gndIdentifier.keyword": "asc"}],
@@ -678,12 +716,11 @@ def build_person_gnd_query(
             "bool": {
                 "must": must_clauses,
             },
-        }
+        },
     }
 
     return json_data
 
-from functools import lru_cache
 
 @lru_cache(maxsize=4096)
 def _preferred_gids(wikidata_id: str) -> tuple:
@@ -741,7 +778,9 @@ def _resolve_gid(gnd_id: str) -> str:
 
     if req.is_redirect:
         location = req.headers.get("Location", "")
-        resolved = location.rstrip("/").split("/")[-1].split("?")[0].replace(".json", "")
+        resolved = (
+            location.rstrip("/").split("/")[-1].split("?")[0].replace(".json", "")
+        )
         if resolved:
             return resolved
         raise requests.HTTPError("LOBID redirect has no usable Location", response=req)
@@ -753,6 +792,7 @@ def _resolve_gid(gnd_id: str) -> str:
         )
 
     return gnd_id
+
 
 def get_preferred_gnd_entry_wikidata(wikidata_id):
     """
@@ -777,7 +817,9 @@ def get_preferred_gnd_entry_wikidata(wikidata_id):
     return None
 
 
-def resolve_old_gids(gids_list, data_source=None, wikidata_id=None, person_to_search=None):
+def resolve_old_gids(
+    gids_list, data_source=None, wikidata_id=None, person_to_search=None
+):
     """
     Resolves GND IDs through lobid, retaining each original ID if its lookup
     fails. Duplicate resolved IDs are removed. If multiple IDs remain, they
@@ -810,11 +852,19 @@ def resolve_old_gids(gids_list, data_source=None, wikidata_id=None, person_to_se
                 gids_list_out.append(gnd_id)
 
     if len(gids_list_out) > 1:
-        gids_list_out = warn_multiple_gids(data_source, gids_list_out, wikidata_id, person_to_search, "An arbitrary one is selected.")
+        gids_list_out = warn_multiple_gids(
+            data_source,
+            gids_list_out,
+            wikidata_id,
+            person_to_search,
+            "An arbitrary one is selected.",
+        )
     return gids_list_out
 
 
-def parse_person_gnd_response(result_json: dict, label: str = "", search_term: str = "") -> dict:
+def parse_person_gnd_response(
+    result_json: dict, label: str = "", search_term: str = ""
+) -> dict:
     """
     Turns one GND response into candidates, keyed by gnd id.
 
@@ -843,13 +893,14 @@ def parse_person_gnd_response(result_json: dict, label: str = "", search_term: s
             if "gid" in person_info and len(person_info["gid"]) != 0:
                 # NOTE: This should never be degenerate better to put a hard check here
                 if len(person_info["gid"]) > 1:
-                    person_info["gid"] = resolve_old_gids(person_info["gid"], "GND", person_to_search=search_term)
+                    person_info["gid"] = resolve_old_gids(
+                        person_info["gid"], "GND", person_to_search=search_term
+                    )
 
                 gid = person_info["gid"].pop()
                 person_info["gid"] = {gid}
                 person_info["score"] = hit["_score"]
-                if person_info["score"] > max_score:
-                    max_score = person_info["score"]
+                max_score = max(max_score, person_info["score"])
                 # Which query found this candidate. Carried with the hit and not
                 # read here; the scorer uses it to place the candidate. Absent when
                 # the caller named no query, so an unlabelled call is unchanged.
@@ -857,7 +908,7 @@ def parse_person_gnd_response(result_json: dict, label: str = "", search_term: s
                     person_info["query_label"] = label
                 res_candidates[gid] = person_info
     except Exception:
-        logging.error("This query caused an exception: "+str(result_json))
+        logging.error("This query caused an exception: " + str(result_json))
         return {}
     # to make scores across different indexes comparable
     # scale them to 1
@@ -896,7 +947,9 @@ def search_person_gnd(
 
     headers = {"Content-Type": "application/json"}
     result_json = _es_search(settings.es.index_name_gnd, headers, json_data, "GND")
-    return parse_person_gnd_response(result_json, label, " ".join(fnames)+" "+lastname)
+    return parse_person_gnd_response(
+        result_json, label, " ".join(fnames) + " " + lastname
+    )
 
 
 def build_wikidata_query(
@@ -928,15 +981,14 @@ def build_wikidata_query(
     if fuzzy:
         search_term = prep_name_for_elasticsearch_query(search_term)
 
-
     json_data = {
         "_source": ["GND_ID", "GND_ID_2", "labels", "id"],
         "from": 0,
         "size": wikidata_limit,
         "sort": [
-            { "_score": "desc" },
-            { "GND_ID.keyword": "asc" },
-            { "GND_ID_2.keyword": "asc" }
+            {"_score": "desc"},
+            {"GND_ID.keyword": "asc"},
+            {"GND_ID_2.keyword": "asc"},
         ],
         "query": {
             "bool": {
@@ -947,8 +999,8 @@ def build_wikidata_query(
                             "minimum_should_match": 1,
                             "should": [
                                 {"exists": {"field": "GND_ID"}},
-                                {"exists": {"field": "GND_ID_2"}}
-                            ]
+                                {"exists": {"field": "GND_ID_2"}},
+                            ],
                         }
                     },
                     {
@@ -956,17 +1008,19 @@ def build_wikidata_query(
                             "default_field": "labels",
                             "query": search_term,
                             "default_operator": "and",
-                            "analyze_wildcard": "true"
+                            "analyze_wildcard": "true",
                         }
                     },
                 ],
             }
-        }
+        },
     }
     return json_data
 
 
-def parse_wikidata_response(result_json: dict, label: str = "", search_term: str = "") -> dict:
+def parse_wikidata_response(
+    result_json: dict, label: str = "", search_term: str = ""
+) -> dict:
     """
     Turns one Wikidata response into candidates, keyed by gnd id.
 
@@ -1003,7 +1057,12 @@ def parse_wikidata_response(result_json: dict, label: str = "", search_term: str
                     if pref_gnds:
                         person_info["gid"] = pref_gnds
                     if len(person_info["gid"]) > 1:
-                        person_info["gid"] = resolve_old_gids(person_info["gid"], "wikidata", wikidata_id, person_to_search=search_term)
+                        person_info["gid"] = resolve_old_gids(
+                            person_info["gid"],
+                            "wikidata",
+                            wikidata_id,
+                            person_to_search=search_term,
+                        )
                 for gid in person_info["gid"]:
                     # sometimes one entity is assigned several gids.
                     # this unfortunately breaks a lot of what we did logically
@@ -1014,8 +1073,7 @@ def parse_wikidata_response(result_json: dict, label: str = "", search_term: str
                     if label:
                         person_info["query_label"] = label
                     res_candidates.setdefault(gid, person_info)
-                    if person_info["score"] > max_score:
-                        max_score = person_info["score"]
+                    max_score = max(max_score, person_info["score"])
 
     # to make scores across different indexes comparable scale them to 1
     normalized_gids = set()
@@ -1029,8 +1087,9 @@ def parse_wikidata_response(result_json: dict, label: str = "", search_term: str
     return res_candidates
 
 
-def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=True,
-                           label: str = "") -> dict:
+def search_person_wikidata(
+    search_term: str, year: str, wikidata_limit=5, fuzzy=True, label: str = ""
+) -> dict:
     """
     We search for this firstnames lastname in our elasticsearch
     Wikidata index. We return at most `wikidata_limit` results.
@@ -1053,5 +1112,7 @@ def search_person_wikidata(search_term: str, year: str, wikidata_limit=5, fuzzy=
         return {}
 
     headers = {"Content-Type": "application/json"}
-    result_json = _es_search(settings.es.index_name_wikidata, headers, json_data, "Wikidata")
+    result_json = _es_search(
+        settings.es.index_name_wikidata, headers, json_data, "Wikidata"
+    )
     return parse_wikidata_response(result_json, label, search_term)

@@ -230,7 +230,6 @@ def test_session_reuses_session_in_thread(monkeypatch):
         assert _session() is created
 
 
-
 def test_session_is_recreated_after_process_change(monkeypatch):
     monkeypatch.setattr(lu, "_sessions", threading.local())
     lu._sessions.session = MagicMock()
@@ -472,7 +471,6 @@ def test_resolve_old_gids_deduplicates_ids_that_resolve_to_same_gid():
     assert result == ["gnd-1"]
 
 
-
 # -------------------------------------------------
 # Test parse_person_gnd_response
 # -------------------------------------------------
@@ -547,7 +545,9 @@ def test_wikidata_parser_raises_for_malformed_response():
 
 def test_wikidata_parser_raise_for_hits_missing_required_fields():
     with pytest.raises(KeyError):
-        parse_wikidata_response({"hits": {"max_score": 1.0, "hits": [{}]}},)
+        parse_wikidata_response(
+            {"hits": {"max_score": 1.0, "hits": [{}]}},
+        )
 
 
 def test_parse_wikidata_response_normalizes_shared_multi_gid_candidate_once():
@@ -762,13 +762,13 @@ def test_es_search_retries_ssl_error(monkeypatch):
     response.json.return_value = {"hits": {"hits": []}}
 
     with patch("utility.linking_utils._session") as session:
-        session.return_value.get.side_effect = [requests.exceptions.SSLError(), response]
-        assert _es_search("gnd", {}, {"query": {}}, "GND") == {
-            "hits": {"hits": []}
-        }
+        session.return_value.get.side_effect = [
+            requests.exceptions.SSLError(),
+            response,
+        ]
+        assert _es_search("gnd", {}, {"query": {}}, "GND") == {"hits": {"hits": []}}
 
     assert session.return_value.get.call_count == 2
-
 
 
 # -------------------------------------------------

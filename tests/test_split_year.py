@@ -1,13 +1,15 @@
 import logging
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from lxml import etree
 from utility.split_year import (
-    get_pagenumbers,
     check_for_missing_pages,
-    cut_pagenumbers,
     compare_pagenames,
-    split_directory
+    cut_pagenumbers,
+    get_pagenumbers,
+    split_directory,
 )
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -93,7 +95,7 @@ def test_get_pagenumbers_with_missing_resource_id_copilot():
 def test_check_for_missing_pages_no_duplicates_copilot():
     pagenos = {
         "issue1": ["page1.txt", "page2.txt", "page3.txt"],
-        "issue2": ["page4.txt", "page5.txt"]
+        "issue2": ["page4.txt", "page5.txt"],
     }
 
     returncode, total_pages = check_for_missing_pages(pagenos)
@@ -105,12 +107,12 @@ def test_check_for_missing_pages_no_duplicates_copilot():
 def test_check_for_missing_pages_with_duplicates_copilot(caplog):
     pagenos = {
         "issue1": ["page1.txt", "page2.txt", "page3.txt"],
-        "issue2": ["page3.txt", "page4.txt"]  # Duplicate: "page3.txt"
+        "issue2": ["page3.txt", "page4.txt"],  # Duplicate: "page3.txt"
     }
 
     with caplog.at_level(logging.WARNING):
         returncode, total_pages = check_for_missing_pages(pagenos)
-        assert 'DUPLICATES FOUND!' in caplog.text, caplog.text
+        assert "DUPLICATES FOUND!" in caplog.text, caplog.text
         assert returncode == -1  # Duplicates found
         assert total_pages == 5  # Total number of pages (including duplicates)
 
@@ -119,10 +121,7 @@ def test_check_for_missing_pages_with_duplicates_copilot(caplog):
 # Test cut_pagenumbers
 # -------------------------------------------------
 def test_cut_pagenumbers_with_small_issues_copilot():
-    pagenos = {
-        "issue1": ["page1", "page2", "page3"],
-        "issue2": ["page4", "page5"]
-    }
+    pagenos = {"issue1": ["page1", "page2", "page3"], "issue2": ["page4", "page5"]}
     max_len = 500
     max_len_warning = 1000
 
@@ -156,8 +155,11 @@ def test_cut_pagenumbers_with_warning_copilot(caplog):
 
     with caplog.at_level(logging.WARNING):
         result = cut_pagenumbers(pagenos, max_len, max_len_warning)
-    assert 'Issue is longer than set maximum length, will be split at set \
-length interval.' in caplog.text, caplog.text
+    assert (
+        "Issue is longer than set maximum length, will be split at set \
+length interval."
+        in caplog.text
+    ), caplog.text
     assert len(result) == 3  # The issue is split into 3 chunks
     assert len(result[0]["issue1-0"]) == 500  # First chunk has 500 pages
     assert len(result[1]["issue1-1"]) == 500  # Second chunk has 500 pages
@@ -168,7 +170,7 @@ def test_cut_pagenumbers_with_multiple_issues_copilot():
     pagenos = {
         "issue1": [f"page{i}" for i in range(1, 501)],  # 500 pages
         "issue2": [f"page{i}" for i in range(501, 1001)],  # 500 pages
-        "issue3": [f"page{i}" for i in range(1001, 1501)]  # 500 pages
+        "issue3": [f"page{i}" for i in range(1001, 1501)],  # 500 pages
     }
     max_len = 1000
     max_len_warning = 1500
@@ -188,7 +190,7 @@ def test_compare_pagenames_matching_pages_copilot():
         "/path/to/page1.txt",
         "/path/to/page2.txt",
         "/path/to/page3.txt",
-        "/path/to/page4.txt"
+        "/path/to/page4.txt",
     ]
     page_count = 4
 
@@ -198,44 +200,41 @@ def test_compare_pagenames_matching_pages_copilot():
 def test_compare_pagenames_missing_pages_copilot(caplog):
     pagenos = {
         "issue1": ["page1.txt", "page2.txt"],
-        "issue2": ["page3.txt", "page4.txt"]
+        "issue2": ["page3.txt", "page4.txt"],
     }
-    year_pages = [
-        "/path/to/page1.txt",
-        "/path/to/page3.txt"
-    ]
+    year_pages = ["/path/to/page1.txt", "/path/to/page3.txt"]
     page_count = 4
     directory = "/path/to/year"
 
     with caplog.at_level(logging.WARNING):
-        assert compare_pagenames(
-            pagenos, year_pages, page_count, directory
-        ) == -1
-    assert 'Splitting /path/to/year pagecount is suspicious.\
+        assert compare_pagenames(pagenos, year_pages, page_count, directory) == -1
+    assert (
+        "Splitting /path/to/year pagecount is suspicious.\
                         Pages at positions 1, 3 are missing.\
-                        Max index is 4.' in caplog.text, caplog.text
+                        Max index is 4."
+        in caplog.text
+    ), caplog.text
 
 
 def test_compare_pagenames_extra_pages_copilot(caplog):
-    pagenos = {
-        "issue1": ["page1.txt", "page2.txt"]
-    }
-    year_pages = [
-        "/path/to/page1.txt",
-        "/path/to/page2.txt",
-        "/path/to/page3.txt"
-    ]
+    pagenos = {"issue1": ["page1.txt", "page2.txt"]}
+    year_pages = ["/path/to/page1.txt", "/path/to/page2.txt", "/path/to/page3.txt"]
     page_count = 2
     directory = "/path/to/year"
 
     with caplog.at_level(logging.WARNING):
-        assert compare_pagenames(
-            pagenos, year_pages, page_count, directory
-        ) == -1
-    assert 'Page count in data directory doesnt equal page count calculated by year splitter!' in caplog.text, caplog.text
-    assert 'Splitting /path/to/year pagecount is suspicious.\
+        assert compare_pagenames(pagenos, year_pages, page_count, directory) == -1
+    assert (
+        "Page count in data directory doesnt equal page count calculated by year splitter!"
+        in caplog.text
+    ), caplog.text
+    assert (
+        "Splitting /path/to/year pagecount is suspicious.\
                         Pages at positions 2 are missing.\
-                        Max index is 3.' in caplog.text, caplog.text
+                        Max index is 3."
+        in caplog.text
+    ), caplog.text
+
 
 # -------------------------------------------------
 # Test split_directory
@@ -261,9 +260,10 @@ def test_split_directory_with_custom_xml_copilot():
     </root>
     """
 
-    with patch("lxml.etree.parse") as mock_parse, \
-         patch("glob.glob", return_value=["/path/to/page1.txt"]):
-
+    with (
+        patch("lxml.etree.parse") as mock_parse,
+        patch("glob.glob", return_value=["/path/to/page1.txt"]),
+    ):
         mock_root = etree.fromstring(mock_xml_content)
         mock_parse.return_value = MagicMock(getroot=lambda: mock_root)
 
@@ -294,10 +294,11 @@ def test_split_directory_without_custom_xml_copilot():
     </root>
     """
 
-    with patch("lxml.etree.parse") as mock_parse, \
-         patch("glob.glob", return_value=["/path/to/page1.txt"]), \
-         patch("os.path.join", return_value="/path/to/xml.cache.prod01"):
-
+    with (
+        patch("lxml.etree.parse") as mock_parse,
+        patch("glob.glob", return_value=["/path/to/page1.txt"]),
+        patch("os.path.join", return_value="/path/to/xml.cache.prod01"),
+    ):
         mock_root = etree.fromstring(mock_xml_content)
         mock_parse.return_value.getroot.return_value = mock_root
 

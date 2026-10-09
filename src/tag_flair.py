@@ -6,18 +6,19 @@ Version 31.08.2020: Updated to use new tagging system which uses 2 models at
 once.
 """
 
-import orjson
-from collections import defaultdict
-from datetime import datetime
 import logging
 import os
-from utility.settings import settings
+from collections import defaultdict
+from datetime import datetime
+
 import flair
-from flair.data import Sentence, Token, Label
+import orjson
+from flair.data import Label, Sentence, Token
 from flair.models import MultitaskModel
 from flair.nn import Classifier
 from torch import device as torch_device
 from torch.cuda import is_available as cuda_is_available
+from utility.settings import settings
 
 
 class CustomToken(Token):
@@ -69,10 +70,28 @@ def decide_tag_no_tag_lower_prio(labels: list) -> Label:
     # If there is disagreement between the two models, "O" always loses
     # TODO replace this by tag_dictionary directly from the models
     bio_tags = [
-        '<unk>', 'O', 'B-PER', 'I-PER', 'B-CIT', 'B-CTR', 'I-CIT', 'B-CITadj',
-        'B-CTRadj', 'I-CTRadj', 'I-CTR', 'B-GEOadj', 'B-GEO', 'I-GEO',
-        'I-GEOadj', 'B-STR', 'I-STR', 'I-CITadj', 'B-EXT', 'I-OT', '<START>',
-        '<STOP>'
+        "<unk>",
+        "O",
+        "B-PER",
+        "I-PER",
+        "B-CIT",
+        "B-CTR",
+        "I-CIT",
+        "B-CITadj",
+        "B-CTRadj",
+        "I-CTRadj",
+        "I-CTR",
+        "B-GEOadj",
+        "B-GEO",
+        "I-GEO",
+        "I-GEOadj",
+        "B-STR",
+        "I-STR",
+        "I-CITadj",
+        "B-EXT",
+        "I-OT",
+        "<START>",
+        "<STOP>",
     ]
     det_per_labels = ["AN", "OC", "FN", "LN", "COM", "OT"]
     if len(labels) == 2:
@@ -93,12 +112,8 @@ def decide_tag_no_tag_lower_prio(labels: list) -> Label:
     elif bio_label.value[2:] == det_label.value[2:]:
         new_label = bio_label.value
     else:  # if they don't agree, O always loses
-        if (
-            det_label.value == "O"
-            or
-            (
-                bio_label.score > det_label.score and bio_label.value != "O"
-            )
+        if det_label.value == "O" or (
+            bio_label.score > det_label.score and bio_label.value != "O"
         ):
             if bio_label.value[2:] == "PER":
                 new_label = bio_label.value + "-OT"
@@ -133,7 +148,7 @@ def add_sentences(new_data: dict, collected_sentences: list) -> None:
                     "token": token.orig,
                     "coord": token.coords,
                     "normalized": token.text,
-                    "tag": "O"
+                    "tag": "O",
                 }
             else:
                 tag = decide_tag_no_tag_lower_prio(token.labels)
@@ -165,14 +180,16 @@ def write_sentences_to_outfile(outfile, data: dict) -> None:
     for filename, sentences in data.items():
         out_dict = {filename: sentences}
         outfile.write(orjson.dumps(out_dict) + b"\n")
-    
+
     data.clear()
 
 
-def tag_year_data_and_save(collection: dict,
-                           tagger: MultitaskModel,
-                           outfile_path: str,
-                           sentence_batch_size: int) -> None:
+def tag_year_data_and_save(
+    collection: dict,
+    tagger: MultitaskModel,
+    outfile_path: str,
+    sentence_batch_size: int,
+) -> None:
     """
     Runs tagging on the collection and saves the result
     into the outfile_path.
@@ -305,9 +322,7 @@ def package_generator_output_paths(generator, batch_size):
         yield year_dict
 
 
-def execute_tagging(preprocessed_data,
-                    tasks: list,
-                    gpu_num: int) -> None:
+def execute_tagging(preprocessed_data, tasks: list, gpu_num: int) -> None:
     """
     Tags the preprocessed data using the provided flair tagger and
     configuration.
@@ -340,13 +355,9 @@ def execute_tagging(preprocessed_data,
             yearfolder = os.path.join(outfolder, "tag", year[0])
             if not os.path.exists(yearfolder):
                 os.makedirs(yearfolder)
-            outfile_path = os.path.join(yearfolder,
-                                        "".join(year[1:]) + ".jsonl")
+            outfile_path = os.path.join(yearfolder, "".join(year[1:]) + ".jsonl")
             tag_year_data_and_save(
-                data,
-                flair_tagger,
-                outfile_path,
-                int(settings.SENTENCE_BATCH_SIZE)
+                data, flair_tagger, outfile_path, int(settings.SENTENCE_BATCH_SIZE)
             )
             logging.info(f"Finished tagging {year}.")
     logging.info(f"Tagging took: {datetime.now() - start_time}")

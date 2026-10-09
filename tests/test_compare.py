@@ -1,15 +1,17 @@
 import os
 import tempfile
+
 import pytest
-from .test_data import params
 from utility.compare import (
     compare_gnd_info,
-    compare_references,
+    compare_linking,
     compare_linking_person,
     compare_linking_places,
-    compare_linking,
-    compare_tagging
+    compare_references,
+    compare_tagging,
 )
+
+from .test_data import params
 
 
 # -------------------------------------------------

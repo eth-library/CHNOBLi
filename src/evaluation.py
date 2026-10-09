@@ -1,16 +1,16 @@
 """
 Evaluate performance on entity and reference level
 """
-import os
+
 import logging
+import os
 from datetime import datetime
+
 from utility.evaluation_utils import Paths, Scores, evaluate_person
 from utility.settings import settings
 
 
-def execute_evaluation(
-        eval_level: str, top_k=3, timed=True
-        ) -> None:
+def execute_evaluation(eval_level: str, top_k=3, timed=True) -> None:
     """
     Evaluates the F1-score of the data based on the given configuration and\
     evaluation level
@@ -49,7 +49,7 @@ def execute_evaluation(
         settings.EVAL_TOPK = top_k
 
     if settings.INKB_SCORE:
-        inkb_score = True if settings.INKB_SCORE == "true" else False
+        inkb_score = settings.INKB_SCORE == "true"
     else:
         inkb_score = False
 
@@ -67,9 +67,11 @@ def execute_evaluation(
                 gt_file = paths.get_jsonl(type_="gt")
                 eval_file = paths.get_jsonl(type_="link")
                 counts = evaluate_person(
-                    gt=gt_file, linked=eval_file,
-                    ref_level=ref_level, top_k=top_k,
-                    inkb_score=inkb_score
+                    gt=gt_file,
+                    linked=eval_file,
+                    ref_level=ref_level,
+                    top_k=top_k,
+                    inkb_score=inkb_score,
                 )
                 file_scores = Scores(counts_dict=counts)
                 magazine_scores.update_counter(counts)
@@ -78,28 +80,28 @@ def execute_evaluation(
                     type_="eval",
                     key="file",
                     doc=file_scores.get_score(),
-                    ref_level_name=eval_level
+                    ref_level_name=eval_level,
                 )
             paths.save_json(
                 type_="eval",
                 key="magazine",
                 doc=magazine_scores.get_score(),
-                ref_level_name=eval_level
+                ref_level_name=eval_level,
             )
         paths.save_json(
             type_="eval",
             key="",
             doc=global_scores.get_score(),
-            ref_level_name=eval_level
+            ref_level_name=eval_level,
         )
-        #save the config file
+        # save the config file
         paths.state["file"] = "eval_config.json"
         paths.state["magazine"] = ""
         paths.save_json(
             type_="eval",
             key="file",
             doc=settings.model_dump(exclude={"es"}),
-            ref_level_name=eval_level
+            ref_level_name=eval_level,
         )
     else:
         logging.info(settings.model_dump(exclude={"es"}))

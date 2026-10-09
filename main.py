@@ -1,23 +1,22 @@
-#! /usr/bin/python3
-
 """
 NER pipeline.
 """
-import os
-import orjson
+
 import logging
-from rich.logging import RichHandler
+import os
+import sys
 from datetime import datetime
 from multiprocessing import cpu_count
 
-from src.preprocessing.preprocess import execute_preprocessing
+import orjson
+from rich.logging import RichHandler
 from src.aggregation import execute_aggregation
-from src.postprocess import get_data_paths_iterative, execute_postprocessing
-
-from src.linking import execute_linking
 from src.evaluation import execute_evaluation
-from utility.utils import parse_arguments, check_gpu, save_data_intermediate
+from src.linking import execute_linking
+from src.postprocess import execute_postprocessing, get_data_paths_iterative
+from src.preprocessing.preprocess import execute_preprocessing
 from utility.settings import settings
+from utility.utils import check_gpu, parse_arguments, save_data_intermediate
 
 # Set up logger
 PRINT_LOGS_TO_CONSOLE = True
@@ -97,9 +96,11 @@ def main():
         # Validate that all paths exist before starting
         invalid_paths = [p for p in paths if not os.path.exists(p)]
         if invalid_paths:
-            logging.error(f"The following input paths do not exist: {', '.join(invalid_paths)}. Exiting program.")
+            logging.error(
+                f"The following input paths do not exist: {', '.join(invalid_paths)}. Exiting program."
+            )
             print(f"ERROR: Input paths not found: {', '.join(invalid_paths)}")
-            exit(1)
+            sys.exit(1)
 
         settings.CUSTOM_PATHS = paths
         if "eval" in tasks:
