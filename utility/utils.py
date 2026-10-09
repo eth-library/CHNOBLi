@@ -364,7 +364,7 @@ def offset_len_to_linking_input(mention_list: list[dict]):
             "pageNames": mention["docName"],
             "pid": mention["docName"],
             "sentenceNo": 0,
-            "positions": f"{mention["offset"]}:{mention["length"]}",
+            "positions": f"""{mention["offset"]}:{mention["length"]}""",
             "articles": "",
             "context": ""
             }

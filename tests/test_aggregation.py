@@ -384,14 +384,16 @@ def test_clean_up_aggregation(aggregated_names, expected):
 # -------------------------------------------------
 @pytest.mark.parametrize(
   "all_names, lastname_dict, key, expected",
-  [(["wyss", "müller", "krasniqi"],
+  [(["wyss", "müller", "krasniqi", "bismarck"],
     {"krasniqis": [{"info": {"lastnames": "krasniqis"}}],
      "müllers": [{"info": {"lastnames": "müllers"}}],
-     "wyss": [{"info": {"lastnames": "wyss"}}]},
+     "wyss": [{"info": {"lastnames": "wyss"}}],
+     "von bismarcks": [{"info": {"lastnames": "von bismarcks"}}]},
     "lastnames",
     {"krasniqis": [{"info": {"lastnames": "krasniqi"}}],
      "müllers": [{"info": {"lastnames": "müller"}}],
-     "wyss": [{"info": {"lastnames": "wyss"}}]}
+     "wyss": [{"info": {"lastnames": "wyss"}}],
+     "von bismarcks": [{"info": {"lastnames": "von bismarck"}}]}
     )]
 )
 def test_map_genitive_versions(all_names, lastname_dict, key, expected):
@@ -505,6 +507,9 @@ def test_clean_up_aggregation_places(aggregated_places, last_index, expc):
 def test_clean_lastname(word, expected):
     assert clean_lastname(word) == expected
 
+def test_clean_lastname_von_expansion():    
+    assert " ".join([clean_lastname(x) for x in ["v", "Bismarck"]]) == "von Bismarck"
+
 
 # -------------------------------------------------
 # Test aggregate_names
@@ -514,7 +519,7 @@ def test_clean_lastname(word, expected):
     params.PARAMS_aggregate_names
 )
 def test_aggregate_names(data, expected):
-    res, year, paths = aggregate_names(data)
+    res, _, _ = aggregate_names(data)
 
     for entry in res:
         entry.pop("id")  # id depends on the order

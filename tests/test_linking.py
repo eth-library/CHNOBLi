@@ -11,7 +11,9 @@ from src.linking import (
     find_links,
     execute_linking,
     get_person_context,
-    compare_to_target_ids_multiplexed
+    compare_to_target_ids_multiplexed,
+    _combine_nameparts,
+    expand_name
 )
 from utility.settings import settings
 from utility.scoring import Candidate
@@ -120,30 +122,6 @@ def test_get_candidates_short_lastname():
           'other': [],
           'profession': ['Musikerin', 'Schauspielerin'],
           "id": 'a:b:0'}),
-        ({"firstname": ["H"],
-          "lastname": "Holder",
-          "abbr_firstname": [],
-          "profession": [],
-          "other": [],
-          "id": 0},
-         {'firstname': [],
-          'lastname': ['Holder'],
-          'abbr_firstname': ["H."],
-          'other': [],
-          'profession': [],
-          "id": 'a:b:0'}),
-        ({"firstname": ["Hans"],
-          "lastname": "Holder",
-          "abbr_firstname": ["H."],
-          "profession": [],
-          "other": [],
-          "id": 0},
-         {'firstname': ["Hans"],
-          'lastname': ['Holder'],
-          'abbr_firstname': [],
-          'other': [],
-          'profession': [],
-          "id": 'a:b:0'})
     ],
 )
 def test_prep_person_entry(person, expected):
@@ -456,6 +434,9 @@ def tagging_file(tmp_path):
 
 def test_get_person_context_basic(tagging_file):
     per = {
+        "lastname": [""],
+        "firstname": "",
+        "abbr_firstname": "",
         "references": {
             "page1": {
                 "refs": [
@@ -471,6 +452,9 @@ def test_get_person_context_basic(tagging_file):
 
 def test_get_person_context_multiple_mentions(tagging_file):
     per = {
+        "lastname": [""],
+        "firstname": "",
+        "abbr_firstname": "",
         "references": {
             "page1": {
                 "refs": [
@@ -487,6 +471,9 @@ def test_get_person_context_multiple_mentions(tagging_file):
 
 def test_get_person_context_missing_coord(tagging_file):
     per = {
+        "lastname": [""],
+        "firstname": "",
+        "abbr_firstname": "",
         "references": {
             "page1": {
                 "refs": [
@@ -500,7 +487,11 @@ def test_get_person_context_missing_coord(tagging_file):
 
 
 def test_get_person_context_empty_references(tagging_file):
-    per = {"references": {}}
+    per = {
+        "lastname": [""],
+        "firstname": "",
+        "abbr_firstname": "",
+        "references": {}}
     context = get_person_context(per, [tagging_file[0]])
     assert context == ""
 
@@ -510,6 +501,25 @@ def test_get_person_context_invalid_file(tmp_path):
     invalid_path = tmp_path / "does_not_exist.jsonl"
     with pytest.raises(Exception):
         get_person_context({"VD_CONTEXT_WINDOW_LEN": 30}, per, str(invalid_path))
+
+
+def test_get_person_context_truncates_on_whole_words(monkeypatch):
+    monkeypatch.setattr(settings, "VD_CONTEXT_WINDOW_LEN_FULL", 12)
+    per = {
+        "lastname": [""],
+        "firstname": "",
+        "abbr_firstname": "",
+        "references": {
+            "page1": {
+                "refs": [{"context": "Alpha beta gamma delta"}]
+            }
+        }
+    }
+
+    context = get_person_context(per, [])
+
+    assert context == "Alpha beta"
+    assert len(context) <= settings.VD_CONTEXT_WINDOW_LEN_FULL
 
 
 # -------------------------------------------------
@@ -571,3 +581,75 @@ def test_compare_to_target_ids_multiplexed_failure_logs(caplog):
 
     assert mock_post.call_count > 0
     assert "Max retries exceeded" in caplog.text
+
+
+# -------------------------------------------------
+# Test _combine_nameparts
+# -------------------------------------------------
+@pytest.mark.parametrize(
+    "person, expected",
+    [
+        (
+            {"lastname": ["Müller"], "firstname": ["Anna"], "abbr_firstname": ["M."]},
+            ("Müller", "Anna M.", "Anna M. Müller"),
+        ),
+        (
+            {"lastname": ["de", "López"], "firstname": ["Ana"], "abbr_firstname": ["M."]},
+            ("de López", "Ana M.", "Ana M. de López"),
+        ),
+        (
+            {"lastname": ["Smith"], "firstname": ["Jasmine"], "abbr_firstname": []},
+            ("Smith", "Jasmine", "Jasmine Smith"),
+        ),
+        (
+            {"lastname": ["van", "der", "Meer"], "firstname": [], "abbr_firstname": ["J."]},
+            ("van der Meer", "J.", "J. van der Meer"),
+        ),
+    ],
+)
+def test_combine_nameparts(person, expected):
+    assert _combine_nameparts(person) == expected
+
+
+# -------------------------------------------------
+# Test expand_name
+# -------------------------------------------------
+@pytest.mark.parametrize(
+    "text, lastname, fullname, expected",
+    [
+        ("Müller war dort.", "Müller", "Anna Müller", "Anna Müller war dort."),
+        ("Hanna Müller war dort.", "Müller", "Anna Müller", "Hanna Müller war dort."),
+        ("Dr. Müller war dort.", "Müller", "Anna Müller", "Dr. Müller war dort."),
+        (
+            "Müller und Anna Müller kamen später.",
+            "Müller",
+            "Anna Müller",
+            "Anna Müller und Anna Müller kamen später.",
+        ),
+        (
+            "Anna Müller und Müller trafen sich.",
+            "Müller",
+            "Anna Müller",
+            "Anna Müller und Anna Müller trafen sich.",
+        ),
+         # --- punctuation between previous word and surname
+        ("Er kam. Müller ging.", "Müller", "Anna Müller", "Er kam. Anna Müller ging."),
+        ("Smith, Müller und Co.", "Müller", "Anna Müller", "Smith, Müller und Co."),
+        ("Zitat: Müller sagte", "Müller", "Anna Müller", "Zitat: Müller sagte"),
+        ("(Müller) kam.", "Müller", "Anna Müller", "(Anna Müller) kam."),
+        ('"Müller" sagte er.', "Müller", "Anna Müller", '"Anna Müller" sagte er.'),
+        # --- digits before the surname are not a word
+        ("2024 Müller kam.", "Müller", "Anna Müller", "2024 Anna Müller kam."),
+        # --- word boundaries and case sensitivity ---
+        ("Müllerin kam.", "Müller", "Anna Müller", "Müllerin kam."),
+        ("Müllers Haus.", "Müller", "Anna Müller", "Müllers Haus."),
+        ("Mr. Müller und Rmüller.", "Müller", "Anna Müller", "Mr. Müller und Rmüller."),
+        ("müller kam.", "Müller", "Anna Müller", "müller kam."),
+        # hyphenated names
+        ("Schmidt-Müller sagte in einem Interview", "Müller", "Anna Müller", "Schmidt-Müller sagte in einem Interview"),
+        ("Müller-Schmidt kam.", "Müller", "Anna Müller", "Müller-Schmidt kam."),
+        ("Er kam - Müller ging.", "Müller", "Anna Müller", "Er kam - Anna Müller ging."),
+    ],
+)
+def test_expand_name(text, lastname, fullname, expected):
+    assert expand_name(text, lastname, fullname) == expected

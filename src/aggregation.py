@@ -509,15 +509,15 @@ def map_genitive_versions(all_names: list,
     """
 
     for lastname in lastname_dict:
+        lastname_lastpart = lastname.split(" ")[-1]
         if (
-            lastname.endswith("s")
-            and len(lastname) > 1
-            and lastname[-2] != 's'
-            and lastname[:-1] in all_names
+            lastname_lastpart.endswith("s")
+            and len(lastname_lastpart) > 1
+            and lastname_lastpart[-2] != "s"
+            and (lastname_lastpart[:-1] in all_names or lastname in all_names)
         ):
             for entry in lastname_dict[lastname]:
                 entry["info"][key] = entry["info"][key][:-1]
-
 
 def map_genitive_places(all_names: list, place_list: list) -> None:
     """
@@ -726,6 +726,8 @@ def clean_lastname(word: str) -> str:
     :return: The cleaned last name with patterns removed
     :rtype: str
     """
+    if word == "v":
+        word = "von"
     word = PREPATTERN.sub("", word)
     word = POSTPATTERN.sub("", word)
     return word
@@ -775,7 +777,15 @@ def aggregate_names(input_triplet) -> list:
         abbr = info["abbr_firstnames"]
 
         existing = set(abbr)
-        abbr += [f"{n}." for n in firstnames if len(n) == 1 and f"{n}." not in existing]
+        abbr += [f"{n}.".upper() for n in firstnames if len(n) == 1 and f"{n}.".upper() not in existing]
+
+        # Drop a lowercase single-letter abbreviation if its uppercase form is present
+        upper = {a for a in abbr if a.isupper()}
+        abbr = [
+            a.upper() for a in abbr
+            if not (len(a.rstrip(".")) == 1 and a.islower() and a.upper() in upper)
+        ]
+
         info["firstnames"] = " ".join(n for n in firstnames if len(n) > 1)
         info["abbr_firstnames"] = " ".join(abbr)
 
@@ -805,7 +815,6 @@ def aggregate_names(input_triplet) -> list:
         else:
             if len(info["firstnames"]) > 0:
                 lastnames_with_firstnames[lastname].append(entry)
-            # these lines were commented out, but why?
             elif len(info["abbr_firstnames"]) > 0:
                 lastnames_with_abbrev[lastname].append(entry)
             else:

@@ -79,13 +79,14 @@ class Settings(BaseSettings):
     VD_MAX_RETRIES: int = 100
     VD_QUERY_CHUNK_LEN: int = 5000
     VD_MAX_DIST: float = 0.6
-    VD_CONTEXT_WINDOW_LEN: int = 30
+    VD_CONTEXT_WINDOW_LEN: int = 50
+    VD_CONTEXT_WINDOW_LEN_FULL: int = 2048
     VD_TIMEOUT: int = 300
     VD_TIMEOUT_RETRY: int = 600
     SENTENCE_BATCH_SIZE: int = 128
     GND_LIMIT: int = 15
     WIKIDATA_LIMIT: int = 5
-    LINKED_PERSONS_LIMIT: int = 10
+    LINKED_PERSONS_LIMIT: int = 3
     BATCH_SIZE: int = 4
     ADD_FUZZY_SEARCH: str = "True"
 
