@@ -794,7 +794,8 @@ def expand_name(text, lastname, fullname):
         if w and w.group(1)[0].isupper():
             return m.group(0)
         return fullname
-    return re.sub(rf"\b{re.escape(lastname)}\b", repl, text)
+    # (?<!-) / (?!-): leave double-barrelled names like Schmidt-Müller alone
+    return re.sub(rf"(?<!-)\b{re.escape(lastname)}\b(?!-)", repl, text)
 
 
 def get_person_context(

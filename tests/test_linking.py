@@ -12,7 +12,8 @@ from src.linking import (
     execute_linking,
     get_person_context,
     compare_to_target_ids_multiplexed,
-    _combine_nameparts
+    _combine_nameparts,
+    expand_name
 )
 from utility.settings import settings
 from utility.scoring import Candidate
@@ -608,3 +609,47 @@ def test_compare_to_target_ids_multiplexed_success():
 )
 def test_combine_nameparts(person, expected):
     assert _combine_nameparts(person) == expected
+
+
+# -------------------------------------------------
+# Test expand_name
+# -------------------------------------------------
+@pytest.mark.parametrize(
+    "text, lastname, fullname, expected",
+    [
+        ("Müller war dort.", "Müller", "Anna Müller", "Anna Müller war dort."),
+        ("Hanna Müller war dort.", "Müller", "Anna Müller", "Hanna Müller war dort."),
+        ("Dr. Müller war dort.", "Müller", "Anna Müller", "Dr. Müller war dort."),
+        (
+            "Müller und Anna Müller kamen später.",
+            "Müller",
+            "Anna Müller",
+            "Anna Müller und Anna Müller kamen später.",
+        ),
+        (
+            "Anna Müller und Müller trafen sich.",
+            "Müller",
+            "Anna Müller",
+            "Anna Müller und Anna Müller trafen sich.",
+        ),
+         # --- punctuation between previous word and surname
+        ("Er kam. Müller ging.", "Müller", "Anna Müller", "Er kam. Anna Müller ging."),
+        ("Smith, Müller und Co.", "Müller", "Anna Müller", "Smith, Müller und Co."),
+        ("Zitat: Müller sagte", "Müller", "Anna Müller", "Zitat: Müller sagte"),
+        ("(Müller) kam.", "Müller", "Anna Müller", "(Anna Müller) kam."),
+        ('"Müller" sagte er.', "Müller", "Anna Müller", '"Anna Müller" sagte er.'),
+        # --- digits before the surname are not a word
+        ("2024 Müller kam.", "Müller", "Anna Müller", "2024 Anna Müller kam."),
+        # --- word boundaries and case sensitivity ---
+        ("Müllerin kam.", "Müller", "Anna Müller", "Müllerin kam."),
+        ("Müllers Haus.", "Müller", "Anna Müller", "Müllers Haus."),
+        ("Mr. Müller und Rmüller.", "Müller", "Anna Müller", "Mr. Müller und Rmüller."),
+        ("müller kam.", "Müller", "Anna Müller", "müller kam."),
+        # hyphenated names
+        ("Schmidt-Müller sagte in einem Interview", "Müller", "Anna Müller", "Schmidt-Müller sagte in einem Interview"),
+        ("Müller-Schmidt kam.", "Müller", "Anna Müller", "Müller-Schmidt kam."),
+        ("Er kam - Müller ging.", "Müller", "Anna Müller", "Er kam - Anna Müller ging."),
+    ],
+)
+def test_expand_name(text, lastname, fullname, expected):
+    assert expand_name(text, lastname, fullname) == expected
