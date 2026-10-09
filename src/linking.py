@@ -149,6 +149,19 @@ def remove_obsolete_abbrevs(fnames: list, abbr_firstnames: list) -> list:
 
 
 def _combine_nameparts(person):
+    """
+    Combine lastname and first-name parts into a normalized full-name tuple.
+
+    :param person: A dictionary with the keys "lastname", "firstname", and
+        "abbr_firstname", where each key contains a list of name parts.
+    :type person: dict
+    :return: A tuple of the normalized surname, the combined first-name
+        string (including abbreviated variants), and the resulting full name.
+    :rtype: tuple
+    :Example: {"lastname": ["Müller"], "firstname": ["Anna"],
+              "abbr_firstname": ["M."]} -> ("Müller", "Anna M.",
+              "Anna M. Müller")
+    """
     lastname = person["lastname"]
     if len(lastname) > 1:
         lastname = " ".join(lastname)
@@ -898,26 +911,27 @@ def get_person_context(
                         end += 1
 
                     extract = full_text[start:end].strip()
-                    if extract[0] not in string.punctuation:
-                        all_context += ". " + extract
-                    else:
-                        all_context += extract
+                    #if extract[0] not in string.punctuation:
+                    #    all_context += ". " + extract
+                    #else:
+                    #    all_context += extract
+                    all_context += ". " + extract
                     # I'm fine with some overlap, works better this way
-    context = all_context[2:].strip()
+    all_context = all_context[2:].strip()
 
     # If we never use the full name in the text, our vector DB does poorly
     lastname, _, full_name = _combine_nameparts(per)
-    context = expand_name(context, lastname, full_name)
+    all_context = expand_name(all_context, lastname, full_name)
 
-    if not context:
+    if not all_context:
         return ""
 
-    if len(context) < settings.VD_CONTEXT_WINDOW_LEN_FULL:
-        repetitions = (settings.VD_CONTEXT_WINDOW_LEN_FULL + len(context) - 1) // len(context)
-        context = (context + " ") * repetitions
-    if len(context) > settings.VD_CONTEXT_WINDOW_LEN_FULL:
-        context = context[:settings.VD_CONTEXT_WINDOW_LEN_FULL].rsplit(" ", 1)[0]
-    return context.rstrip()
+    if len(all_context) < settings.VD_CONTEXT_WINDOW_LEN_FULL:
+        repetitions = (settings.VD_CONTEXT_WINDOW_LEN_FULL + len(all_context) - 1) // len(all_context)
+        all_context = (all_context + " ") * repetitions
+    if len(all_context) > settings.VD_CONTEXT_WINDOW_LEN_FULL:
+        all_context = all_context[:settings.VD_CONTEXT_WINDOW_LEN_FULL].rsplit(" ", 1)[0]
+    return all_context.strip()
 
 
 def compare_to_target_ids_multiplexed(
