@@ -563,24 +563,24 @@ def test_compare_to_target_ids_multiplexed_success():
     assert kwargs["json"]["content"][0]["reference_text_ids"] == sample_args_multi["target_text_ids"][0]
     assert kwargs["json"]["content"][1]["reference_text_ids"] == sample_args_multi["target_text_ids"][1]
 
-# def test_compare_to_target_ids_multiplexed_failure_logs(caplog):
-#     caplog.set_level("ERROR")
-#     mock_response = Mock(status_code=400, text="Bad Request")
+def test_compare_to_target_ids_multiplexed_failure_logs(caplog):
+    caplog.set_level("ERROR")
+    mock_response = Mock(status_code=400, text="Bad Request")
 
-#     with patch("src.linking.get_paramanera_token", return_value="test-token"), \
-#          patch("requests.post", return_value=mock_response) as mock_post:
-#         compare_to_target_ids_multiplexed(
-#             [1, 2],
-#             sample_args_multi["text"],
-#             sample_args_multi["target_text_ids"],
-#             sample_args_multi["backend_url"],
-#             sample_args_multi["collection_name"],
-#             sample_args_multi["model"],
-#             sample_args_multi["model_name"],
-#         )
+    with patch("src.linking.get_paramanera_token", return_value="test-token"), \
+         patch("requests.post", return_value=mock_response) as mock_post:
+        compare_to_target_ids_multiplexed(
+            [1, 2],
+            sample_args_multi["text"],
+            sample_args_multi["target_text_ids"],
+            sample_args_multi["backend_url"],
+            sample_args_multi["collection_name"],
+            sample_args_multi["model"],
+            sample_args_multi["model_name"],
+        )
 
-#     assert mock_post.call_count > 0
-#     assert "Max retries exceeded" in caplog.text
+    assert mock_post.call_count > 0
+    assert "Max retries exceeded" in caplog.text
 
 
 # -------------------------------------------------
