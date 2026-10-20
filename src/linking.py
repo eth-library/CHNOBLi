@@ -2,44 +2,41 @@
 Linking module
 """
 
+import logging
 import re
 import unicodedata
-import logging
 import warnings
-import math
 
 # Suppress noisy third-party SyntaxWarning from the 'pattern' library (bug in Python 3.12)
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pattern")
 
-from datetime import datetime
-import threading
-from multiprocessing import Pool, Value
-from concurrent.futures import ThreadPoolExecutor
-import orjson
-import string
 import os
-from copy import deepcopy
+import string
+import threading
 import time
-import requests
-from utility.utils import (
-    save_data_intermediate,
-    start_magazine_output,
-    finish_magazine_output,
-)
-from utility.scoring import Candidate, CandidateScorer, Mention, confidence_level
-from utility.linking_utils import (
-    search_person_wikidata,
-    search_person_gnd,
-    search_person_gnd_variantName,
-)
-from utility.settings import settings
+from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
+from datetime import datetime
 from itertools import batched
+from multiprocessing import Pool, Value
 
 # Until we can set up the API
 import numpy as np
+import orjson
+import requests
 from pymilvus import MilvusClient  # type: ignore
-from collections import OrderedDict
-from typing import List
+from utility.linking_utils import (
+    search_person_gnd,
+    search_person_gnd_variantName,
+    search_person_wikidata,
+)
+from utility.scoring import Candidate, CandidateScorer, Mention, confidence_level
+from utility.settings import settings
+from utility.utils import (
+    finish_magazine_output,
+    save_data_intermediate,
+    start_magazine_output,
+)
 
 MAX_YEAR_STR = "3000"
 
@@ -220,22 +217,26 @@ def get_candidates(
     plan = [
         (
             "gnd_pref_exact",
-            search_person_gnd, (fnames, lastname, year, gnd_limit),
+            search_person_gnd,
+            (fnames, lastname, year, gnd_limit),
             True,
         ),
         (
             "gnd_pref_abbr_exact",
-            search_person_gnd, (fname_abbr_fname, lastname, year, gnd_limit),
+            search_person_gnd,
+            (fname_abbr_fname, lastname, year, gnd_limit),
             has_both,
         ),
         (
             "gnd_variant_exact",
-            search_person_gnd_variantName, (full_name, year, gnd_limit),
+            search_person_gnd_variantName,
+            (full_name, year, gnd_limit),
             has_both,
         ),
         (
             "wikidata_label_exact",
-            search_person_wikidata, (full_name, year, wikidata_limit),
+            search_person_wikidata,
+            (full_name, year, wikidata_limit),
             True,
         ),
     ]
@@ -296,6 +297,7 @@ def prep_person_entry(person: dict, mag_year: str) -> None:
     person["id"] = (
         mag_year[0] + ":" + mag_year[1].replace("_", ":") + ":" + str(person["id"])
     )
+
 
 def _name_matches(person: dict) -> bool:
     """
@@ -787,13 +789,15 @@ def expand_name(text, lastname, fullname):
     :return: The text with eligible surname mentions expanded.
     :rtype: str
     """
+
     def repl(m):
-        before = m.string[:m.start()]
+        before = m.string[: m.start()]
         # last word before the match, ignoring any punctuation/whitespace in between
         w = re.search(r"([^\W\d_]+)[\W_]*$", before)
         if w and w.group(1)[0].isupper():
             return m.group(0)
         return fullname
+
     # (?<!-) / (?!-): leave double-barrelled names like Schmidt-Müller alone
     return re.sub(rf"(?<!-)\b{re.escape(lastname)}\b(?!-)", repl, text)
 
@@ -912,9 +916,9 @@ def get_person_context(
                         end += 1
 
                     extract = full_text[start:end].strip()
-                    #if extract[0] not in string.punctuation:
+                    # if extract[0] not in string.punctuation:
                     #    all_context += ". " + extract
-                    #else:
+                    # else:
                     #    all_context += extract
                     all_context += ". " + extract
                     # I'm fine with some overlap, works better this way
@@ -928,10 +932,14 @@ def get_person_context(
         return ""
 
     if len(all_context) < settings.VD_CONTEXT_WINDOW_LEN_FULL:
-        repetitions = (settings.VD_CONTEXT_WINDOW_LEN_FULL + len(all_context) - 1) // len(all_context)
+        repetitions = (
+            settings.VD_CONTEXT_WINDOW_LEN_FULL + len(all_context) - 1
+        ) // len(all_context)
         all_context = (all_context + " ") * repetitions
     if len(all_context) > settings.VD_CONTEXT_WINDOW_LEN_FULL:
-        all_context = all_context[:settings.VD_CONTEXT_WINDOW_LEN_FULL].rsplit(" ", 1)[0]
+        all_context = all_context[: settings.VD_CONTEXT_WINDOW_LEN_FULL].rsplit(" ", 1)[
+            0
+        ]
     return all_context.strip()
 
 
@@ -1043,6 +1051,7 @@ def backend_api_call(content, model, model_name, collection_name, backend_url):
             headers["Authorization"] = f"Bearer {token}"
         else:
             import sys
+
             sys.exit()
 
     payload = {

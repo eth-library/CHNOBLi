@@ -1,6 +1,7 @@
-from src.evaluation import execute_evaluation
 from unittest.mock import MagicMock, patch
+
 import pytest
+from src.evaluation import execute_evaluation
 
 
 def test_execute_evaluation_ref_top1_copilot():
@@ -34,11 +35,20 @@ def test_execute_evaluation_ref_top1_copilot():
     settings = MagicMock(EVAL_TOPK=None, INKB_SCORE=None)
     settings.model_dump.return_value = {}
 
-    with patch("src.evaluation.Paths", return_value=mock_paths), \
-         patch("src.evaluation.Scores", side_effect=[global_score, magazine_score, file_score]), \
-         patch("src.evaluation.evaluate_person", return_value={"tp": 1, "fp": 0, "fn": 0}) as mock_evaluate_person, \
-         patch("src.evaluation.os.listdir", side_effect=[["magazine_a"], ["file_a.json"]]), \
-         patch("src.evaluation.settings", settings):
+    with (
+        patch("src.evaluation.Paths", return_value=mock_paths),
+        patch(
+            "src.evaluation.Scores",
+            side_effect=[global_score, magazine_score, file_score],
+        ),
+        patch(
+            "src.evaluation.evaluate_person", return_value={"tp": 1, "fp": 0, "fn": 0}
+        ) as mock_evaluate_person,
+        patch(
+            "src.evaluation.os.listdir", side_effect=[["magazine_a"], ["file_a.json"]]
+        ),
+        patch("src.evaluation.settings", settings),
+    ):
         execute_evaluation("ref", top_k=1, timed=True)
 
         mock_evaluate_person.assert_called_once_with(
@@ -83,11 +93,20 @@ def test_execute_evaluation_ref_settings_copilot():
     settings = MagicMock(EVAL_TOPK=10, INKB_SCORE="true")
     settings.model_dump.return_value = {}
 
-    with patch("src.evaluation.Paths", return_value=mock_paths), \
-         patch("src.evaluation.Scores", side_effect=[global_score, magazine_score, file_score]), \
-         patch("src.evaluation.evaluate_person", return_value={"tp": 1, "fp": 0, "fn": 0}) as mock_evaluate_person, \
-         patch("src.evaluation.os.listdir", side_effect=[["magazine_a"], ["file_a.json"]]), \
-         patch("src.evaluation.settings", settings):
+    with (
+        patch("src.evaluation.Paths", return_value=mock_paths),
+        patch(
+            "src.evaluation.Scores",
+            side_effect=[global_score, magazine_score, file_score],
+        ),
+        patch(
+            "src.evaluation.evaluate_person", return_value={"tp": 1, "fp": 0, "fn": 0}
+        ) as mock_evaluate_person,
+        patch(
+            "src.evaluation.os.listdir", side_effect=[["magazine_a"], ["file_a.json"]]
+        ),
+        patch("src.evaluation.settings", settings),
+    ):
         execute_evaluation("ref", top_k=1, timed=True)
 
         mock_evaluate_person.assert_called_once_with(
@@ -106,5 +125,8 @@ def test_execute_evaluation_ref_nopathtogt_copilot():
     mock_paths.success = False
     mock_paths.state = {}
 
-    with patch("src.evaluation.Paths", return_value=mock_paths), pytest.raises(NotImplementedError):
+    with (
+        patch("src.evaluation.Paths", return_value=mock_paths),
+        pytest.raises(NotImplementedError),
+    ):
         execute_evaluation("ref", top_k=1, timed=True)

@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Tuple, Type
+from typing import Any
 
 from pydantic_settings import (
     BaseSettings,
@@ -18,14 +18,16 @@ class JsonConfigSettingsSource(PydanticBaseSettingsSource):
     def __call__(self) -> dict[str, Any]:
         BASE_DIR = Path(__file__).resolve().parent.parent
         config_path = Path(
-            os.environ.get("NLA_CONFIG_FILE", BASE_DIR / "configs" / "configurations.json")
+            os.environ.get(
+                "NLA_CONFIG_FILE", BASE_DIR / "configs" / "configurations.json"
+            )
         )
         if config_path.exists():
             return json.loads(config_path.read_text())
         else:
             raise FileNotFoundError(f"Configuration file not found at {config_path}")
 
-    def get_field_value(self, field: Any, field_name: str) -> Tuple[Any, str, bool]:
+    def get_field_value(self, field: Any, field_name: str) -> tuple[Any, str, bool]:
         # Required by abstract base class in newer pydantic-settings,
         # but unused because we override __call__
         return None, field_name, False
@@ -118,12 +120,12 @@ class Settings(BaseSettings):
     @classmethod
     def settings_customise_sources(
         cls,
-        settings_cls: Type[BaseSettings],
+        settings_cls: type[BaseSettings],
         init_settings: PydanticBaseSettingsSource,
         env_settings: PydanticBaseSettingsSource,
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
-    ) -> Tuple[PydanticBaseSettingsSource, ...]:
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
         # Priority (highest to lowest):
         # 1. Environment variables (env_settings)
         # 2. .env files (dotenv_settings)

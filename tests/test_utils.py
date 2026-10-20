@@ -1,23 +1,23 @@
-import orjson
-import os
 import argparse
+import os
 from unittest.mock import patch
-import pytest
 
+import orjson
+import pytest
+from utility.settings import settings
 from utility.utils import (
+    check_gpu,
+    erara_xml_to_word_coord,
+    offset_len_to_linking_input,
+    parse_arguments,
+    positive_int,
+    save_data,
+    save_data_intermediate,
     set_default,
     str2bool,
-    positive_int,
-    parse_arguments,
-    check_gpu,
-    save_data_intermediate,
-    save_data,
     transkribus_xml_to_approx_word_coord,
-    erara_xml_to_word_coord,
     txt_file_to_word_coord,
-    offset_len_to_linking_input
 )
-from utility.settings import settings
 
 
 # -------------------------------------------------
@@ -120,12 +120,17 @@ def test_parse_arguments_with_input_copilot(monkeypatch):
         "sys.argv",
         [
             "script_name.py",
-            "--tasks", "prep,tag",
-            "--gpu", "1",
-            "--magazine_year_paths", "/path/to/data",
-            "--config_file", "/path/to/config.json",
-            "--eval_level", "ent"
-        ]
+            "--tasks",
+            "prep,tag",
+            "--gpu",
+            "1",
+            "--magazine_year_paths",
+            "/path/to/data",
+            "--config_file",
+            "/path/to/config.json",
+            "--eval_level",
+            "ent",
+        ],
     )
 
     args = parse_arguments()
@@ -150,7 +155,7 @@ def test_save_data_intermediate_copilot(tmp_path):
 
     yearfolder = os.path.join(tmp_path, task, year[0])
     assert os.path.exists(yearfolder)  # Check if the directory was created
-    output_file = os.path.join(yearfolder, "".join(year[1:])+".jsonl")
+    output_file = os.path.join(yearfolder, "".join(year[1:]) + ".jsonl")
     assert os.path.exists(output_file)  # Check if the file was created
 
     with open(output_file, "r", encoding="utf8") as f:
@@ -165,10 +170,7 @@ def test_save_data_intermediate_copilot(tmp_path):
 # -------------------------------------------------
 def test_save_data_copilot(tmp_path):
     data = [
-        {
-            ("2025", "01"): [{"key1": "value1"}],
-            ("2025", "02"): [{"key2": "value2"}]
-        }
+        {("2025", "01"): [{"key1": "value1"}], ("2025", "02"): [{"key2": "value2"}]}
     ]
     settings.PATH_TO_OUTFILE_FOLDER = str(tmp_path)
     taskname = "test_task"

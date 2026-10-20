@@ -506,8 +506,10 @@ class CandidateScorer:
             result.top_tier = [
                 c.gid
                 for c in takewhile(
-                    lambda c: abs(c.es_component - best.es_component)
-                    <= self.policy.tie_epsilon,
+                    lambda c: (
+                        abs(c.es_component - best.es_component)
+                        <= self.policy.tie_epsilon
+                    ),
                     result.ranked,
                 )
             ]
