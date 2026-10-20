@@ -50,25 +50,25 @@ The linking ground-truth was created based on the ABBYY FineReader OCR output, s
 
 The "level" can be either "entity" or "reference". An entity is an aggregated person entity, for which we have a list of where in this magazine this person entity appeared, down to the position on the page. A reference is each such position. The idea is that we "weigh" entities more that also appear more often, the reasoning being that if they are referenced more, we must have more information on them and thus should be able to link them accurately. Thus to us, only the reference level is of interest, but we present the entity level as well in order to more easily compare our system to others, or even old versions of our system.
 
-+-----------------------------------------------+
-| k = 1, end-to-end                             |
-+-----+-----+---+---+---+---------+-------+-----+
-|level| tp  |fp |fn |tn |precision|recall |f1   |
-+=====+=====+===+===+===+=========+=======+=====+
-|ent  |125  |158|42 |346|0.442    |0.749  |0.556|
-+-----+-----+---+---+---+---------+-------+-----+
-|ref  |872  |637|369|920|0.578    |0.703  |0.634|
-+-----+-----+---+---+---+---------+-------+-----+
++------------------------------------------------+
+| k = 1, end-to-end                              |
++-----+-----+---+---+----+---------+-------+-----+
+|level| tp  |fp |fn |tn  |precision|recall |f1   |
++=====+=====+===+===+====+=========+=======+=====+
+|ent  |125  |94 |52 |398 |0.571    |0.706  |0.631|
++-----+-----+---+---+----+---------+-------+-----+
+|ref  |1323 |537|384|1340|0.711    |0.775  |0.742|
++-----+-----+---+---+----+---------+-------+-----+
 
-+-----------------------------------------------+
-| k = 3, end-to-end                             |
-+-----+-----+---+---+---+---------+-------+-----+
-|level| tp  |fp |fn |tn |precision|recall |f1   |
-+=====+=====+===+===+===+=========+=======+=====+
-|ent  |136  |147|42 |346|0.481    |0.764  |0.59 |
-+-----+-----+---+---+---+---------+-------+-----+
-|ref  |913  |596|328|920|0.605    |0.736  |0.664|
-+-----+-----+---+---+---+---------+-------+-----+
++------------------------------------------------+
+| k = 3, end-to-end                              |
++-----+-----+---+---+----+---------+-------+-----+
+|level| tp  |fp |fn |tn  |precision|recall |f1   |
++=====+=====+===+===+====+=========+=======+=====+
+|ent  |126  |93 |52 |398 |0.575    |0.708  |0.635|
++-----+-----+---+---+----+---------+-------+-----+
+|ref  |1327 |533|380|1340|0.713    |0.777  |0.744|
++-----+-----+---+---+----+---------+-------+-----+
 
 The JSON files for our manually linked ground-truth data can be downloaded here [3]. Note that the "GT" only refers to the linking part—we took the tagging output of our system unchanged in order to generate the linking ground-truth (hence, end-to-end). If the OCR, tagging, or aggregation improves, naturally the linking will improve as well.
 
