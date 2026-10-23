@@ -5182,7 +5182,7 @@ PARAMS_prep_person_out = [
             "abbr_firstname": [],
             "profession": ["Musikerin", "Schauspielerin"],
             "gnd_ids": [],
-            "gnd_ids_scores_dist": [],
+            "gnd_ids_VD_dist": [],
         },
         4,
         id="empty-gnd-ids-empty-score-dist",
@@ -5202,7 +5202,7 @@ PARAMS_prep_person_out = [
                 }
             ],
         },
-        5,
+        4,
         id="single-gnd-id-full-name-match",
     ),
     pytest.param(
@@ -5230,7 +5230,31 @@ PARAMS_prep_person_out = [
             "abbr_firstname": [],
             "profession": ["Musikerin", "Schauspielerin"],
             "gnd_ids": ["1", "2"],
-            "gnd_ids_scores_dist": [0.1, 0.2],
+            "gnd_ids_VD_dist": [0.1, 0.2],
+            "candidates": [
+                {
+                    "prefForename": ["Allie", "Marie"],
+                    "prefSurname": ["Kann", "Meiér"],
+                    "gid": "1",
+                },
+                {
+                    "prefForename": ["Allie", "Moulin"],
+                    "prefSurname": ["Kann"],
+                    "gid": "2",
+                },
+            ],
+        },
+        5,
+        id="multiple-gnd-ids-full-name-match-with-dist",
+    ),
+    pytest.param(
+        {
+            "firstname": ["Allie", "Marie"],
+            "lastname": ["Kann", "Meiér"],
+            "abbr_firstname": [],
+            "profession": ["Musikerin", "Schauspielerin"],
+            "gnd_ids": ["1", "2"],
+            "gnd_ids_VD_dist": [0.1, 0.109],
             "candidates": [
                 {
                     "prefForename": ["Allie", "Marie"],
@@ -5245,7 +5269,7 @@ PARAMS_prep_person_out = [
             ],
         },
         4,
-        id="multiple-gnd-ids-full-name-match-with-dist",
+        id="multiple-gnd-ids-full-name-match-with-dist-similar-scores",
     ),
     pytest.param(
         {
@@ -5254,7 +5278,31 @@ PARAMS_prep_person_out = [
             "abbr_firstname": [],
             "profession": ["Musikerin", "Schauspielerin"],
             "gnd_ids": ["1", "2"],
-            "gnd_ids_scores_dist": [0.1, 0.2],
+            "gnd_ids_VD_dist": [0.1, 0.2],
+            "candidates": [
+                {
+                    "prefForename": ["Allie", "Moulin"],
+                    "prefSurname": ["Kann"],
+                    "gid": "1",
+                },
+                {
+                    "prefForename": ["Allie", "Moulin"],
+                    "prefSurname": ["Kann"],
+                    "gid": "2",
+                },
+            ],
+        },
+        4,
+        id="multiple-gnd-ids-full-name-mismatch-with-dist",
+    ),
+    pytest.param(
+        {
+            "firstname": ["Allie", "Marie"],
+            "lastname": ["Kann", "Meiér"],
+            "abbr_firstname": [],
+            "profession": ["Musikerin", "Schauspielerin"],
+            "gnd_ids": ["1", "2"],
+            "gnd_ids_VD_dist": [0.1, 0.109],
             "candidates": [
                 {
                     "prefForename": ["Allie", "Moulin"],
@@ -5269,7 +5317,7 @@ PARAMS_prep_person_out = [
             ],
         },
         3,
-        id="multiple-gnd-ids-full-name-mismatch-with-dist",
+        id="multiple-gnd-ids-full-name-mismatch-with-dist-similar-scores",
     ),
     pytest.param(
         {
@@ -5309,7 +5357,7 @@ PARAMS_prep_person_out = [
                 }
             ],
         },
-        4,
+        3,
         id="single-gnd-id-abbrev-name-match",
     ),
     pytest.param(
@@ -5360,7 +5408,31 @@ PARAMS_prep_person_out = [
             "abbr_firstname": ["A."],
             "profession": ["Musikerin", "Schauspielerin"],
             "gnd_ids": ["1", "2"],
-            "gnd_ids_scores_dist": [0.1, 0.2],
+            "gnd_ids_VD_dist": [0.1, 0.2],
+            "candidates": [
+                {
+                    "prefForename": ["Boris"],
+                    "prefSurname": ["Kann"],
+                    "gid": "1",
+                },
+                {
+                    "prefForename": ["Boris"],
+                    "prefSurname": ["Kann"],
+                    "gid": "2",
+                },
+            ],
+        },
+        3,
+        id="multiple-gnd-ids-abbrev-name-mismatch-with-dist",
+    ),
+    pytest.param(
+        {
+            "firstname": [],
+            "lastname": ["Kann", "Meiér"],
+            "abbr_firstname": ["A."],
+            "profession": ["Musikerin", "Schauspielerin"],
+            "gnd_ids": ["1", "2"],
+            "gnd_ids_VD_dist": [0.1, 0.109],
             "candidates": [
                 {
                     "prefForename": ["Boris"],
@@ -5375,7 +5447,7 @@ PARAMS_prep_person_out = [
             ],
         },
         2,
-        id="multiple-gnd-ids-abbrev-name-mismatch-with-dist",
+        id="multiple-gnd-ids-abbrev-name-mismatch-with-dist-similar-scores",
     ),
     pytest.param(
         {
