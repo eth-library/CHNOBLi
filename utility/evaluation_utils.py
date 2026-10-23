@@ -223,49 +223,46 @@ def clean_raw(raw: list, top_k, is_gt=False) -> list:
     for ent in raw:
         if "type" in ent and ent["type"] == "PER":
             ent_mentions = []
-            dictionary = {}
-            if "lastname" in ent:
-                dictionary["lastname"] = ent["lastname"]
-            else:
-                dictionary["lastname"] = ""
-            if ent.get("firstname"):
-                dictionary["firstname"] = " ".join(ent["firstname"])
-            else:
-                dictionary["firstname"] = ""
-            if "abbr_firstname" in ent:
-                dictionary["abbr_firstname"] = ent["abbr_firstname"]
-            else:
-                dictionary["abbr_firstname"] = []
-            if "other" in ent:
-                dictionary["other"] = ent["other"]
-            else:
-                dictionary["other"] = []
-            dictionary["name"] = get_main_name(per_dict=dictionary)
-            if "profession" in ent:
-                dictionary["profession"] = ent["profession"]
-            else:
-                dictionary["profession"] = []
+            cleaned_dict = {}
+            cleaned_dict["lastname"] = ent.get("lastname", "")
+            cleaned_dict["firstname"] = " ".join(ent.get("firstname", "")).strip()
+            cleaned_dict["abbr_firstname"] = ent.get("abbr_firstname", [])
+            cleaned_dict["other"] = ent.get("other", [])
+
+            if "same_score_cand" in ent:
+                cleaned_dict["same_score_cand"] = ent["same_score_cand"]
+            if "gnd_ids_VD_dist" in ent:
+                cleaned_dict["gnd_ids_VD_dist"] = ent["gnd_ids_VD_dist"]
+            if "website_gnd_ids_VD_dist" in ent:
+                cleaned_dict["website_gnd_ids_VD_dist"] = ent["website_gnd_ids_VD_dist"]
+            if "gnd_confidence" in ent:
+                cleaned_dict["gnd_confidence"] = ent["gnd_confidence"]
+            if "gnd_ids_ES_sim" in ent:
+                cleaned_dict["gnd_ids_ES_sim"] = ent["gnd_ids_ES_sim"]
+            if "website_gnd_ids_ES_sim" in ent:
+                cleaned_dict["website_gnd_ids_ES_sim"] = ent["website_gnd_ids_ES_sim"]
+
+            cleaned_dict["name"] = get_main_name(per_dict=cleaned_dict)
+            cleaned_dict["profession"] = ent.get("profession", [])
+
             places = []
             if "places" in ent:
                 for place in ent["places"]:
                     if "name" in place:
                         places.append(place["name"])
             else:
-                dictionary["places"] = []
-            dictionary["places"] = places
+                cleaned_dict["places"] = []
+            cleaned_dict["places"] = places
 
             if is_gt:
-                dictionary["gt_gnd_id"] = []
-                if "gt_gnd_id" in ent:
-                    dictionary["gt_gnd_id"] = ent["gt_gnd_id"]
+                cleaned_dict["gt_gnd_id"] = ent.get("gt_gnd_id", [])
             else:
-                dictionary["gnd_candidates"] = []
-                if "gnd_ids" in ent:
-                    dictionary["gnd_candidates"] = ent["gnd_ids"][:top_k]
+                cleaned_dict["gnd_candidates"] = ent.get("gnd_ids",[])[:top_k]
+                cleaned_dict["website_gnd_candidates"] = ent.get("website_gnd_ids",[])[:top_k]
 
             if "references" in ent:
                 for page, refs in ent["references"].items():
-                    dictionary.update({"page": page, "year": page.split("_")[1]})
+                    cleaned_dict.update({"page": page, "year": page.split("_")[1]})
                     if "refs" in refs:
                         # old linking files are set up slightly differently.
                         curr_list = refs["refs"]
@@ -281,7 +278,7 @@ def clean_raw(raw: list, top_k, is_gt=False) -> list:
                                     normalized_coords.add(i)
 
                             for coord in normalized_coords:
-                                aux = dictionary.copy()
+                                aux = cleaned_dict.copy()
                                 aux.update({"coord": coord})
                                 ent_mentions.append(aux)
 
