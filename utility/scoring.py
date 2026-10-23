@@ -134,12 +134,12 @@ def confidence_level(person: dict) -> (int, str):
     name_match = len(person["gnd_ids"]) > 0 and _name_matches(person)
 
     # create gnd_ids list for website / confidence scoring
-    if person.get("gnd_ids_VD_dist"):
+    if "gnd_ids_VD_dist" in person:
         vd_used = True
         website_scores = _leading_close_scores(person["gnd_ids_VD_dist"], 0.009)
         person["website_gnd_ids_VD_dist"] = website_scores
         person["website_gnd_ids"] = person["gnd_ids"][: len(website_scores)]
-    elif person.get("gnd_ids_ES_sim"):
+    elif "gnd_ids_ES_sim" in person:
         website_scores = _leading_close_scores(person["gnd_ids_ES_sim"], 0.05)
         person["website_gnd_ids_ES_sim"] = website_scores
         person["website_gnd_ids"] = person["gnd_ids"][: len(website_scores)]

@@ -70,14 +70,14 @@ def parse_arguments() -> argparse.Namespace:
         - tasks (str): Comma-separated list of tasks to perform.\
         Default is "prep,tag,finish".\n
         - gpu (str): GPU identifier to use. Default is "0".\n
-        - magazine_year_paths (str): Paths to magazine year data.\n
+        - input_filepaths (str): Paths to input data.\n
         - eval_level (str): Evaluation level. Default is "ref".\n
     """
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--tasks", type=str, default="finish")
     parser.add_argument("--gpu", type=positive_int, default=0)
-    parser.add_argument("--magazine_year_paths", type=str)
+    parser.add_argument("--input_filepaths", type=str)
     parser.add_argument(
         "--config_file", type=str, default="./configs/configurations.json"
     )

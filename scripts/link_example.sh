@@ -1,1 +1,1 @@
-python main.py --tasks finish --magazine_year_paths ./data/output/tag/tjb --config_file ./configs/configurations_example.json
+python main.py --tasks finish --input_filepaths ./data/output/tag/tjb --config_file ./configs/configurations_example.json

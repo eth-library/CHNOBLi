@@ -74,7 +74,7 @@ def main():
     args = parse_arguments()
 
     tasks = args.tasks.split(",")
-    paths = args.magazine_year_paths
+    paths = args.input_filepaths
     config_file = args.config_file
     eval_level = args.eval_level
     gpu_num = check_gpu(args)
