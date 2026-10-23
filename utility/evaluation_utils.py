@@ -257,8 +257,10 @@ def clean_raw(raw: list, top_k, is_gt=False) -> list:
             if is_gt:
                 cleaned_dict["gt_gnd_id"] = ent.get("gt_gnd_id", [])
             else:
-                cleaned_dict["gnd_candidates"] = ent.get("gnd_ids",[])[:top_k]
-                cleaned_dict["website_gnd_candidates"] = ent.get("website_gnd_ids",[])[:top_k]
+                cleaned_dict["gnd_candidates"] = ent.get("gnd_ids", [])[:top_k]
+                cleaned_dict["website_gnd_candidates"] = ent.get("website_gnd_ids", [])[
+                    :top_k
+                ]
 
             if "references" in ent:
                 for page, refs in ent["references"].items():
