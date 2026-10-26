@@ -21,7 +21,7 @@ On Windows:
 
 .. code-block:: bash
 
-   python main.py --tasks prep,tag --magazine_year_paths ./data/input_example/tjb/1955_030 --config_file configs/configurations_example.json
+   python main.py --tasks prep,tag --input_filepaths ./data/input_example/tjb/1955_030 --config_file configs/configurations_example.json
 
 Output: ``data/output/tag/``
 
@@ -36,7 +36,7 @@ On Windows:
 
 .. code-block:: bash
 
-   python main.py --tasks finish --magazine_year_paths ./data/output/tag/tjb --config_file ./configs/configurations_example.json
+   python main.py --tasks finish --input_filepaths ./data/output/tag/tjb --config_file ./configs/configurations_example.json
 
 Output: ``data/output/link/``
 
