@@ -160,13 +160,13 @@ We highly recommend you run this on a GPU, as running this on a CPU is very slow
 
 **1. Tag example documents**
 ```bash
-sh scripts/tag_example.sh # Windows: python main.py --tasks prep,tag --magazine_year_paths ./data/input_example/tjb/1955_030 --config_file configs/configurations_example.json
+sh scripts/tag_example.sh # Windows: python main.py --tasks prep,tag --input_filepaths ./data/input_example/tjb/1955_030 --config_file configs/configurations_example.json
 ```
 Output: `data/output/tag/`
 
 **2. Link entities**
 ```bash
-sh scripts/link_example.sh # Windows: python main.py --tasks finish --magazine_year_paths ./data/output/tag/tjb --config_file ./configs/configurations_example.json
+sh scripts/link_example.sh # Windows: python main.py --tasks finish --input_filepaths ./data/output/tag/tjb --config_file ./configs/configurations_example.json
 ```
 Output: `data/output/link/`
 

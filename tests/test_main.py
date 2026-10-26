@@ -113,7 +113,7 @@ def test_finish_data_executes_pipeline_for_finish_task_customtagpath_copilot(
 def test_main_calls_finish_data_for_finish_task_copilot():
     args = SimpleNamespace(
         tasks="finish",
-        magazine_year_paths=None,
+        input_filepaths=None,
         config_file=None,
         eval_level="ref",
     )
@@ -135,7 +135,7 @@ def test_main_calls_finish_data_for_finish_task_copilot():
 def test_main_calls_with_configfile_invalidpaths_copilot(caplog):
     args = SimpleNamespace(
         tasks="finish",
-        magazine_year_paths="first.jsonl,second.jsonl",
+        input_filepaths="first.jsonl,second.jsonl",
         config_file="/tmp/configurations.json",
         eval_level="ref",
     )
@@ -165,7 +165,7 @@ def test_main_calls_finish_data_for_finish_task_with_custompath_eval_copilot(
 ):
     args = SimpleNamespace(
         tasks="eval",
-        magazine_year_paths="placeholder",
+        input_filepaths="placeholder",
         config_file=None,
         eval_level="ref",
     )
@@ -215,7 +215,7 @@ def test_main_calls_finish_data_for_finish_task_with_custompath_eval_copilot(
 def test_main_executes_prep_and_tag_pipeline_copilot():
     args = SimpleNamespace(
         tasks="prep,tag",
-        magazine_year_paths=None,
+        input_filepaths=None,
         config_file=None,
         eval_level="ref",
     )

@@ -110,7 +110,7 @@ def test_parse_arguments_defaults_copilot(monkeypatch):
 
     assert args.tasks == "finish"
     assert args.gpu == 0
-    assert args.magazine_year_paths is None
+    assert args.input_filepaths is None
     assert args.config_file == "./configs/configurations.json"
     assert args.eval_level == "ref"
 
@@ -124,7 +124,7 @@ def test_parse_arguments_with_input_copilot(monkeypatch):
             "prep,tag",
             "--gpu",
             "1",
-            "--magazine_year_paths",
+            "--input_filepaths",
             "/path/to/data",
             "--config_file",
             "/path/to/config.json",
@@ -137,7 +137,7 @@ def test_parse_arguments_with_input_copilot(monkeypatch):
 
     assert args.tasks == "prep,tag"
     assert args.gpu == 1
-    assert args.magazine_year_paths == "/path/to/data"
+    assert args.input_filepaths == "/path/to/data"
     assert args.config_file == "/path/to/config.json"
     assert args.eval_level == "ent"
 

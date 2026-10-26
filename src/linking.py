@@ -30,7 +30,7 @@ from utility.linking_utils import (
     search_person_gnd_variantName,
     search_person_wikidata,
 )
-from utility.scoring import Candidate, CandidateScorer, Mention, confidence_level
+from utility.scoring import Candidate, CandidateScorer, confidence_level
 from utility.settings import settings
 from utility.utils import (
     finish_magazine_output,
@@ -299,59 +299,6 @@ def prep_person_entry(person: dict, mag_year: str) -> None:
     )
 
 
-def _name_matches(person: dict) -> bool:
-    """
-    If the first of the candidates (they're ordered by score) have a matching
-    name, we return True, else False
-    """
-    first_cand_firstname = " ".join(person["candidates"][0].get("prefForename", ""))
-    first_cand_lastname = " ".join(person["candidates"][0].get("prefSurname", ""))
-    first_cand_varname = person["candidates"][0].get("varName", None)
-    joined_fname = " ".join(person["firstname"])
-    joined_abbr_fname = " ".join(person["abbr_firstname"])
-    if person["firstname"] and person["lastname"]:
-        if (
-            (
-                first_cand_firstname == joined_fname
-                and first_cand_lastname == person["lastname"]
-            )
-            or (
-                first_cand_firstname
-                == (joined_fname + joined_abbr_fname).replace("  ", " ").strip()
-                and first_cand_lastname == person["lastname"]
-            )
-            or (
-                first_cand_varname
-                and (
-                    (person["lastname"] + ", " + joined_fname in first_cand_varname)
-                    or (
-                        person["lastname"]
-                        + ", "
-                        + (joined_fname + joined_abbr_fname).replace("  ", " ").strip()
-                        in first_cand_varname
-                    )
-                )
-            )
-        ):
-            return True
-    elif (
-        person["abbr_firstname"]
-        and person["lastname"]
-        and (
-            (
-                first_cand_firstname.startswith(joined_abbr_fname.replace(".", ""))
-                and first_cand_lastname == person["lastname"]
-            )
-            or (
-                first_cand_varname
-                and person["lastname"] + ", " + joined_abbr_fname in first_cand_varname
-            )
-        )
-    ):
-        return True
-    return False
-
-
 def prep_person_out(person: dict) -> None:
     """For a given dictionary, joins the fields "firstname", "abbr_firstname"\
     and "lastname" repectively to make them strings. Maps the candidate scores
@@ -361,19 +308,13 @@ def prep_person_out(person: dict) -> None:
         "firstname", "abbr_firstname", and "lastname".
     :type person: dict
     """
-    person["lastname"] = " ".join(person["lastname"])
-    n_ids = len(person["gnd_ids"])
-    if n_ids:
-        assert "candidates" in person, person
-    person["gnd_confidence"] = confidence_level(
-        n_ids,
-        bool(person["firstname"]) and bool(person["lastname"]),
-        # Guarded: the grade for an unlinkable person does not consult the name,
-        # and _name_matches reads a leading candidate that is not there.
-        n_ids > 0 and _name_matches(person),
-        "gnd_ids_scores_dist" in person,
-    )
+    assert "gnd_ids" in person
+    assert len(person["gnd_ids"]) <= settings.LINKED_PERSONS_LIMIT
 
+    person["lastname"] = " ".join(person["lastname"])
+    person["gnd_confidence"], _ = confidence_level(person)
+
+    assert len(person["website_gnd_ids"]) <= settings.LINKED_PERSONS_LIMIT
     # for key in [
     #     "same_score_cand",
     #     "context",
@@ -441,15 +382,9 @@ def link_person(data_in) -> dict:
         prep_person_out(person)
         return person
 
-    mention = Mention(
-        lastname=tuple(person["lastname"]),
-        firstnames=tuple(person["firstname"]),
-        abbr_firstnames=tuple(person["abbr_firstname"]),
-        year=year,
-    )
     # if several of the first gnds have the same score,
     # take all of them and re-rank with our vdb
-    ranking = _SCORER.score(mention, candidates)
+    ranking = _SCORER.score(person, candidates, year)
     payloads = {c.gid: c.fields for c in candidates}
 
     if ranking.needs_disambiguation:
@@ -462,7 +397,7 @@ def link_person(data_in) -> dict:
         return person
 
     person["gnd_ids"] = ranking.gids(settings.LINKED_PERSONS_LIMIT)
-    person["gnd_ids_scores_sim"] = [payloads[g]["score"] for g in person["gnd_ids"]]
+    person["gnd_ids_ES_sim"] = [payloads[g]["score"] for g in person["gnd_ids"]]
     person["candidates"] = [payloads[g] for g in person["gnd_ids"]]
     prep_person_out(person)
     return person
@@ -689,7 +624,7 @@ def execute_linking(data: dict, tasks: list, timed=True) -> None:
                 links[idx_i][1][idx_j]["gnd_ids"] = response_i[
                     : settings.LINKED_PERSONS_LIMIT
                 ]
-                links[idx_i][1][idx_j]["gnd_ids_scores_dist"] = response_d[
+                links[idx_i][1][idx_j]["gnd_ids_VD_dist"] = response_d[
                     : settings.LINKED_PERSONS_LIMIT
                 ]
                 links[idx_i][1][idx_j]["candidates"] = [

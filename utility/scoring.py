@@ -47,48 +47,130 @@ DEFAULT_SCORE_PRIORITY: dict[MatchKind, int] = {
 }
 
 
-def confidence_level(
-    n_ids: int, has_full_name: bool, name_match: bool, vd_used: bool
-) -> int:
+def _leading_close_scores(scores: list[float], tolerance: float) -> list[float]:
+    if not scores:
+        return []
+
+    best = scores[0]
+    return scores[:1] + list(
+        takewhile(lambda score: abs(best - score) <= tolerance, scores[1:])
+    )
+
+
+def _name_matches(person: dict) -> bool:
     """
-    Grades how much a linking decision can be trusted, from 1 to 5.
+    If the first of the candidates (they're ordered by score) have a matching
+    name, we return True, else False
+    """
+    first_cand_firstname = " ".join(person["candidates"][0].get("prefForename", ""))
+    first_cand_lastname = " ".join(person["candidates"][0].get("prefSurname", ""))
+    first_cand_varname = person["candidates"][0].get("varName", None)
+    joined_fname = " ".join(person["firstname"])
+    joined_abbr_fname = " ".join(person["abbr_firstname"])
+    if person["firstname"] and person["lastname"]:
+        if (
+            (
+                first_cand_firstname == joined_fname
+                and first_cand_lastname == person["lastname"]
+            )
+            or (
+                first_cand_firstname
+                == (joined_fname + joined_abbr_fname).replace("  ", " ").strip()
+                and first_cand_lastname == person["lastname"]
+            )
+            or (
+                first_cand_varname
+                and (
+                    (person["lastname"] + ", " + joined_fname in first_cand_varname)
+                    or (
+                        person["lastname"]
+                        + ", "
+                        + (joined_fname + joined_abbr_fname).replace("  ", " ").strip()
+                        in first_cand_varname
+                    )
+                )
+            )
+        ):
+            return True
+    elif (
+        person["abbr_firstname"]
+        and person["lastname"]
+        and (
+            (
+                first_cand_firstname.startswith(joined_abbr_fname.replace(".", ""))
+                and first_cand_lastname == person["lastname"]
+            )
+            or (
+                first_cand_varname
+                and person["lastname"] + ", " + joined_abbr_fname in first_cand_varname
+            )
+        )
+    ):
+        return True
+    return False
+
+
+def confidence_level(person: dict) -> (int, str):
+    """
+    Grades how much a linking decision can be trusted, from 0 to 5.
 
     The tree stays nested rather than flattened into a lookup table: where a
     branch does not consult a fact there is no test for it, so every case that
     ignores a dimension is bound to agree with the others instead of agreeing
     by convention.
 
-    :param n_ids: How many ids survived.
-    :type n_ids: int
-    :param has_full_name: Whether the mention had both a firstname and lastname.
-    :type has_full_name: bool
-    :param name_match: Whether the leading candidate's name confirms the mention.
-    :type name_match: bool
-    :param vd_used: Whether the vector database decided the ranking.
-    :type vd_used: bool
+    :param person: Person whose candidates to define the confidence for.
+    :type person: dict
     :return: Confidence for the frontend, on the pipeline's scale:
-        5 excellent, 4 very good, 3 good, 2 medium, 1 minimal, 0 experimental.
-    :rtype: int
+        5 excellent, 4 very good, 3 good, 2 medium, 1 minimal, 0 experimental,
+        and which case it was.
+    :rtype: (int, str)
     """
 
+    vd_used = False
+    has_full_name = bool(person["firstname"]) and bool(person["lastname"])
+    # Guarded: the grade for an unlinkable person does not consult the name,
+    # and _name_matches reads a leading candidate that is not there.
+    name_match = len(person["gnd_ids"]) > 0 and _name_matches(person)
+
+    # create gnd_ids list for website / confidence scoring
+    if "gnd_ids_VD_dist" in person:
+        vd_used = True
+        website_scores = _leading_close_scores(person["gnd_ids_VD_dist"], 0.009)
+        person["website_gnd_ids_VD_dist"] = website_scores
+        person["website_gnd_ids"] = person["gnd_ids"][: len(website_scores)]
+    elif "gnd_ids_ES_sim" in person:
+        website_scores = _leading_close_scores(person["gnd_ids_ES_sim"], 0.05)
+        person["website_gnd_ids_ES_sim"] = website_scores
+        person["website_gnd_ids"] = person["gnd_ids"][: len(website_scores)]
+    else:
+        person["website_gnd_ids"] = person["gnd_ids"]
+
+    n_ids = len(person["website_gnd_ids"])
+
     if n_ids == 0:
-        # Confidence that this person *cannot* be linked: the grade applies to
-        # the negative conclusion, and the only question is whether the vector
-        # database tested it or never saw it.
-        return 4 if vd_used else 5
+        if has_full_name:
+            return (4, "111") if vd_used else (5, "110")
+        return (0, "011") if vd_used else (0, "010")
 
     if has_full_name:
         if n_ids == 1:
-            return 5 if name_match else 4
+            if vd_used:
+                return (5, "1111") if name_match else (4, "1110")
+            return (4, "1101") if name_match else (4, "1100")
+
         if vd_used:
-            return 4 if name_match else 3
-        return 3
+            return (4, "1011") if name_match else (3, "1010")
+        return (3, "1001") if name_match else (2, "1000")
 
     if n_ids == 1:
-        return 4 if name_match else 3
-    if name_match:
-        return 2
-    return 2 if vd_used else 1
+        if vd_used:
+            return (3, "0111") if name_match else (3, "0110")
+        return (3, "0101") if name_match else (3, "0100")
+
+    if vd_used:
+        return (2, "0011") if name_match else (2, "0010")
+    return (2, "0001") if name_match else (1, "0000")
 
 
 def _norm(word: str) -> str:
@@ -400,20 +482,6 @@ class CandidateScorer:
             )
         return best
 
-    def name_matches(self, mention: Mention, candidate: Candidate) -> bool:
-        """
-        Whether the candidate's own name confirms the mention.
-
-        :param mention: The mention being linked.
-        :type mention: Mention
-        :param candidate: Candidate to check.
-        :type candidate: Candidate
-        :return: True if any of the match cases holds.
-        :rtype: bool
-        """
-
-        return any(predicate(mention, candidate) for predicate in MATCHERS.values())
-
     def _components(
         self, candidates: Sequence[Candidate]
     ) -> dict[tuple[str, str], float]:
@@ -448,22 +516,24 @@ class CandidateScorer:
                 out[(gid, label)] = raw / top if top else 0.0
         return out
 
-    def score(self, mention: Mention, candidates: Iterable[Candidate]) -> ScoredResult:
+    def score(
+        self, person: dict, candidates: Iterable[Candidate], year: str
+    ) -> ScoredResult:
         """
-        Ranks candidates for one mention.
+        Ranks candidates for one person.
 
-        :param mention: The mention being linked.
-        :type mention: Mention
+        :param person: The person being linked.
+        :type person: dict
         :param candidates: Candidates retrieved for it.
         :type candidates: Iterable[Candidate]
+        :param year: Publication year of the magazine in which this person was mentioned.
+        :type year: str
         :return: The ranking, and what the vector database should look at.
         :rtype: ScoredResult
         """
-
         candidates = list(candidates)
         result = ScoredResult()
         if not candidates:
-            result.confidence = confidence_level(0, mention.has_full_name, False, False)
             return result
 
         components = self._components(candidates)
@@ -515,11 +585,4 @@ class CandidateScorer:
             ]
         result.needs_disambiguation = len(result.top_tier) > 1
 
-        by_gid = {c.gid: c for c in candidates}
-        result.confidence = confidence_level(
-            len(result.ranked),
-            mention.has_full_name,
-            self.name_matches(mention, by_gid[best.gid]),
-            False,
-        )
         return result
