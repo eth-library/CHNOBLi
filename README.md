@@ -9,6 +9,7 @@
 [![GitHub tag](https://img.shields.io/github/tag/eth-library/CHNOBLi?include_prereleases=&sort=semver&color=blue)](https://github.com/eth-library/CHNOBLi/releases/)
 [![License](https://img.shields.io/badge/License-MIT-blue)](#license)
 [![Issues](https://img.shields.io/github/issues/eth-library/CHNOBLi)](https://github.com/eth-library/CHNOBLi/issues)
+[![Paper](https://img.shields.io/badge/IEEE-paper-00629B)](https://doi.org/10.1109/IEEE-CH69852.2026.11780252)
 
 ## Table of Contents
 
@@ -280,8 +281,17 @@ Download training and evaluation datasets from [Hugging Face](https://huggingfac
 - Retro-digitized documents
 
 ## Citation
-
-**Citation format coming soon...**
+If you use this code or build on our work, please cite:
+```bibtex
+@INPROCEEDINGS{11780252,
+  author={Rashiti, Gentiana and Sibille, Christiane and Chadha, Tarun},
+  booktitle={2026 IEEE International Conference on Cyber Humanities (IEEE-CH)}, 
+  title={CHNOBLi: Named Entity Linking on multilingual, historical, retro-digitized data}, 
+  year={2026},
+  pages={1-6},
+  keywords={Joining processes;Multilingual;Optical character recognition;Tagging;Modeling;Conferences;Printing;Indexes;Indexing;Context;Named Entity Linking;Named Entity Disambiguation;Natural Language Processing;Historical Document Analysis;Multilingual Text Processing;Retro-digitized Data},
+  doi={10.1109/IEEE-CH69852.2026.11780252}}
+```
 
 ## Documentation
 
