@@ -89,17 +89,25 @@ def test_get_candidates_no_lastname():
     assert not get_candidates({"lastname": []}, "", 15, 5)
 
 
-def test_get_candidates_no_firstname_or_abbr():
-    """Do not search for only a lastname."""
-    assert (
-        get_candidates(
-            {"lastname": ["A", "B"], "firstname": [], "abbr_firstname": []},
-            "0000",
-            15,
-            5,
+def test_get_candidates_surname_only_is_queried():
+    """A surname is still searched when no forename or initial remains."""
+    with (
+        patch("src.linking.search_person_gnd", return_value={}) as gnd,
+        patch("src.linking.search_person_wikidata", return_value={}) as wiki,
+        patch("src.linking.search_person_gnd_variantName", return_value={}) as variant,
+    ):
+        assert (
+            get_candidates(
+                {"lastname": ["Boutes"], "firstname": [], "abbr_firstname": []},
+                "1762",
+                15,
+                5,
+            )
+            == []
         )
-        == []
-    )
+    assert gnd.called
+    assert wiki.called
+    variant.assert_not_called()
 
 
 def test_get_candidates_short_lastname():

@@ -17,6 +17,7 @@ from multiprocessing import Pool
 
 import orjson
 from lxml import etree
+from src.tag_sanity import Part, sanitize_parts
 from utility.settings import settings
 from utility.utils import save_data_intermediate
 
@@ -416,26 +417,63 @@ def process_page(
     for j, sentence in enumerate(sentences):
         entity = None
         current_tag = None
-        for token in sentence:
+        person_buf: list[tuple[str, dict, int]] = []
+
+        def flush_person(boundary_idx: int) -> None:
+            nonlocal person_buf, entity, current_tag
+            if not person_buf:
+                return
+            following = []
+            for tok in sentence[person_buf[-1][2] + 1 : boundary_idx]:
+                tok_tag = tok.get("tag", "O")
+                if tok_tag != "O" and not str(tok_tag).endswith("adj"):
+                    break
+                following.append(tok["token"])
+                if len(following) >= 4:
+                    break
+            parts = []
+            for tagend, token, _idx in person_buf:
+                role = tagend if tagend in {"LN", "FN", "OC", "TL", "AN", "OT", "COM"} else "OT"
+                surface = token["token"]
+                if role == "FN" and (
+                    surface.endswith(".") or len(surface.strip(".")) == 1
+                ):
+                    role = "AB"
+                parts.append(Part(surface, role, token))
+            cleaned = sanitize_parts(parts, following)
+            person_buf = []
+            if not cleaned:
+                entity = None
+                current_tag = None
+                return
+            entity = initialize_found_entry()
+            for part in cleaned:
+                tok = dict(part.payload)
+                tok["token"] = part.surface
+                emit = "FN" if part.role == "AB" else part.role
+                add_info_to_entity(entity, emit, tok, i, j, page, articles, pid)
+            entitylist.append(entity)
+            entity = None
+            current_tag = None
+
+        for idx, token in enumerate(sentence):
             tag = token["tag"]
-            if tag[2:5] == "PER":
+            if len(tag) >= 5 and tag[2:5] == "PER":
                 tagstart = tag[:6]
                 tagend = tag[6:]
                 if tagstart.startswith("B-"):
-                    if entity:
-                        if current_tag == "PER":
-                            entitylist.append(entity)
-                        elif placeEntitylist is not None:
-                            placeEntitylist.append(entity)
-                    entity = initialize_found_entry()
-                    add_info_to_entity(entity, tagend, token, i, j, page, articles, pid)
-                elif tagstart.startswith("I-"):
-                    if not entity:
-                        entity = initialize_found_entry()
-                    elif current_tag != "PER" and placeEntitylist is not None:
+                    flush_person(idx)
+                    if entity is not None and placeEntitylist is not None:
                         placeEntitylist.append(entity)
-                        entity = initialize_found_entry()
-                    add_info_to_entity(entity, tagend, token, i, j, page, articles, pid)
+                        entity = None
+                    person_buf = [(tagend, token, idx)]
+                elif tagstart.startswith("I-"):
+                    if not person_buf:
+                        if entity is not None and placeEntitylist is not None:
+                            placeEntitylist.append(entity)
+                            entity = None
+                        person_buf = []
+                    person_buf.append((tagend, token, idx))
                 else:
                     logging.info("UNKNOWN TAG ENCOUNTERED: " + tag)
                 current_tag = "PER"
@@ -445,26 +483,20 @@ def process_page(
                 # current_tag = "O"
                 continue
             elif placeEntitylist is not None:  # all place tags
+                flush_person(idx)
                 tagstart = tag[:2]
                 tagend = tag[2:]
                 if tagstart.startswith("B-"):
-                    if entity:
-                        if current_tag == "PER":
-                            entitylist.append(entity)
-                        else:
-                            placeEntitylist.append(entity)
+                    if entity is not None:
+                        placeEntitylist.append(entity)
                     entity = initialize_found_place_entry()
                     add_info_to_place_entity(
                         entity, tagend, token, i, j, page, articles, pid
                     )
                 elif tagstart.startswith("I-"):
-                    if not entity:
-                        entity = initialize_found_place_entry()
-                    elif current_tag != tagend:
-                        placeEntitylist.append(entity)
-                        entity = initialize_found_place_entry()
-                    elif current_tag == "PER":
-                        entitylist.append(entity)
+                    if entity is None or current_tag != tagend:
+                        if entity is not None:
+                            placeEntitylist.append(entity)
                         entity = initialize_found_place_entry()
                     add_info_to_place_entity(
                         entity, tagend, token, i, j, page, articles, pid
@@ -472,11 +504,9 @@ def process_page(
                 else:
                     logging.info("UNKNOWN TAG ENCOUNTERED: " + tag)
                 current_tag = tagend
-        if entity:
-            if current_tag == "PER":
-                entitylist.append(entity)
-            elif placeEntitylist is not None:
-                placeEntitylist.append(entity)
+        flush_person(len(sentence))
+        if entity is not None and placeEntitylist is not None:
+            placeEntitylist.append(entity)
 
 
 def get_found_names(items: tuple) -> list:
