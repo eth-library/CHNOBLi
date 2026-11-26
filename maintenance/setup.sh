@@ -13,6 +13,15 @@ ENV_FILE="$ROOT_DIR/.env"
 ENV_TEMPLATE="$ROOT_DIR/.env_template"
 SERVICES_DIR="$ROOT_DIR/services"
 
+# Portable in-place sed (BSD sed on macOS requires an empty backup suffix)
+sed_inplace() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
 echo "=========================================="
 echo "      CHNOBLi Project Setup Wizard"
 echo "=========================================="
@@ -24,6 +33,14 @@ if [ ! -f "$ENV_FILE" ]; then
     cp "$ENV_TEMPLATE" "$ENV_FILE"
 else
     echo "[*] .env file already exists."
+fi
+
+# Elasticsearch refuses an empty bootstrap password; generate one if missing.
+PASS_VAL=$(grep "^ELASTIC_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+if [ -z "$PASS_VAL" ]; then
+    PASS_VAL=$(openssl rand -base64 18 | tr -d '/+=' | head -c 20)
+    sed_inplace "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" "$ENV_FILE"
+    echo "[*] Generated ELASTIC_PASSWORD and saved it to .env"
 fi
 
 echo ""
@@ -75,12 +92,7 @@ case $SETUP_CHOICE in
     NEW_CERT_PATH="services/CHNOBLi-elasticsearch/secrets/certs/ca/ca.crt"
     echo "[*] Updating PATH_TO_CA_CERT in .env..."
 
-    # Use sed to replace the path. Handle both single and double quotes.
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' "s|^PATH_TO_CA_CERT=.*|PATH_TO_CA_CERT=\"$NEW_CERT_PATH\"|" "$ENV_FILE"
-    else
-        sed -i "s|^PATH_TO_CA_CERT=.*|PATH_TO_CA_CERT=\"$NEW_CERT_PATH\"|" "$ENV_FILE"
-    fi
+    sed_inplace "s|^PATH_TO_CA_CERT=.*|PATH_TO_CA_CERT=\"$NEW_CERT_PATH\"|" "$ENV_FILE"
 
     # Automate Elasticsearch setup
     echo ""
@@ -96,8 +108,8 @@ case $SETUP_CHOICE in
         if [ -f "$ROOT_ENV_PATH" ]; then
             USER_VAL=$(grep "^ELASTIC_USERNAME" "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
             PASS_VAL=$(grep "^ELASTIC_PASSWORD" "$ROOT_ENV_PATH" | cut -d'=' -f2 | tr -d '"')
-            if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
-            if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
+            if [ ! -z "$USER_VAL" ]; then sed_inplace "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
+            if [ ! -z "$PASS_VAL" ]; then sed_inplace "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
         fi
         # Run docker compose setup
         echo "[*] Generating certificates and keystore..."

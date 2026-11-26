@@ -2,8 +2,8 @@ import json
 import sys
 import os
 import argparse
-import requests
-import re
+import urllib.error
+import urllib.request
 
 # Path to the registry
 REGISTRY_PATH = os.path.join(os.path.dirname(__file__), "data_links.json")
@@ -17,11 +17,16 @@ def load_registry():
         return json.load(f)
 
 
-def get_headers():
-    return {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Accept": "application/json",
-    }
+def get_json(url):
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (compatible; CHNOBLi/1.0)",
+            "Accept": "application/json",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return json.load(resp)
 
 
 def resolve_doi_to_files(doi):
@@ -29,13 +34,10 @@ def resolve_doi_to_files(doi):
     Uses the DSpace 7 REST API to find all download links for a given DOI.
     Returns a dictionary of {filename: download_url}
     """
-    headers = get_headers()
     try:
         # 1. Resolve DOI to Item
         pid_url = f"{API_BASE}/pid/find?id={doi.replace('https://doi.org/', '')}"
-        r = requests.get(pid_url, headers=headers, timeout=15)
-        r.raise_for_status()
-        item_data = r.json()
+        item_data = get_json(pid_url)
 
         # 2. Get Bundles link
         bundles_url = item_data.get("_links", {}).get("bundles", {}).get("href")
@@ -43,9 +45,7 @@ def resolve_doi_to_files(doi):
             return {}
 
         # 3. Get Bundles and find ORIGINAL
-        r = requests.get(bundles_url, headers=headers, timeout=15)
-        r.raise_for_status()
-        bundles = r.json().get("_embedded", {}).get("bundles", [])
+        bundles = get_json(bundles_url).get("_embedded", {}).get("bundles", [])
 
         bitstreams_url = None
         for bundle in bundles:
@@ -59,9 +59,7 @@ def resolve_doi_to_files(doi):
             return {}
 
         # 4. Get Bitstreams
-        r = requests.get(bitstreams_url, headers=headers, timeout=15)
-        r.raise_for_status()
-        bitstreams = r.json().get("_embedded", {}).get("bitstreams", [])
+        bitstreams = get_json(bitstreams_url).get("_embedded", {}).get("bitstreams", [])
 
         file_map = {}
         for bs in bitstreams:
@@ -72,7 +70,7 @@ def resolve_doi_to_files(doi):
 
         return file_map
 
-    except Exception as e:
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError) as e:
         print(f"API Error resolving DOI {doi}: {e}", file=sys.stderr)
         return {}
 
