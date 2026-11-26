@@ -4,6 +4,9 @@ data/output
 src/secrets.py
 logs
 
+# macOS
+.DS_Store
+
 #secrets
 secrets/
 

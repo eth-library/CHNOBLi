@@ -10,6 +10,15 @@ ES_DIR="$SERVICES_DIR/CHNOBLi-elasticsearch"
 MILVUS_DIR="$SERVICES_DIR/CHNOBLi-vectordb"
 ROOT_ENV="$ROOT_DIR/.env"
 
+# Portable in-place sed (BSD sed on macOS requires an empty backup suffix)
+sed_inplace() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
 echo "=========================================="
 echo "      CHNOBLi Data Import Wizard"
 echo "=========================================="
@@ -29,16 +38,44 @@ DOI_815="https://doi.org/10.3929/ethz-c-000799815"
 DOI_811="https://doi.org/10.3929/ethz-c-000799811"
 DOI_813="https://doi.org/10.3929/ethz-c-000799813"
 
-# Helper to download a file with curl
+# Helper to download a file with curl.
+# Research Collection may return HTTP 200 with an HTML "Rate Limited" body;
+# reject that before unzip/import sees a fake file.
 download_file() {
     local url=$1
     local output=$2
     local description=$3
+    local attempt
     echo "[*] Downloading $description..."
-    if ! curl -L -A "Mozilla/5.0" -o "$output" "$url"; then
-        echo "Error: Failed to download $description."
-        exit 1
-    fi
+    for attempt in 1 2 3 4 5; do
+        if ! curl -fL -A "Mozilla/5.0" -o "$output" "$url"; then
+            rm -f "$output"
+            echo "    Download failed (attempt $attempt/5). Waiting 60s..."
+            sleep 60
+            continue
+        fi
+        # Only inspect the start — never grep whole multi-GB dumps
+        if head -c 256 "$output" 2>/dev/null | grep -qi 'rate limited\|<!DOCTYPE\|<html'; then
+            rm -f "$output"
+            echo "    Rate-limited by Research Collection (attempt $attempt/5). Waiting 60s..."
+            sleep 60
+            continue
+        fi
+        case "$output" in
+            *.zip)
+                if ! python3 -c "import sys; sys.exit(0 if open(sys.argv[1],'rb').read(2)==b'PK' else 1)" "$output"; then
+                    rm -f "$output"
+                    echo "    Not a valid zip (attempt $attempt/5). Waiting 60s..."
+                    sleep 60
+                    continue
+                fi
+                ;;
+        esac
+        return 0
+    done
+    echo "Error: Could not download $description after retries (often rate-limiting)."
+    echo "Wait a few minutes and re-run: make import-data"
+    exit 1
 }
 
 # Helper to check if Elasticsearch is up
@@ -154,8 +191,8 @@ import_es_wikidata() {
     if [ -f "$ROOT_ENV" ]; then
         USER_VAL=$(grep "^ELASTIC_USERNAME" "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
         PASS_VAL=$(grep "^ELASTIC_PASSWORD" "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
-        if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
-        if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
+        if [ ! -z "$USER_VAL" ]; then sed_inplace "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
+        if [ ! -z "$PASS_VAL" ]; then sed_inplace "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
     fi
 
     # Download data if missing
@@ -190,8 +227,8 @@ import_es_gnd() {
     if [ -f "$ROOT_ENV" ]; then
         USER_VAL=$(grep "^ELASTIC_USERNAME" "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
         PASS_VAL=$(grep "^ELASTIC_PASSWORD" "$ROOT_ENV" | cut -d'=' -f2 | tr -d '"')
-        if [ ! -z "$USER_VAL" ]; then sed -i "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
-        if [ ! -z "$PASS_VAL" ]; then sed -i "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
+        if [ ! -z "$USER_VAL" ]; then sed_inplace "s|^ELASTIC_USERNAME=.*|ELASTIC_USERNAME=\"$USER_VAL\"|" .env; fi
+        if [ ! -z "$PASS_VAL" ]; then sed_inplace "s|^ELASTIC_PASSWORD=.*|ELASTIC_PASSWORD=\"$PASS_VAL\"|" .env; fi
     fi
 
     # Download data if missing
