@@ -4,6 +4,9 @@ data/output
 src/secrets.py
 logs
 
+# macOS
+.DS_Store
+
 #secrets
 secrets/
 
@@ -12,10 +15,15 @@ secrets/
 
 #env
 .env_chnobli
+.env
+
+# local editable install metadata
+*.egg-info/
 
 # Services (local clones)
 services/CHNOBLi-elasticsearch
 services/CHNOBLi-vectordb
+services/embeddings-backend
 
 # Models
 models/*pt

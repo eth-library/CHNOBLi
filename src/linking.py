@@ -195,11 +195,10 @@ def get_candidates(
     :rtype: list
     """
 
-    if (
-        len(person["lastname"]) == 0
-        or (len(" ".join(person["lastname"])) < 3)
-        or (not person["firstname"] and not person["abbr_firstname"])
-    ):
+    # A surname of at least three characters is queried on its own. Stripping a
+    # courtesy title can leave no forename or initial, and the forename clause
+    # then matches anything. Shorter surnames are still skipped.
+    if len(person["lastname"]) == 0 or len(" ".join(person["lastname"])) < 3:
         return []
 
     lastname, fname_abbr_fname, full_name = _combine_nameparts(person)
